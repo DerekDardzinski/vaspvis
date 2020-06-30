@@ -18,11 +18,13 @@
 * Projected Band structure on individual atoms with orbitals
     * Most customized ploting option
     * Name (plot_atom_orbitals)
+    ********* DONE ***********
 
 * Projected Band structure on certain orbitals (px vs py, s vs dxx, etc.)
     * User supplys orbitals, and they are summed across all atoms
     * Each orbital gets a different color for comparison
     * Name (compare_orbitals)
+    ********* DONE ***********
 
 * Project on certain elements and compare (In vs Sb)
     * Element symbols are input and all atom indices are found and summed (from POSCAR)
