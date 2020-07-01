@@ -35,10 +35,16 @@ class BandStructure:
             f'{folder}/vasprun.xml',
             parse_projected_eigen=projected
         )
+        self.poscar = Poscar.from_file(
+            f'{folder}/POSCAR',
+            check_for_POTCAR=False,
+            read_velocities=False
+        )
         self.projected = projected
         self.hse = hse
         self.folder = folder
         self.spin = 'up'
+        self.spin_dict = {'up': Spin.up, 'dowm': Spin.down}
         self.bands_dict = self.load_bands()
 
         if projected:
@@ -62,20 +68,18 @@ class BandStructure:
         eigenvalues = self.vasprun.eigenvalues
         efermi = self.vasprun.efermi
         spin = self.spin
-        nkpoints = len(eigenvalues[Spin.up])
-        nbands = len(eigenvalues[Spin.up][0])
-        spin_dict = {'up': Spin.up, 'down': Spin.down}
+        nkpoints = len(eigenvalues[self.spin_dict[spin]])
+        nbands = len(eigenvalues[self.spin_dict[spin]][0])
 
         bands_dict = {f'band{i+1}': [] for i in range(nbands)}
 
         for i in range(nkpoints):
             for j in range(nbands):
                 bands_dict[f'band{j+1}'].append(
-                    eigenvalues[spin_dict[spin]][i][j][0] - efermi
+                    eigenvalues[self.spin_dict[spin]][i][j][0] - efermi
                 )
 
         return bands_dict
-
 
     def load_projected_bands(self):
         """
@@ -95,9 +99,10 @@ class BandStructure:
             check_for_POTCAR=False,
             read_velocities=False
         )
-        natoms = len(poscar.site_symbols)
-        nkpoints = len(projected_eigenvalues[Spin.up])
-        nbands = len(projected_eigenvalues[Spin.up][0])
+        spin = self.spin
+        natoms = np.sum(poscar.natoms)
+        nkpoints = len(projected_eigenvalues[self.spin_dict[spin]])
+        nbands = len(projected_eigenvalues[self.spin_dict[spin]][0])
 
         projected_dict = {f'band{i+1}':
                           {atom: np.zeros(9) for atom in range(natoms)}
@@ -107,7 +112,7 @@ class BandStructure:
             for j in range(nbands):
                 band = f'band{j+1}'
                 for atom in range(natoms):
-                    orbital_weights = projected_eigenvalues[Spin.up][i][j][atom]
+                    orbital_weights = projected_eigenvalues[self.spin_dict[spin]][i][j][atom]
                     projected_dict[band][atom] = np.vstack([
                         projected_dict[band][atom],
                         orbital_weights
@@ -194,6 +199,49 @@ class BandStructure:
                     orbital_dict[band] = orbital_dict[band].drop(columns=col)
 
         return orbital_dict
+
+    def sum_elements(self, elements):
+        """
+        This function sums the weights of the orbitals of specific elements within the
+        calculated structure and returns a dictionary of the form:
+        band index --> element label --> orbital weights
+        This is useful for structures with many elements because manually entering indicies
+        is not practical for large structures.
+
+        Outputs:
+        ----------
+        element_dict: (dict([str][str][pd.DataFrame])) Dictionary that contains the summed
+            weights for each orbital for a given element in the structure.
+        """
+
+        poscar = self.poscar
+        natoms = poscar.natoms
+        symbols = poscar.site_symbols
+        projected_dict = self.projected_dict
+
+        element_list = np.hstack(
+            [[symbols[i] for j in range(natoms[i])]
+             for i in range(len(symbols))]
+        )
+
+        element_dict = {
+            band: {element: [] for element in elements} for band in projected_dict
+        }
+
+        for band in projected_dict:
+            band_df = pd.DataFrame()
+            for element in elements:
+                element_index = np.where(element_list == element)[0]
+                df = pd.concat(
+                    [projected_dict[band][i] for i in element_index],
+                    axis=1
+                )
+                element_dict[band][element] = df.groupby(
+                    by=df.columns,
+                    axis=1
+                ).sum()
+
+        return element_dict
 
     def get_kticks(self, ax):
         """
@@ -402,9 +450,53 @@ class BandStructure:
 
         pass
 
+    # Unfinished need to reformat to include orbitals
+    def project_elements(self, elements, orbitals, ax, scale_factor=5, color_dict=None):
+        self.plot_plain(ax=ax, linewidth=0.75)
+        self.get_kticks(ax=ax)
+
+        element_dict = self.sum_elements(elements=elements)
+
+        if color_dict is None:
+            color_dict = {
+                0: 'red',
+                1: 'green',
+                2: 'blue',
+                3: 'orange',
+                4: 'purple',
+                5: 'gold',
+                6: 'mediumturquoise',
+                7: 'navy',
+                8: 'springgreen',
+            }
+
+        plot_element = {element: pd.DataFrame(
+            columns=[range(9)]) for element in elements}
+        plot_band = []
+        plot_wave_vec = []
+
+        for band in element_dict:
+            plot_band.extend(self.bands_dict[band])
+            plot_wave_vec.extend(range(len(self.bands_dict[band])))
+            for element in elements:
+                plot_element[element] = plot_element[element].append(
+                    element_dict[band][element])
+
+        for (i, element) in enumerate(elements):
+            for orbital in orbitals:
+                ax.scatter(
+                    plot_wave_vec,
+                    plot_band,
+                    c=color_dict[orbital],
+                    s=scale_factor * plot_element[element][orbital],
+                    zorder=1,
+                )
+
+        pass
+
 
 def main():
-    bands = BandStructure(folder='../../vaspvis_data/band',
+    bands = BandStructure(folder='../../vaspvis_data/bandInSb',
                           projected=True, spin='up')
     fig = plt.figure(figsize=(4, 3), dpi=300)
     ax = fig.add_subplot(111)
@@ -412,6 +504,8 @@ def main():
     # bands.plot_plain(ax=ax)
     # bands.plot_atom_orbitals(ax=ax, atom_orbital_pairs=[[0, 0], [1, 3]])
     # bands.compare_orbitals(ax=ax, orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8])
+    element_dict = bands.sum_elements(elements=['In'])
+    bands.project_elements(ax=ax, elements=['In'], orbitals=[0, 1, 2])
     plt.ylim(-6, 6)
     plt.ylabel('$E - E_F$ $(eV)$', fontsize=6)
     plt.tick_params(labelsize=6, length=1.5)
