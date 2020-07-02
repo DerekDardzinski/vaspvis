@@ -46,6 +46,17 @@ class BandStructure:
         self.spin = 'up'
         self.spin_dict = {'up': Spin.up, 'dowm': Spin.down}
         self.bands_dict = self.load_bands()
+        self.color_dict = {
+            0: '#052F5F',
+            1: '#F46036',
+            2: '#28502E',
+            3: '#005377',
+            4: '#EC465A',
+            5: '#06A77D',
+            6: '#4D3956',
+            7: '#A80874',
+            8: '#009FFD',
+        }
 
         if projected:
             self.projected_dict = self.load_projected_bands()
@@ -168,14 +179,14 @@ class BandStructure:
         ----------
         orbitals: (list) List of desired orbitals. 
             0 = s
-            1 = px
-            2 = py
-            3 = pz
-            4 = dxx
-            5 = dxy
-            6 = dxz
-            7 = dyz
-            8 = dzz
+            1 = py
+            2 = pz
+            3 = px
+            4 = dxy
+            5 = dyz
+            6 = dz2
+            7 = dxz
+            8 = dx2-y2
 
         Outputs:
         ----------
@@ -330,7 +341,11 @@ class BandStructure:
         spd_dict = self.sum_spd()
 
         if color_dict is None:
-            color_dict = {'s': 'red', 'p': 'blue', 'd': 'green'}
+            color_dict = {
+                's': self.color_dict[0],
+                'p': self.color_dict[1],
+                'd': self.color_dict[2],
+            }
 
         self.plot_plain(ax, linewidth=0.5)
 
@@ -354,7 +369,7 @@ class BandStructure:
 
         pass
 
-    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, colors=None):
+    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_dict=None):
         """
         This function plots the projected band structure of individual orbitals on
         individual atoms given that the band data has already been loaded with the
@@ -364,13 +379,12 @@ class BandStructure:
         -----------
         atom_orbital_pairs: (list[list]): Selected orbitals on selected atoms to plot.
             This should take the form of [[atom index, orbital_index], ...]. 
-            To plots the px orbital of the 1st atom and the pz orbital of the 2nd atom
-            in the POSCAR file, the input would be [[0, 1], [1, 3]]
+            To plot the px orbital of the 1st atom and the pz orbital of the 2nd atom
+            in the POSCAR file, the input would be [[0, 3], [1, 2]]
         ax: (matplotlib.pyplot.axis) Axis to plot the data on
         scale_factor: (float) Factor to scale weights. This changes the size of the
             points in the scatter plot
-        colors: (list) List of colors for the atom-orbital pairs in the order that
-            the atom-orbital pairs were given.
+        colors: (dict[int][str]) Dictionary of colors for the atom-orbital pairs in          the order that the atom-orbital pairs were given.
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
@@ -379,18 +393,18 @@ class BandStructure:
         projected_dict = self.projected_dict
         wave_vector = range(len(self.bands_dict['band1']))
 
-        if colors is None:
-            colors = ['red', 'blue', 'green', 'orange', 'purple']
+        if color_dict is None:
+            color_dict = self.color_dict
 
         for band in projected_dict:
-            for i, atom_orbital_pair in enumerate(atom_orbital_pairs):
+            for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
                 atom = atom_orbital_pair[0]
                 orbital = atom_orbital_pair[1]
 
                 ax.scatter(
                     wave_vector,
                     self.bands_dict[band],
-                    c=colors[i],
+                    c=color_dict[i],
                     s=scale_factor * projected_dict[band][atom][orbital]
                 )
 
@@ -418,17 +432,7 @@ class BandStructure:
         orbital_dict = self.sum_orbital(orbitals=orbitals)
 
         if color_dict is None:
-            color_dict = {
-                0: 'red',
-                1: 'green',
-                2: 'blue',
-                3: 'orange',
-                4: 'purple',
-                5: 'gold',
-                6: 'mediumturquoise',
-                7: 'navy',
-                8: 'springgreen',
-            }
+            color_dict = self.color_dict
 
         plot_df = pd.DataFrame(columns=['s', 'p', 'd'])
         plot_band = []
@@ -496,21 +500,22 @@ class BandStructure:
 
 
 def main():
-    bands = BandStructure(folder='../../vaspvis_data/bandInSb',
+    bands = BandStructure(folder='../../vaspvis_data/slab',
                           projected=True, spin='up')
-    fig = plt.figure(figsize=(4, 3), dpi=300)
+    fig = plt.figure(figsize=(2, 3), dpi=300)
     ax = fig.add_subplot(111)
-    # bands.plot_spd(ax=ax, order=['d', 'p', 's'])
-    # bands.plot_plain(ax=ax)
+    bands.plot_spd(ax=ax, order=['s', 'p', 'd'], scale_factor=2)
+    # bands.plot_plain(ax=ax, linewidth=1)
     # bands.plot_atom_orbitals(ax=ax, atom_orbital_pairs=[[0, 0], [1, 3]])
     # bands.compare_orbitals(ax=ax, orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8])
-    element_dict = bands.sum_elements(elements=['In'])
-    bands.project_elements(ax=ax, elements=['In'], orbitals=[0, 1, 2])
-    plt.ylim(-6, 6)
+    # element_dict = bands.sum_elements(elements=['In'])
+    # bands.project_elements(ax=ax, elements=['In'], orbitals=[0, 1, 2])
+    plt.ylim(-6, 4)
     plt.ylabel('$E - E_F$ $(eV)$', fontsize=6)
     plt.tick_params(labelsize=6, length=1.5)
     plt.tick_params(axis='x', length=0)
     plt.tight_layout(pad=0.5)
+    plt.savefig('bs_InSb1110_spd2.png')
     plt.show()
 
 
