@@ -162,7 +162,7 @@ class DOSPlot:
 
         return spd_df
 
-    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05):
+    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y'):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -189,21 +189,39 @@ class DOSPlot:
         else:
             tdensity = tdos_dict['density']
 
-        ax.plot(
-            tdensity,
-            tdos_dict['energy'],
-            color='black',
-            linewidth=linewidth,
-        )
+        if energyaxis == 'y':
+            ax.plot(
+                tdensity,
+                tdos_dict['energy'],
+                color='black',
+                linewidth=linewidth,
+            )
 
-        if fill:
-            ax.fill_betweenx(
+            if fill:
+                ax.fill_betweenx(
+                    tdos_dict['energy'],
+                    tdensity,
+                    0,
+                    color='black',
+                    alpha=alpha,
+                )
+
+        if energyaxis == 'x':
+            ax.plot(
                 tdos_dict['energy'],
                 tdensity,
-                0,
                 color='black',
-                alpha=alpha,
+                linewidth=linewidth,
             )
+
+            if fill:
+                ax.fill_between(
+                    tdos_dict['energy'],
+                    tdensity,
+                    0,
+                    color='black',
+                    alpha=alpha,
+                )
 
         for i, orbital in enumerate(order):
             if sigma > 0:
@@ -214,23 +232,41 @@ class DOSPlot:
             else:
                 pdensity = spd_df[orbital]
 
-            ax.plot(
-                pdensity,
-                tdos_dict['energy'],
-                color=self.color_dict[i],
-                linewidth=linewidth
-            )
-
-            if fill:
-                ax.fill_betweenx(
-                    tdos_dict['energy'],
+            if energyaxis == 'y':
+                ax.plot(
                     pdensity,
-                    0,
+                    tdos_dict['energy'],
                     color=self.color_dict[i],
-                    alpha=alpha,
+                    linewidth=linewidth
                 )
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, color_dict=None, linewidth=1.5, sigma=0.05):
+                if fill:
+                    ax.fill_betweenx(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=self.color_dict[i],
+                        alpha=alpha,
+                    )
+
+            if energyaxis == 'x':
+                ax.plot(
+                    tdos_dict['energy'],
+                    pdensity,
+                    color=self.color_dict[i],
+                    linewidth=linewidth
+                )
+
+                if fill:
+                    ax.fill_between(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=self.color_dict[i],
+                        alpha=alpha,
+                    )
+
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, color_dict=None, linewidth=1.5, sigma=0.05, energyaxis='y'):
         """
         This function plots the total density of states with the projected
         density of states on the given atoms.
@@ -260,21 +296,39 @@ class DOSPlot:
         else:
             tdensity = tdos_dict['density']
 
-        ax.plot(
-            tdensity,
-            tdos_dict['energy'],
-            color='black',
-            linewidth=linewidth,
-        )
+        if energyaxis == 'y':
+            ax.plot(
+                tdensity,
+                tdos_dict['energy'],
+                color='black',
+                linewidth=linewidth,
+            )
 
-        if fill:
-            ax.fill_betweenx(
+            if fill:
+                ax.fill_betweenx(
+                    tdos_dict['energy'],
+                    tdensity,
+                    0,
+                    color='black',
+                    alpha=alpha,
+                )
+
+        elif energyaxis == 'x':
+            ax.plot(
                 tdos_dict['energy'],
                 tdensity,
-                0,
                 color='black',
-                alpha=alpha,
+                linewidth=linewidth,
             )
+
+            if fill:
+                ax.fill_between(
+                    tdos_dict['energy'],
+                    tdensity,
+                    0,
+                    color='black',
+                    alpha=alpha,
+                )
 
         for i, atom in enumerate(atoms):
             if sigma > 0:
@@ -285,21 +339,39 @@ class DOSPlot:
             else:
                 pdensity = atom_df[atom]
 
-            ax.plot(
-                pdensity,
-                tdos_dict['energy'],
-                color=color_dict[i],
-                linewidth=linewidth,
-            )
+            if energyaxis == 'y':
+                ax.plot(
+                    pdensity,
+                    tdos_dict['energy'],
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                )
 
-            if fill:
-                ax.fill_betweenx(
+                if fill:
+                    ax.fill_betweenx(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+            elif energyaxis == 'x':
+                ax.plot(
                     tdos_dict['energy'],
                     pdensity,
-                    0,
                     color=color_dict[i],
-                    alpha=alpha,
+                    linewidth=linewidth,
                 )
+
+                if fill:
+                    ax.fill_between(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
 
     def plot_layers(self, ax, ylim=[-6, 6], cmap='magma', sigma=5):
         """
@@ -341,10 +413,11 @@ def main():
     fig = plt.figure(figsize=(4, 8), dpi=200)
     ax = fig.add_subplot(111)
     plt.ylim(-6, 6)
-    ax.margins(x=0.005)
+    ax.margins(x=0.005, y=0.005)
     dos = DOSPlot(folder='../../vaspvis_data/dos')
+    dos.plot_spd(ax=ax, energyaxis='y')
     # dos.plot_layers(ax=ax)
-    dos.plot_atoms(ax=ax, atoms=[0, 1], sigma=0.1, fill=True)
+    # dos.plot_atoms(ax=ax, atoms=[0, 1], sigma=0.1, fill=True, energyaxis='y')
     plt.show()
 
 
