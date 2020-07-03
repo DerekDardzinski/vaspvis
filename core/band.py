@@ -211,6 +211,31 @@ class BandStructure:
 
         return orbital_dict
 
+    def sum_atoms(self, atoms):
+        """
+        This function finds the weights of desired atoms for all orbitals and
+            returns a dictionary of the form:
+            band index --> atom index
+
+        Inputs:
+        ----------
+        atoms: (list) List of desired atoms where atom 0 is the first atom in
+            the POSCAR file. 
+
+        Outputs:
+        ----------
+        atom_dict: (dict[str][pd.DataFrame]) Dictionary that contains the projected
+            weights of the selected atoms.
+        """
+
+        atom_dict = {band: np.nan for band in self.projected_dict}
+
+        for band in self.projected_dict:
+            atoms_dict = {atom: self.projected_dict[band][atom].sum(axis=1) for atom in atoms}
+            atoms_dict[band] = pd.DataFrame.from_dict(atoms_dict)
+
+        return atoms_dict
+
     def sum_elements(self, elements):
         """
         This function sums the weights of the orbitals of specific elements within the
@@ -434,7 +459,7 @@ class BandStructure:
         if color_dict is None:
             color_dict = self.color_dict
 
-        plot_df = pd.DataFrame(columns=['s', 'p', 'd'])
+        plot_df = pd.DataFrame(columns=orbitals)
         plot_band = []
         plot_wave_vec = []
 
@@ -452,7 +477,48 @@ class BandStructure:
                 zorder=1,
             )
 
-        pass
+    def plot_atoms(self, atoms, ax, scale_factor=5, color_dict=None):
+        """
+        This function plots the projected band structure of given orbitals summed
+        across all atoms given that the band data has already been loaded with the
+        load_bands() and load_projected_bands() methods.
+
+        Inputs:
+        ----------
+        atoms: (list) List of atoms to compare
+        ax: (matplotlib.pyplot.axis) Axis to plot the data on
+        scale_factor: (float) Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        color_dict: (dict[str][str]) This option allow the colors of each orbital
+            specified. Should be in the form of:
+            {'orbital index': <color>, 'orbital index': <color>, ...}
+        """
+        self.plot_plain(ax=ax, linewidth=0.75)
+        self.get_kticks(ax=ax)
+
+        atom_dict = self.sum_atoms(orbitals=atoms)
+
+        if color_dict is None:
+            color_dict = self.color_dict
+
+        plot_df = pd.DataFrame(columns=atoms)
+        plot_band = []
+        plot_wave_vec = []
+
+        for band in atom_dict:
+            plot_df = plot_df.append(atom_dict[band])
+            plot_band.extend(self.bands_dict[band])
+            plot_wave_vec.extend(range(len(atom_dict[band])))
+
+        for atom in atoms:
+            ax.scatter(
+                plot_wave_vec,
+                plot_band,
+                c=color_dict[atom],
+                s=scale_factor * plot_df[atom],
+                zorder=1,
+            )
+
 
     def plot_elements(self, elements, orbitals, ax, scale_factor=5, color_dict=None):
         self.plot_plain(ax=ax, linewidth=0.75)

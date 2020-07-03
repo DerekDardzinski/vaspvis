@@ -27,6 +27,10 @@ sum_spd()
 sum_orbitals()
 ```
 
+```python
+sum_atoms()
+```
+
 
 ```python
 sum_elements()
@@ -57,6 +61,10 @@ plot_atom_orbitals()
 plot_orbitals()
 ```
 
+
+```python
+plot_atoms()
+```
 
 ```python
 plot_elements()
