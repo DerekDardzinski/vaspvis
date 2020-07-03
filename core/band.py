@@ -59,6 +59,17 @@ class BandStructure:
             7: '#07C589',
             8: '#40BAF2',
         }
+        self.orbital_labels = {
+            0: '$s$',
+            1: '$p_{y}$',
+            2: '$p_{x}$',
+            3: '$p_{z}$',
+            4: '$d_{xy}$',
+            5: '$d_{yz}$',
+            6: '$d_{z^{2}}$',
+            7: '$d_{xz}$',
+            8: '$d_{x^{2}-y^{2}}$'
+        }
 
         if projected:
             self.projected_dict = self.load_projected_bands()
@@ -458,6 +469,7 @@ class BandStructure:
                 c=color_dict[col],
                 s=scale_factor * plot_df[col],
                 zorder=1,
+                label=f'${col}$',
             )
 
     def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_dict=None):
@@ -496,7 +508,9 @@ class BandStructure:
                     wave_vector,
                     self.bands_dict[band],
                     c=color_dict[i],
-                    s=scale_factor * projected_dict[band][atom][orbital]
+                    s=scale_factor * projected_dict[band][atom][orbital],
+                    zorder=1,
+                    label=f'{atom}({self.orbital_labels[orbital]})'
                 )
 
     def plot_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None):
@@ -539,6 +553,7 @@ class BandStructure:
                 c=color_dict[orbital],
                 s=scale_factor * plot_df[orbital],
                 zorder=1,
+                label=self.orbital_labels[orbital],
             )
 
     def plot_atoms(self, atoms, ax, scale_factor=5, color_dict=None):
@@ -581,6 +596,7 @@ class BandStructure:
                 c=color_dict[atom],
                 s=scale_factor * plot_df[atom],
                 zorder=1,
+                label=atom,
             )
 
     def plot_elements(self, elements, ax, scale_factor=5, color_dict=None):
@@ -627,6 +643,7 @@ class BandStructure:
                 c=color_dict[i],
                 s=scale_factor * plot_element[element],
                 zorder=1,
+                label=element
             )
 
     def plot_element_orbitals(self, elements, orbitals, ax, scale_factor=5, color_dict=None):
@@ -676,6 +693,7 @@ class BandStructure:
                     c=color_dict[orbital],
                     s=scale_factor * plot_element[element][orbital],
                     zorder=1,
+                    label=f'{element}({self.orbital_labels[orbital]})'
                 )
 
     def plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None):
@@ -735,35 +753,39 @@ class BandStructure:
                     c=color_dict[orbital],
                     s=scale_factor * plot_element[element][orbital],
                     zorder=1,
+                    label=f'{element}(${orbital}$)',
                 )
 
 
 def main():
     bands = BandStructure(
-        folder='../../vaspvis_data/hse',
+        folder='../../vaspvis_data/hse/band',
         projected=True,
         spin='up',
         hse=True,
         kpath='GXWLGK',
-        n=20,
+        n=50,
     )
     fig = plt.figure(figsize=(4, 3), dpi=300)
     ax = fig.add_subplot(111)
     # bands.get_kticks_hse(ax=ax, kpath='GXWLGK', n=20)
 
     # bands.get_kticks(ax=ax)
-    # bands.plot_spd(ax=ax, order=['s', 'p', 'd'], scale_factor=9)
+    # bands.plot_spd(ax=ax, order=['s', 'p', 'd'], scale_factor=5)
     # bands.plot_plain(ax=ax, linewidth=1)
     # bands.plot_atom_orbitals(ax=ax, atom_orbital_pairs=[[0, 0], [1, 3]])
     # bands.plot_atoms(ax=ax, atoms=[0])
     # element_dict = bands.sum_elements(elements=['In'])
-    bands.plot_element_spd(ax=ax, elements=['As'])
-    plt.ylim(-7, 6)
+    bands.plot_element_spd(ax=ax, elements=['Cd'])
+    # bands.plot_orbitals(
+    # ax=ax, orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8], scale_factor=8)
+    plt.ylim(-6, 6)
     plt.ylabel('$E - E_F$ $(eV)$', fontsize=6)
     plt.tick_params(labelsize=6, length=1.5)
     plt.tick_params(axis='x', length=0)
     plt.tight_layout(pad=0.5)
-    plt.savefig('bs_InSb1110_spd2.png')
+    plt.legend(ncol=3, loc='upper left', fontsize=5)
+    # plt.savefig('bs_orbitals.png')
     plt.show()
 
 
