@@ -28,15 +28,26 @@ class DOSPlot:
             read_velocities=False
         )
         self.color_dict = {
-            0: '#052F5F',
-            1: '#F46036',
-            2: '#28502E',
-            3: '#005377',
-            4: '#EC465A',
-            5: '#06A77D',
-            6: '#4D3956',
-            7: '#A80874',
-            8: '#009FFD',
+            0: '#FF0000',
+            1: '#0000FF',
+            2: '#008000',
+            3: '#800080',
+            4: '#E09200',
+            5: '#FF5C77',
+            6: '#778392',
+            7: '#07C589',
+            8: '#40BAF2',
+        }
+        self.orbital_labels = {
+            0: '$s$',
+            1: '$p_{y}$',
+            2: '$p_{x}$',
+            3: '$p_{z}$',
+            4: '$d_{xy}$',
+            5: '$d_{yz}$',
+            6: '$d_{z^{2}}$',
+            7: '$d_{xz}$',
+            8: '$d_{x^{2}-y^{2}}$'
         }
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
         self.tdos_dict = self.load_tdos()
@@ -237,7 +248,8 @@ class DOSPlot:
                     pdensity,
                     tdos_dict['energy'],
                     color=self.color_dict[i],
-                    linewidth=linewidth
+                    linewidth=linewidth,
+                    label=f'${orbital}$',
                 )
 
                 if fill:
@@ -254,7 +266,8 @@ class DOSPlot:
                     tdos_dict['energy'],
                     pdensity,
                     color=self.color_dict[i],
-                    linewidth=linewidth
+                    linewidth=linewidth,
+                    label=f'${orbital}$',
                 )
 
                 if fill:
@@ -345,6 +358,7 @@ class DOSPlot:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
+                    label=atom,
                 )
 
                 if fill:
@@ -362,6 +376,7 @@ class DOSPlot:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
+                    label=atom,
                 )
 
                 if fill:
