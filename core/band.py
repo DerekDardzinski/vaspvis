@@ -169,7 +169,7 @@ class BandStructure:
 
         return spd_dict
 
-    def sum_orbital(self, orbitals):
+    def sum_orbitals(self, orbitals):
         """
         This function finds the weights of desired orbitals for all atoms and
             returns a dictionary of the form:
@@ -410,7 +410,7 @@ class BandStructure:
 
         pass
 
-    def compare_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None):
+    def plot_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None):
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
@@ -429,7 +429,7 @@ class BandStructure:
         self.plot_plain(ax=ax, linewidth=0.75)
         self.get_kticks(ax=ax)
 
-        orbital_dict = self.sum_orbital(orbitals=orbitals)
+        orbital_dict = self.sum_orbitals(orbitals=orbitals)
 
         if color_dict is None:
             color_dict = self.color_dict
@@ -454,8 +454,7 @@ class BandStructure:
 
         pass
 
-    # Unfinished need to reformat to include orbitals
-    def project_elements(self, elements, orbitals, ax, scale_factor=5, color_dict=None):
+    def plot_elements(self, elements, orbitals, ax, scale_factor=5, color_dict=None):
         self.plot_plain(ax=ax, linewidth=0.75)
         self.get_kticks(ax=ax)
 
