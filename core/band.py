@@ -274,8 +274,8 @@ class BandStructure:
         """
         This function sums the weights of the orbitals of specific elements within the
         calculated structure and returns a dictionary of the form:
-        band index --> element label --> orbital weights for orbitals = False
-        band index --> element label for orbitals = True
+        band index --> element label --> orbital weights for orbitals = True
+        band index --> element label for orbitals = False
         This is useful for structures with many elements because manually entering indicies is
         not practical for large structures.
 
@@ -487,7 +487,8 @@ class BandStructure:
         ax: (matplotlib.pyplot.axis) Axis to plot the data on
         scale_factor: (float) Factor to scale weights. This changes the size of the
             points in the scatter plot
-        colors: (dict[int][str]) Dictionary of colors for the atom-orbital pairs in          the order that the atom-orbital pairs were given.
+        color_dict: (dict[int][str]) Dictionary of colors for the atom-orbital pairs in       
+            the order that the atom-orbital pairs were given.
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
@@ -568,9 +569,9 @@ class BandStructure:
         ax: (matplotlib.pyplot.axis) Axis to plot the data on
         scale_factor: (float) Factor to scale weights. This changes the size of the
             points in the scatter plot
-        color_dict: (dict[str][str]) This option allow the colors of each orbital
+        color_dict: (dict[str][str]) This option allow the colors of each atom
             specified. Should be in the form of:
-            {'orbital index': <color>, 'orbital index': <color>, ...}
+            {'atom index': <color>, 'atom index': <color>, ...}
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
@@ -601,22 +602,20 @@ class BandStructure:
 
     def plot_elements(self, elements, ax, scale_factor=5, color_dict=None):
         """
-        This function plots the projected band structure on each element in
-        the calculated structure. This is useful for supercells where the are
+        This function plots the projected band structure on specified element in
+        the calculated structure. This is useful for supercells where there are
         many atoms of the same element and it is inconvienient to manually
         list each index in the POSCAR.
 
         Inputs:
         ----------
         elements: (list) List of element symbols to project onto
-        orbitals: (list) List of orbitals to plot for each element listed.
         ax: (matplotlib.pyplot.axis) Axis to plot the data on
         scale_factor: (float) Factor to scale weights. This changes the size of the
             points in the scatter plot
-        color_dict: (dict[str][str]) This option allow the colors of each orbital
+        color_dict: (dict[str][str]) This option allow the colors of each element
             specified. Should be in the form of:
-            {'orbital index': <color>, 'orbital index': <color>, ...}
-
+            {'element index': <color>, 'element index': <color>, ...}
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
@@ -648,9 +647,9 @@ class BandStructure:
 
     def plot_element_orbitals(self, elements, orbitals, ax, scale_factor=5, color_dict=None):
         """
-        This function plots the projected band structure on each element in
-        the calculated structure. This is useful for supercells where the are
-        many atoms of the same element and it is inconvienient to manually
+        This function plots the projected band structure on chosen orbitals for each 
+        specified element in the calculated structure. This is useful for supercells 
+        where the are many atoms of the same element and it is inconvienient to manually
         list each index in the POSCAR.
 
         Inputs:
@@ -698,10 +697,10 @@ class BandStructure:
 
     def plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None):
         """
-        This function plots the projected band structure on each element in
-        the calculated structure. This is useful for supercells where the are
-        many atoms of the same element and it is inconvienient to manually
-        list each index in the POSCAR.
+        This function plots the projected band structure on the s, p, and d orbitals
+        for each specified element in the calculated structure. This is useful for 
+        supercells where the are many atoms of the same element and it is inconvienient 
+        to manually list each index in the POSCAR.
 
         Inputs:
         ----------

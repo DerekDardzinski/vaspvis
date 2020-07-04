@@ -153,8 +153,29 @@ class DOSPlot:
 
         return atom_df
 
-
     def sum_elements(self, elements, orbitals=False, spd=False):
+        """
+        This function sums the weights of the orbitals of specific elements within the
+        calculated structure and returns a dictionary of the form:
+        element label --> orbital weights for orbitals = True
+        element label for orbitals = False
+        This is useful for structures with many elements because manually entering indicies is
+        not practical for large structures.
+
+        Inputs:
+        ----------
+        elements: (list) List of element symbols to sum the weights of.
+        orbitals: (bool) Determines whether or not to inclue orbitals or not
+            (True = keep orbitals, False = sum orbitals together )
+        spd: (bool) Determines whether or not to sum the s, p, and d orbitals
+
+
+        Outputs:
+        ----------
+        element_dict: (dict([str][str][pd.DataFrame])) Dictionary that contains the summed
+            weights for each orbital for a given element in the structure.
+        """
+
         poscar = self.poscar
         natoms = poscar.natoms
         symbols = poscar.site_symbols
@@ -192,7 +213,6 @@ class DOSPlot:
 
         return element_dict
 
-
     def sum_spd(self):
         """
         This function sums the weights of the s, p, and d orbitals for each atom
@@ -214,6 +234,19 @@ class DOSPlot:
         return spd_df
 
     def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y'):
+        """
+        This function plots the total density of states
+
+        Inputs:
+        -----------
+        ax: (matplotlib.pyplot.axis) Axis to append the tick labels
+        fill: (bool) Determines wether or not to fill underneath the plot
+        alpha: (float) Alpha value for the fill
+        linewidth: (float) Linewidth of lines
+        sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        """
+
         tdos_dict = self.tdos_dict
 
         if sigma > 0:
@@ -272,6 +305,10 @@ class DOSPlot:
         alpha: (float) Alpha value for the fill
         linewidth: (float) Linewidth of lines
         sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        color_dict: (dict[str][str]) This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
         """
 
         spd_df = self.sum_spd()
@@ -348,9 +385,11 @@ class DOSPlot:
         alpha: (float) Alpha value for the fill
         linewidth: (float) Linewidth of lines
         sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        color_dict: (dict[int][str]) Dictionary of colors for the atom-orbital pairs in       
+            the order that the atom-orbital pairs were given.
         """
 
-        # orbital_df = self.sum_orbitals()
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
@@ -421,12 +460,15 @@ class DOSPlot:
         Inputs:
         ----------
         ax: (matplotlib.pyplot.axis) Axis to plot on
-        order: (list) Order to plot the projected bands in. This feature helps to
-            avoid situations where one projection completely convers the other.
+        orbitals: (list) List of orbitals to project onto
         fill: (bool) Determines wether or not to fill underneath the plot
         alpha: (float) Alpha value for the fill
         linewidth: (float) Linewidth of lines
         sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        color_dict: (dict[str][str]) This option allow the colors of each orbital
+            specified. Should be in the form of:
+            {'orbital index': <color>, 'orbital index': <color>, ...}
         """
 
         orbital_df = self.sum_orbitals()
@@ -503,6 +545,10 @@ class DOSPlot:
         color_dict: (dict[int][str]) Optional dictionary of colors for each atom
         linewidth: (float) Linewidth of lines
         sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        color_dict: (dict[str][str]) This option allow the colors of each atom
+            specified. Should be in the form of:
+            {'atom index': <color>, 'atom index': <color>, ...}
         """
 
         atom_df = self.sum_atoms()
@@ -568,20 +614,26 @@ class DOSPlot:
     def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
         """
         This function plots the total density of states with the projected
-        density of states for the total projections of the s, p, and d orbitals.
+        density of states for the projection onto specified elements. This is 
+        useful for supercells where there are many atoms of the same element and
+        it is inconvienient to manually list each index in the POSCAR.
 
         Inputs:
         ----------
         ax: (matplotlib.pyplot.axis) Axis to plot on
-        order: (list) Order to plot the projected bands in. This feature helps to
-            avoid situations where one projection completely convers the other.
+        elements: (list) List of element symbols to project onto
         fill: (bool) Determines wether or not to fill underneath the plot
         alpha: (float) Alpha value for the fill
         linewidth: (float) Linewidth of lines
         sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        color_dict: (dict[str][str]) This option allow the colors of each element
+            specified. Should be in the form of:
+            {'element index': <color>, 'element index': <color>, ...}
         """
 
-        element_dict = self.sum_elements(elements=elements, orbitals=False, spd=False)
+        element_dict = self.sum_elements(
+            elements=elements, orbitals=False, spd=False)
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
@@ -641,24 +693,30 @@ class DOSPlot:
                         alpha=alpha,
                     )
 
-    
     def plot_element_orbitals(self, ax, elements, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
         """
         This function plots the total density of states with the projected
-        density of states for the total projections of the s, p, and d orbitals.
+        density of states onto the chosen orbitals of specified elements. This is 
+        useful for supercells where there are many atoms of the same element and
+        it is inconvienient to manually list each index in the POSCAR.
 
         Inputs:
         ----------
         ax: (matplotlib.pyplot.axis) Axis to plot on
-        order: (list) Order to plot the projected bands in. This feature helps to
-            avoid situations where one projection completely convers the other.
+        elements: (list) List of element symbols to project onto
+        orbitals: (list) List of orbitals to project onto
         fill: (bool) Determines wether or not to fill underneath the plot
         alpha: (float) Alpha value for the fill
         linewidth: (float) Linewidth of lines
         sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        color_dict: (dict[str][str]) This option allow the colors of each element
+            specified. Should be in the form of:
+            {'element index': <color>, 'element index': <color>, ...}
         """
 
-        element_dict = self.sum_elements(elements=elements, orbitals=True, spd=False)
+        element_dict = self.sum_elements(
+            elements=elements, orbitals=True, spd=False)
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
@@ -674,7 +732,7 @@ class DOSPlot:
         )
 
         for element in elements:
-            for i, orbital in enumerate(orbital):
+            for i, orbital in enumerate(orbitals):
                 if sigma > 0:
                     pdensity = self.smear(
                         element_dict[element][orbital],
@@ -722,20 +780,28 @@ class DOSPlot:
     def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
         """
         This function plots the total density of states with the projected
-        density of states for the total projections of the s, p, and d orbitals.
+        density of states onto the s, p, and d orbitals of specified elements. 
+        This is useful for supercells where there are many atoms of the same 
+        element and it is inconvienient to manually list each index in the POSCAR.
 
         Inputs:
         ----------
         ax: (matplotlib.pyplot.axis) Axis to plot on
+        elements: (list) List of element symbols to project onto
         order: (list) Order to plot the projected bands in. This feature helps to
             avoid situations where one projection completely convers the other.
         fill: (bool) Determines wether or not to fill underneath the plot
         alpha: (float) Alpha value for the fill
         linewidth: (float) Linewidth of lines
         sigma: (float) Standard deviation for gaussian filter
+        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        color_dict: (dict[str][str]) This option allow the colors of each element
+            specified. Should be in the form of:
+            {'element index': <color>, 'element index': <color>, ...}
         """
 
-        element_dict = self.sum_elements(elements=elements, orbitals=True, spd=True)
+        element_dict = self.sum_elements(
+            elements=elements, orbitals=True, spd=True)
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
@@ -796,7 +862,7 @@ class DOSPlot:
                             alpha=alpha,
                         )
 
-    def plot_layers(self, ax, ylim=[-6, 6], cmap='magma', sigma=5):
+    def plot_layers(self, ax, ylim=[-6, 6], cmap='magma', sigma=5, energyaxis='y'):
         """
         This function plots a layer by layer heat map of the density
         of states.
@@ -807,6 +873,7 @@ class DOSPlot:
         ylim: (list) Upper and lower energy bounds for the plot.
         cmap: (str) Color map to use in the heat map
         sigma: (float) Sigma parameter for the smearing of the heat map.
+        energyaxis: (str) Axis to plot the energy on. ('x' or 'y')
         """
 
         poscar = self.poscar
@@ -823,13 +890,23 @@ class DOSPlot:
         densities = np.transpose(densities[zorder])
         densities = gaussian_filter(densities, sigma=sigma)
 
-        ax.pcolormesh(
-            atom_index,
-            energies,
-            densities,
-            cmap=cmap,
-            shading='gouraud'
-        )
+        if energyaxis=='y':
+            ax.pcolormesh(
+                atom_index,
+                energies,
+                densities,
+                cmap=cmap,
+                shading='gouraud'
+            )
+
+        if energyaxis=='x':
+            ax.pcolormesh(
+                energies,
+                atom_index,
+                np.transpose(densities),
+                cmap=cmap,
+                shading='gouraud'
+            )
 
 
 def main():
