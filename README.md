@@ -11,6 +11,7 @@ Method for constructing and plotting band structures from VASP calculations.
 plot_plain(ax, color='black', linewidth=1.5)
 ```
 ![](./img/plain_pbe.png)
+<img src="./img/plain_pbe.png"  width="200" height="150">
 
 
 ```python
