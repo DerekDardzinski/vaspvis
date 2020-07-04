@@ -817,8 +817,6 @@ class BandStructure:
 
         elements = [i[0] for i in element_orbital_pairs]
 
-        print(elements)
-
         element_dict = self.sum_elements(elements=elements, orbitals=True)
 
         if color_dict is None:

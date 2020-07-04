@@ -190,7 +190,7 @@ class DOSPlot:
         for element in elements:
             element_index = np.where(element_list == element)[0]
             df = pd.concat(
-                [self.pdos[i] for i in element_index],
+                [self.pdos_dict[i] for i in element_index],
                 axis=1
             )
 
@@ -291,7 +291,7 @@ class DOSPlot:
                     alpha=alpha,
                 )
 
-    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -315,7 +315,11 @@ class DOSPlot:
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
-            color_dict = self.color_dict
+            color_dict = {
+                    's': self.color_dict[0],
+                    'p': self.color_dict[1],
+                    'd': self.color_dict[2],
+                    }
 
         self.plot_plain(
             ax=ax,
@@ -326,7 +330,7 @@ class DOSPlot:
             energyaxis=energyaxis,
         )
 
-        for i, orbital in enumerate(order):
+        for orbital in order:
             if sigma > 0:
                 pdensity = self.smear(
                     spd_df[orbital],
@@ -339,7 +343,7 @@ class DOSPlot:
                 ax.plot(
                     pdensity,
                     tdos_dict['energy'],
-                    color=color_dict[i],
+                    color=color_dict[orbital],
                     linewidth=linewidth,
                     label=f'${orbital}$',
                 )
@@ -349,7 +353,7 @@ class DOSPlot:
                         tdos_dict['energy'],
                         pdensity,
                         0,
-                        color=color_dict[i],
+                        color=color_dict[orbital],
                         alpha=alpha,
                     )
 
@@ -357,7 +361,7 @@ class DOSPlot:
                 ax.plot(
                     tdos_dict['energy'],
                     pdensity,
-                    color=color_dict[i],
+                    color=color_dict[orbital],
                     linewidth=linewidth,
                     label=f'${orbital}$',
                 )
@@ -367,11 +371,39 @@ class DOSPlot:
                         tdos_dict['energy'],
                         pdensity,
                         0,
-                        color=color_dict[i],
+                        color=color_dict[orbital],
                         alpha=alpha,
                     )
 
-    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for i, orbital in enumerate(order):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[orbital])
+                )
+                legend_labels.append(
+                    f'${orbital}$'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -410,11 +442,11 @@ class DOSPlot:
 
             if sigma > 0:
                 pdensity = self.smear(
-                    self.pdos[atom][orbital],
+                    self.pdos_dict[atom][orbital],
                     sigma=sigma
                 )
             else:
-                pdensity = self.pdos[atom][orbital]
+                pdensity = self.pdos_dict[atom][orbital]
 
             if energyaxis == 'y':
                 ax.plot(
@@ -452,7 +484,39 @@ class DOSPlot:
                         alpha=alpha,
                     )
 
-    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
+                atom = atom_orbital_pair[0]
+                orbital = atom_orbital_pair[1]
+
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i])
+                )
+                legend_labels.append(
+                    f'{atom}({self.orbital_labels[atom_orbital_pair[1]]})'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+
+    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -501,7 +565,6 @@ class DOSPlot:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'${self.orbital_labels[orbital]}$',
                 )
 
                 if fill:
@@ -519,7 +582,6 @@ class DOSPlot:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'${self.orbital_labels[orbital]}$',
                 )
 
                 if fill:
@@ -531,7 +593,36 @@ class DOSPlot:
                         alpha=alpha,
                     )
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for i, orbital in enumerate(orbitals):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i])
+                )
+                legend_labels.append(
+                    f'{self.orbital_labels[orbital]}'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
         density of states on the given atoms.
@@ -611,7 +702,35 @@ class DOSPlot:
                         alpha=alpha,
                     )
 
-    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for i, atom in enumerate(atoms):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[atom])
+                )
+                legend_labels.append(
+                    f'{atom}'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
         density of states for the projection onto specified elements. This is 
@@ -693,7 +812,35 @@ class DOSPlot:
                         alpha=alpha,
                     )
 
-    def plot_element_orbitals(self, ax, elements, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for (i, element) in enumerate(elements):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i])
+                )
+                legend_labels.append(
+                    f'{element}'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
         density of states onto the chosen orbitals of specified elements. This is 
@@ -715,6 +862,8 @@ class DOSPlot:
             {'element index': <color>, 'element index': <color>, ...}
         """
 
+        elements = [i[0] for i in element_orbital_pairs]
+
         element_dict = self.sum_elements(
             elements=elements, orbitals=True, spd=False)
         tdos_dict = self.tdos_dict
@@ -731,53 +880,85 @@ class DOSPlot:
             energyaxis=energyaxis,
         )
 
-        for element in elements:
-            for i, orbital in enumerate(orbitals):
-                if sigma > 0:
-                    pdensity = self.smear(
-                        element_dict[element][orbital],
-                        sigma=sigma
-                    )
-                else:
-                    pdensity = element_dict[element][orbital]
+        for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
+            element = element_orbital_pair[0]
+            orbital = element_orbital_pair[1]
+            if sigma > 0:
+                pdensity = self.smear(
+                    element_dict[element][orbital],
+                    sigma=sigma
+                )
+            else:
+                pdensity = element_dict[element][orbital]
 
-                if energyaxis == 'y':
-                    ax.plot(
-                        pdensity,
-                        tdos_dict['energy'],
-                        color=color_dict[i],
-                        linewidth=linewidth,
-                        label=f'{element}({self.orbital_labels[orbital]})',
-                    )
+            if energyaxis == 'y':
+                ax.plot(
+                    pdensity,
+                    tdos_dict['energy'],
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'{element}({self.orbital_labels[orbital]})',
+                )
 
-                    if fill:
-                        ax.fill_betweenx(
-                            tdos_dict['energy'],
-                            pdensity,
-                            0,
-                            color=color_dict[i],
-                            alpha=alpha,
-                        )
-
-                if energyaxis == 'x':
-                    ax.plot(
+                if fill:
+                    ax.fill_betweenx(
                         tdos_dict['energy'],
                         pdensity,
+                        0,
                         color=color_dict[i],
-                        linewidth=linewidth,
-                        label=f'{element}({self.orbital_labels[orbital]})',
+                        alpha=alpha,
                     )
 
-                    if fill:
-                        ax.fill_between(
-                            tdos_dict['energy'],
-                            pdensity,
-                            0,
-                            color=color_dict[i],
-                            alpha=alpha,
-                        )
+            if energyaxis == 'x':
+                ax.plot(
+                    tdos_dict['energy'],
+                    pdensity,
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'{element}({self.orbital_labels[orbital]})',
+                )
 
-    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+                if fill:
+                    ax.fill_between(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
+                element = element_orbital_pair[0]
+                orbital = element_orbital_pair[1]
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i])
+                )
+                legend_labels.append(
+                    f'{element}({self.orbital_labels[orbital]})'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
         density of states onto the s, p, and d orbitals of specified elements. 
@@ -805,7 +986,11 @@ class DOSPlot:
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
-            color_dict = self.color_dict
+            color_dict = {
+                    's': self.color_dict[0],
+                    'p': self.color_dict[1],
+                    'd': self.color_dict[2],
+                    }
 
         self.plot_plain(
             ax=ax,
@@ -830,7 +1015,7 @@ class DOSPlot:
                     ax.plot(
                         pdensity,
                         tdos_dict['energy'],
-                        color=color_dict[i],
+                        color=color_dict[orbital],
                         linewidth=linewidth,
                         label=f'{element}({orbital})',
                     )
@@ -840,7 +1025,7 @@ class DOSPlot:
                             tdos_dict['energy'],
                             pdensity,
                             0,
-                            color=color_dict[i],
+                            color=color_dict[orbital],
                             alpha=alpha,
                         )
 
@@ -848,7 +1033,7 @@ class DOSPlot:
                     ax.plot(
                         tdos_dict['energy'],
                         pdensity,
-                        color=color_dict[i],
+                        color=color_dict[orbital],
                         linewidth=linewidth,
                         label=f'{element}({orbital})',
                     )
@@ -858,9 +1043,38 @@ class DOSPlot:
                             tdos_dict['energy'],
                             pdensity,
                             0,
-                            color=color_dict[i],
+                            color=color_dict[orbital],
                             alpha=alpha,
                         )
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for element in elements:
+                for orbital in order:
+                    legend_lines.append(plt.Line2D(
+                        [0],
+                        [0],
+                        marker='o',
+                        markersize=2,
+                        linestyle='',
+                        color=color_dict[orbital])
+                    )
+                    legend_labels.append(
+                        f'{element}(${orbital}$)'
+                    )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
 
     def plot_layers(self, ax, ylim=[-6, 6], cmap='magma', sigma=5, energyaxis='y'):
         """
@@ -896,7 +1110,8 @@ class DOSPlot:
                 energies,
                 densities,
                 cmap=cmap,
-                shading='gouraud'
+                shading='gouraud',
+                vmax=0.4,
             )
 
         if energyaxis=='x':
@@ -905,7 +1120,8 @@ class DOSPlot:
                 atom_index,
                 np.transpose(densities),
                 cmap=cmap,
-                shading='gouraud'
+                shading='gouraud',
+                vmax=0.4,
             )
 
 
