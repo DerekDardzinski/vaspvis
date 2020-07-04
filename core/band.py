@@ -2,6 +2,7 @@ from pymatgen.electronic_structure.core import Spin, Orbital
 from pymatgen.io.vasp.outputs import BSVasprun
 from pymatgen.io.vasp.inputs import Kpoints, Poscar
 from functools import reduce
+from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -155,7 +156,7 @@ class BandStructure:
             for j in range(nbands):
                 band = f'band{j+1}'
                 for atom in range(natoms):
-                    orbital_weights = projected_eigenvalues[i][j][atom]
+                    orbital_weights = projected_eigenvalues[i][j][atom][:9]
                     projected_dict[band][atom] = np.vstack([
                         projected_dict[band][atom],
                         orbital_weights
@@ -420,7 +421,7 @@ class BandStructure:
 
         plt.xlim(0, len(wave_vector)-1)
 
-    def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None):
+    def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True):
         """
         This function plots the s, p, d projected band structure given that the band
         data has already been loaded with the load_bands() and load_projected_bands()
@@ -440,6 +441,7 @@ class BandStructure:
         color_dict: (dict[str][str]) This option allow the colors of the s, p, and d
             orbitals to be specified. Should be in the form of:
             {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend: (bool) Determines if the legend should be included or not.
         """
 
         spd_dict = self.sum_spd()
@@ -472,7 +474,35 @@ class BandStructure:
                 label=f'${col}$',
             )
 
-    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for orbital in order:
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[orbital])
+                )
+                legend_labels.append(
+                    f'${orbital}$'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True):
         """
         This function plots the projected band structure of individual orbitals on
         individual atoms given that the band data has already been loaded with the
@@ -489,16 +519,17 @@ class BandStructure:
             points in the scatter plot
         color_dict: (dict[int][str]) Dictionary of colors for the atom-orbital pairs in       
             the order that the atom-orbital pairs were given.
+        legend: (bool) Determines if the legend should be included or not.
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
-        # self.get_kticks(ax=ax)
 
         projected_dict = self.projected_dict
         wave_vector = range(len(self.bands_dict['band1']))
 
         if color_dict is None:
             color_dict = self.color_dict
+
 
         for band in projected_dict:
             for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
@@ -511,10 +542,40 @@ class BandStructure:
                     c=color_dict[i],
                     s=scale_factor * projected_dict[band][atom][orbital],
                     zorder=1,
-                    label=f'{atom}({self.orbital_labels[orbital]})'
                 )
 
-    def plot_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
+                atom = atom_orbital_pair[0]
+                orbital = atom_orbital_pair[1]
+
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i])
+                )
+                legend_labels.append(
+                    f'{atom}({self.orbital_labels[atom_orbital_pair[1]]})'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None, legend=True):
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
@@ -529,6 +590,7 @@ class BandStructure:
         color_dict: (dict[str][str]) This option allow the colors of each orbital
             specified. Should be in the form of:
             {'orbital index': <color>, 'orbital index': <color>, ...}
+        legend: (bool) Determines if the legend should be included or not.
         """
         self.plot_plain(ax=ax, linewidth=0.75)
         # self.get_kticks(ax=ax)
@@ -557,7 +619,35 @@ class BandStructure:
                 label=self.orbital_labels[orbital],
             )
 
-    def plot_atoms(self, atoms, ax, scale_factor=5, color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for orbital in orbitals:
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[orbital])
+                )
+                legend_labels.append(
+                    f'{self.orbital_labels[orbital]}'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_atoms(self, atoms, ax, scale_factor=5, color_dict=None, legend=True):
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
@@ -572,6 +662,7 @@ class BandStructure:
         color_dict: (dict[str][str]) This option allow the colors of each atom
             specified. Should be in the form of:
             {'atom index': <color>, 'atom index': <color>, ...}
+        legend: (bool) Determines if the legend should be included or not.
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
@@ -600,7 +691,35 @@ class BandStructure:
                 label=atom,
             )
 
-    def plot_elements(self, elements, ax, scale_factor=5, color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for atom in atoms:
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[atom])
+                )
+                legend_labels.append(
+                    f'{atom}'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_elements(self, elements, ax, scale_factor=5, color_dict=None, legend=True):
         """
         This function plots the projected band structure on specified element in
         the calculated structure. This is useful for supercells where there are
@@ -616,6 +735,7 @@ class BandStructure:
         color_dict: (dict[str][str]) This option allow the colors of each element
             specified. Should be in the form of:
             {'element index': <color>, 'element index': <color>, ...}
+        legend: (bool) Determines if the legend should be included or not.
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
@@ -645,7 +765,35 @@ class BandStructure:
                 label=element
             )
 
-    def plot_element_orbitals(self, elements, orbitals, ax, scale_factor=5, color_dict=None):
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for (i, element) in enumerate(elements):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i])
+                )
+                legend_labels.append(
+                    f'{element}'
+                )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True):
         """
         This function plots the projected band structure on chosen orbitals for each 
         specified element in the calculated structure. This is useful for supercells 
@@ -662,10 +810,14 @@ class BandStructure:
         color_dict: (dict[str][str]) This option allow the colors of each orbital
             specified. Should be in the form of:
             {'orbital index': <color>, 'orbital index': <color>, ...}
-
+        legend: (bool) Determines if the legend should be included or not.
         """
 
         self.plot_plain(ax=ax, linewidth=0.75)
+
+        elements = [i[0] for i in element_orbital_pairs]
+
+        print(elements)
 
         element_dict = self.sum_elements(elements=elements, orbitals=True)
 
@@ -684,18 +836,49 @@ class BandStructure:
                 plot_element[element] = plot_element[element].append(
                     element_dict[band][element])
 
-        for (i, element) in enumerate(elements):
-            for orbital in orbitals:
-                ax.scatter(
-                    plot_wave_vec,
-                    plot_band,
-                    c=color_dict[orbital],
-                    s=scale_factor * plot_element[element][orbital],
-                    zorder=1,
-                    label=f'{element}({self.orbital_labels[orbital]})'
+        for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
+            element = element_orbital_pair[0]
+            orbital = element_orbital_pair[1]
+            ax.scatter(
+                plot_wave_vec,
+                plot_band,
+                c=color_dict[i],
+                s=scale_factor * plot_element[element][orbital],
+                zorder=1,
+                label=f'{element}({self.orbital_labels[orbital]})'
+            )
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
+                element = element_orbital_pair[0]
+                orbital = element_orbital_pair[1]
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i])
+                )
+                legend_labels.append(
+                    f'{element}({self.orbital_labels[orbital]})'
                 )
 
-    def plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None):
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+    def plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True):
         """
         This function plots the projected band structure on the s, p, and d orbitals
         for each specified element in the calculated structure. This is useful for 
@@ -752,8 +935,36 @@ class BandStructure:
                     c=color_dict[orbital],
                     s=scale_factor * plot_element[element][orbital],
                     zorder=1,
-                    label=f'{element}(${orbital}$)',
                 )
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for element in elements:
+                for orbital in order:
+                    legend_lines.append(plt.Line2D(
+                        [0],
+                        [0],
+                        marker='o',
+                        markersize=2,
+                        linestyle='',
+                        color=color_dict[orbital])
+                    )
+                    legend_labels.append(
+                        f'{element}(${orbital}$)'
+                    )
+
+            ax.legend(
+                legend_lines,
+                legend_labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
 
 
 def main():
