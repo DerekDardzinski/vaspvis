@@ -10,44 +10,43 @@ Method for constructing and plotting band structures from VASP calculations.
 ```python
 plot_plain(ax, color='black', linewidth=1.5)
 ```
-![](./img/plain_pbe.png)
-<img src="./img/plain_pbe.png"  width="200" height="150">
+<img src="./img/plain_pbe.png"  width="600" height="450">
 
 
 ```python
 plot_spd(ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True)
 ```
-![](./img/spd_pbe.png)
+<img src="./img/spd_pbe.png"  width="600" height="450">
 
 ```python
 plot_orbitals(orbitals, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-![](./img/orbital_pbe.png)
+<img src="./img/orbital_pbe.png"  width="600" height="450">
 
 ```python
 plot_atom_orbitals(atom_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-![](./img/atom_orbital_pbe.png)
+<img src="./img/atom_orbital_pbe.png"  width="600" height="450">
 
 ```python
 plot_atoms(atoms, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-![](./img/atom_pbe.png)
+<img src="./img/atom_pbe.png"  width="600" height="450">
 
 ```python
 plot_elements(elements, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-![](./img/element_pbe.png)
+<img src="./img/element_pbe.png"  width="450" height="450">
 
 ```python
 plot_element_orbitals(elements, orbitals, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-![](./img/element_spd_pbe.png)
+<img src="./img/element_spd_pbe.png"  width="450" height="450">
 
 ```python
 plot_element_spd(elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True)
 ```
-![](./img/element_orbital_pbe.png)
+<img src="./img/element_orbital_pbe.png"  width="450" height="450">
 
 
 # vaspvis.core.dos
