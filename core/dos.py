@@ -1111,7 +1111,7 @@ class DOSPlot:
                 densities,
                 cmap=cmap,
                 shading='gouraud',
-                vmax=0.4,
+                vmax=0.6,
             )
 
         if energyaxis=='x':
@@ -1121,7 +1121,7 @@ class DOSPlot:
                 np.transpose(densities),
                 cmap=cmap,
                 shading='gouraud',
-                vmax=0.4,
+                vmax=0.6,
             )
 
 
