@@ -7,69 +7,45 @@ A highly flexible and customizable library for visualizing electronic structure 
 
 Method for constructing and plotting band structures from VASP calculations.
 
-
 ```python
-load_bands()
+plot_plain(ax, color='black', linewidth=1.5)
 ```
 
 
 ```python
-load_projected_bands()
+plot_spd(ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None)
 ```
 
 
 ```python
-sum_spd()
+plot_atom_orbitals(atom_orbital_pairs, ax, scale_factor=5, color_dict=None)
 ```
 
 
 ```python
-sum_orbitals()
-```
-
-```python
-sum_atoms()
+plot_orbitals(orbitals, ax, scale_factor=5, color_dict=None)
 ```
 
 
 ```python
-sum_elements()
-```
-
-
-```python
-get_kticks()
-```
-
-
-```python
-plot_plain()
-```
-
-
-```python
-plot_spd()
-```
-
-
-```python
-plot_atom_orbitals()
-```
-
-
-```python
-plot_orbitals()
-```
-
-
-```python
-plot_atoms()
+plot_atoms(atoms, ax, scale_factor=5, color_dict=None)
 ```
 
 ```python
-plot_elements()
+plot_elements(elements, ax, scale_factor=5, color_dict=None)
 
 ```
+
+```python
+plot_element_orbitals(elements, orbitals, ax, scale_factor=5, color_dict=None)
+
+```
+
+```python
+plot_element_spd(elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None)
+
+```
+
 
 # vaspvis.core.dos
 
@@ -77,49 +53,36 @@ plot_elements()
 
 Method for constructing and plotting the density of states from VASP calculations.
 
-
 ```python
-load_tdos()
+plot_spd(ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 
-
 ```python
-load_pdos()
+plot_orbitals(ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 
-
 ```python
-smear()
+plot_atom_orbitals(ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 
-
 ```python
-sum_orbitals()
+plot_atoms(ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 
-
 ```python
-sum_atoms()
+plot_elements(ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 
-
 ```python
-sum_spd()
+plot_element_orbitals(ax, elements, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 
-
 ```python
-plot_spd()
+plot_element_spd(ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 
-
 ```python
-plot_atoms()
-```
-
-
-```python
-plot_layers()
+plot_layers(ax, ylim=[-6, 6], cmap='magma', sigma=5)
 ```
 
 

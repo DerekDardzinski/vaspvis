@@ -153,6 +153,46 @@ class DOSPlot:
 
         return atom_df
 
+
+    def sum_elements(self, elements, orbitals=False, spd=False):
+        poscar = self.poscar
+        natoms = poscar.natoms
+        symbols = poscar.site_symbols
+
+        element_list = np.hstack(
+            [[symbols[i] for j in range(natoms[i])]
+             for i in range(len(symbols))]
+        )
+
+        element_dict = {element: [] for element in elements}
+
+        for element in elements:
+            element_index = np.where(element_list == element)[0]
+            df = pd.concat(
+                [self.pdos[i] for i in element_index],
+                axis=1
+            )
+
+            if orbitals:
+                element_dict[element] = df.groupby(
+                    by=df.columns,
+                    axis=1
+                ).sum()
+                if spd:
+                    df = element_dict[element]
+                    element_dict[element]['s'] = df[0]
+                    element_dict[element]['p'] = df[1] + \
+                        df[2] + df[3]
+                    element_dict[element]['d'] = df[4] + \
+                        df[5] + df[6] + df[7] + df[8]
+                    element_dict[element] = element_dict[element].drop(
+                        columns=range(9))
+            else:
+                element_dict[element] = df.sum(axis=1).tolist()
+
+        return element_dict
+
+
     def sum_spd(self):
         """
         This function sums the weights of the s, p, and d orbitals for each atom
@@ -173,23 +213,7 @@ class DOSPlot:
 
         return spd_df
 
-    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y'):
-        """
-        This function plots the total density of states with the projected
-        density of states for the total projections of the s, p, and d orbitals.
-
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        order: (list) Order to plot the projected bands in. This feature helps to
-            avoid situations where one projection completely convers the other.
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        """
-
-        spd_df = self.sum_spd()
+    def plot_plain(self, ax, linewidth=1, fill=True, alpha=0.3, sigma=0.05, energyaxis='y'):
         tdos_dict = self.tdos_dict
 
         if sigma > 0:
@@ -234,6 +258,37 @@ class DOSPlot:
                     alpha=alpha,
                 )
 
+    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        """
+        This function plots the total density of states with the projected
+        density of states for the total projections of the s, p, and d orbitals.
+
+        Inputs:
+        ----------
+        ax: (matplotlib.pyplot.axis) Axis to plot on
+        order: (list) Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill: (bool) Determines wether or not to fill underneath the plot
+        alpha: (float) Alpha value for the fill
+        linewidth: (float) Linewidth of lines
+        sigma: (float) Standard deviation for gaussian filter
+        """
+
+        spd_df = self.sum_spd()
+        tdos_dict = self.tdos_dict
+
+        if color_dict is None:
+            color_dict = self.color_dict
+
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            fill=fill,
+            alpha=alpha,
+            sigma=sigma,
+            energyaxis=energyaxis,
+        )
+
         for i, orbital in enumerate(order):
             if sigma > 0:
                 pdensity = self.smear(
@@ -247,7 +302,7 @@ class DOSPlot:
                 ax.plot(
                     pdensity,
                     tdos_dict['energy'],
-                    color=self.color_dict[i],
+                    color=color_dict[i],
                     linewidth=linewidth,
                     label=f'${orbital}$',
                 )
@@ -257,7 +312,7 @@ class DOSPlot:
                         tdos_dict['energy'],
                         pdensity,
                         0,
-                        color=self.color_dict[i],
+                        color=color_dict[i],
                         alpha=alpha,
                     )
 
@@ -265,7 +320,7 @@ class DOSPlot:
                 ax.plot(
                     tdos_dict['energy'],
                     pdensity,
-                    color=self.color_dict[i],
+                    color=color_dict[i],
                     linewidth=linewidth,
                     label=f'${orbital}$',
                 )
@@ -275,11 +330,166 @@ class DOSPlot:
                         tdos_dict['energy'],
                         pdensity,
                         0,
-                        color=self.color_dict[i],
+                        color=color_dict[i],
                         alpha=alpha,
                     )
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, color_dict=None, linewidth=1.5, sigma=0.05, energyaxis='y'):
+    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        """
+        This function plots the total density of states with the projected
+        density of states for the total projections of the s, p, and d orbitals.
+
+        Inputs:
+        ----------
+        ax: (matplotlib.pyplot.axis) Axis to plot on
+        order: (list) Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill: (bool) Determines wether or not to fill underneath the plot
+        alpha: (float) Alpha value for the fill
+        linewidth: (float) Linewidth of lines
+        sigma: (float) Standard deviation for gaussian filter
+        """
+
+        # orbital_df = self.sum_orbitals()
+        tdos_dict = self.tdos_dict
+
+        if color_dict is None:
+            color_dict = self.color_dict
+
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            fill=fill,
+            alpha=alpha,
+            sigma=sigma,
+            energyaxis=energyaxis,
+        )
+
+        for i, atom_orbital_pair in enumerate(atom_orbital_pairs):
+            atom = atom_orbital_pair[0]
+            orbital = atom_orbital_pair[1]
+
+            if sigma > 0:
+                pdensity = self.smear(
+                    self.pdos[atom][orbital],
+                    sigma=sigma
+                )
+            else:
+                pdensity = self.pdos[atom][orbital]
+
+            if energyaxis == 'y':
+                ax.plot(
+                    pdensity,
+                    tdos_dict['energy'],
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'${atom}({self.orbital_labels[orbital]})$',
+                )
+
+                if fill:
+                    ax.fill_betweenx(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+            if energyaxis == 'x':
+                ax.plot(
+                    tdos_dict['energy'],
+                    pdensity,
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'${atom}({self.orbital_labels[orbital]})$',
+                )
+
+                if fill:
+                    ax.fill_between(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        """
+        This function plots the total density of states with the projected
+        density of states for the total projections of the s, p, and d orbitals.
+
+        Inputs:
+        ----------
+        ax: (matplotlib.pyplot.axis) Axis to plot on
+        order: (list) Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill: (bool) Determines wether or not to fill underneath the plot
+        alpha: (float) Alpha value for the fill
+        linewidth: (float) Linewidth of lines
+        sigma: (float) Standard deviation for gaussian filter
+        """
+
+        orbital_df = self.sum_orbitals()
+        tdos_dict = self.tdos_dict
+
+        if color_dict is None:
+            color_dict = self.color_dict
+
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            fill=fill,
+            alpha=alpha,
+            sigma=sigma,
+            energyaxis=energyaxis,
+        )
+
+        for i, orbital in enumerate(orbitals):
+            if sigma > 0:
+                pdensity = self.smear(
+                    orbital_df[orbital],
+                    sigma=sigma
+                )
+            else:
+                pdensity = orbital_df[orbital]
+
+            if energyaxis == 'y':
+                ax.plot(
+                    pdensity,
+                    tdos_dict['energy'],
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'${self.orbital_labels[orbital]}$',
+                )
+
+                if fill:
+                    ax.fill_betweenx(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+            if energyaxis == 'x':
+                ax.plot(
+                    tdos_dict['energy'],
+                    pdensity,
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'${self.orbital_labels[orbital]}$',
+                )
+
+                if fill:
+                    ax.fill_between(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
         """
         This function plots the total density of states with the projected
         density of states on the given atoms.
@@ -301,47 +511,14 @@ class DOSPlot:
         if color_dict is None:
             color_dict = self.color_dict
 
-        if sigma > 0:
-            tdensity = self.smear(
-                tdos_dict['density'],
-                sigma=sigma
-            )
-        else:
-            tdensity = tdos_dict['density']
-
-        if energyaxis == 'y':
-            ax.plot(
-                tdensity,
-                tdos_dict['energy'],
-                color='black',
-                linewidth=linewidth,
-            )
-
-            if fill:
-                ax.fill_betweenx(
-                    tdos_dict['energy'],
-                    tdensity,
-                    0,
-                    color='black',
-                    alpha=alpha,
-                )
-
-        elif energyaxis == 'x':
-            ax.plot(
-                tdos_dict['energy'],
-                tdensity,
-                color='black',
-                linewidth=linewidth,
-            )
-
-            if fill:
-                ax.fill_between(
-                    tdos_dict['energy'],
-                    tdensity,
-                    0,
-                    color='black',
-                    alpha=alpha,
-                )
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            fill=fill,
+            alpha=alpha,
+            sigma=sigma,
+            energyaxis=energyaxis,
+        )
 
         for i, atom in enumerate(atoms):
             if sigma > 0:
@@ -387,6 +564,237 @@ class DOSPlot:
                         color=color_dict[i],
                         alpha=alpha,
                     )
+
+    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        """
+        This function plots the total density of states with the projected
+        density of states for the total projections of the s, p, and d orbitals.
+
+        Inputs:
+        ----------
+        ax: (matplotlib.pyplot.axis) Axis to plot on
+        order: (list) Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill: (bool) Determines wether or not to fill underneath the plot
+        alpha: (float) Alpha value for the fill
+        linewidth: (float) Linewidth of lines
+        sigma: (float) Standard deviation for gaussian filter
+        """
+
+        element_dict = self.sum_elements(elements=elements, orbitals=False, spd=False)
+        tdos_dict = self.tdos_dict
+
+        if color_dict is None:
+            color_dict = self.color_dict
+
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            fill=fill,
+            alpha=alpha,
+            sigma=sigma,
+            energyaxis=energyaxis,
+        )
+
+        for i, element in enumerate(elements):
+            if sigma > 0:
+                pdensity = self.smear(
+                    element_dict[element],
+                    sigma=sigma
+                )
+            else:
+                pdensity = element_dict[element]
+
+            if energyaxis == 'y':
+                ax.plot(
+                    pdensity,
+                    tdos_dict['energy'],
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'{element}',
+                )
+
+                if fill:
+                    ax.fill_betweenx(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+            if energyaxis == 'x':
+                ax.plot(
+                    tdos_dict['energy'],
+                    pdensity,
+                    color=color_dict[i],
+                    linewidth=linewidth,
+                    label=f'{element}',
+                )
+
+                if fill:
+                    ax.fill_between(
+                        tdos_dict['energy'],
+                        pdensity,
+                        0,
+                        color=color_dict[i],
+                        alpha=alpha,
+                    )
+
+    
+    def plot_element_orbitals(self, ax, elements, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        """
+        This function plots the total density of states with the projected
+        density of states for the total projections of the s, p, and d orbitals.
+
+        Inputs:
+        ----------
+        ax: (matplotlib.pyplot.axis) Axis to plot on
+        order: (list) Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill: (bool) Determines wether or not to fill underneath the plot
+        alpha: (float) Alpha value for the fill
+        linewidth: (float) Linewidth of lines
+        sigma: (float) Standard deviation for gaussian filter
+        """
+
+        element_dict = self.sum_elements(elements=elements, orbitals=True, spd=False)
+        tdos_dict = self.tdos_dict
+
+        if color_dict is None:
+            color_dict = self.color_dict
+
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            fill=fill,
+            alpha=alpha,
+            sigma=sigma,
+            energyaxis=energyaxis,
+        )
+
+        for element in elements:
+            for i, orbital in enumerate(orbital):
+                if sigma > 0:
+                    pdensity = self.smear(
+                        element_dict[element][orbital],
+                        sigma=sigma
+                    )
+                else:
+                    pdensity = element_dict[element][orbital]
+
+                if energyaxis == 'y':
+                    ax.plot(
+                        pdensity,
+                        tdos_dict['energy'],
+                        color=color_dict[i],
+                        linewidth=linewidth,
+                        label=f'{element}({self.orbital_labels[orbital]})',
+                    )
+
+                    if fill:
+                        ax.fill_betweenx(
+                            tdos_dict['energy'],
+                            pdensity,
+                            0,
+                            color=color_dict[i],
+                            alpha=alpha,
+                        )
+
+                if energyaxis == 'x':
+                    ax.plot(
+                        tdos_dict['energy'],
+                        pdensity,
+                        color=color_dict[i],
+                        linewidth=linewidth,
+                        label=f'{element}({self.orbital_labels[orbital]})',
+                    )
+
+                    if fill:
+                        ax.fill_between(
+                            tdos_dict['energy'],
+                            pdensity,
+                            0,
+                            color=color_dict[i],
+                            alpha=alpha,
+                        )
+
+    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None):
+        """
+        This function plots the total density of states with the projected
+        density of states for the total projections of the s, p, and d orbitals.
+
+        Inputs:
+        ----------
+        ax: (matplotlib.pyplot.axis) Axis to plot on
+        order: (list) Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill: (bool) Determines wether or not to fill underneath the plot
+        alpha: (float) Alpha value for the fill
+        linewidth: (float) Linewidth of lines
+        sigma: (float) Standard deviation for gaussian filter
+        """
+
+        element_dict = self.sum_elements(elements=elements, orbitals=True, spd=True)
+        tdos_dict = self.tdos_dict
+
+        if color_dict is None:
+            color_dict = self.color_dict
+
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            fill=fill,
+            alpha=alpha,
+            sigma=sigma,
+            energyaxis=energyaxis,
+        )
+
+        for element in elements:
+            for i, orbital in enumerate(order):
+                if sigma > 0:
+                    pdensity = self.smear(
+                        element_dict[element][orbital],
+                        sigma=sigma
+                    )
+                else:
+                    pdensity = element_dict[element][orbital]
+
+                if energyaxis == 'y':
+                    ax.plot(
+                        pdensity,
+                        tdos_dict['energy'],
+                        color=color_dict[i],
+                        linewidth=linewidth,
+                        label=f'{element}({orbital})',
+                    )
+
+                    if fill:
+                        ax.fill_betweenx(
+                            tdos_dict['energy'],
+                            pdensity,
+                            0,
+                            color=color_dict[i],
+                            alpha=alpha,
+                        )
+
+                if energyaxis == 'x':
+                    ax.plot(
+                        tdos_dict['energy'],
+                        pdensity,
+                        color=color_dict[i],
+                        linewidth=linewidth,
+                        label=f'{element}({orbital})',
+                    )
+
+                    if fill:
+                        ax.fill_between(
+                            tdos_dict['energy'],
+                            pdensity,
+                            0,
+                            color=color_dict[i],
+                            alpha=alpha,
+                        )
 
     def plot_layers(self, ax, ylim=[-6, 6], cmap='magma', sigma=5):
         """
