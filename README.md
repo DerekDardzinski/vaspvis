@@ -54,6 +54,10 @@ plot_element_spd(elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict
 Method for constructing and plotting the density of states from VASP calculations.
 
 ```python
+plot_plain(ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y')
+```
+
+```python
 plot_spd(ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
 

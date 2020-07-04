@@ -213,7 +213,7 @@ class DOSPlot:
 
         return spd_df
 
-    def plot_plain(self, ax, linewidth=1, fill=True, alpha=0.3, sigma=0.05, energyaxis='y'):
+    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y'):
         tdos_dict = self.tdos_dict
 
         if sigma > 0:
