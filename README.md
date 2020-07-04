@@ -16,16 +16,13 @@ plot_plain(ax, color='black', linewidth=1.5)
 plot_spd(ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None)
 ```
 
-
-```python
-plot_atom_orbitals(atom_orbital_pairs, ax, scale_factor=5, color_dict=None)
-```
-
-
 ```python
 plot_orbitals(orbitals, ax, scale_factor=5, color_dict=None)
 ```
 
+```python
+plot_atom_orbitals(atom_orbital_pairs, ax, scale_factor=5, color_dict=None)
+```
 
 ```python
 plot_atoms(atoms, ax, scale_factor=5, color_dict=None)
