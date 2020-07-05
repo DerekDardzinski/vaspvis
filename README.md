@@ -41,12 +41,12 @@ plot_elements(elements, ax, scale_factor=5, color_dict=None, legend=True)
 ```python
 plot_element_orbitals(elements, orbitals, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-<img src="./img/band/element_spd_band.png"  width="450" height="450">
+<img src="./img/band/element_orbital_band.png"  width="450" height="450">
 
 ```python
 plot_element_spd(elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True)
 ```
-<img src="./img/band/element_orbital_band.png"  width="450" height="450">
+<img src="./img/band/element_spd_band.png"  width="450" height="450">
 
 
 # vaspvis.core.dos
