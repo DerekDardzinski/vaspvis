@@ -3,7 +3,7 @@ A highly flexible and customizable library for visualizing electronic structure 
 
 # vaspvis.core.band
 
-## `class BandStructure()`
+## `class Band()`
 
 Method for constructing and plotting band structures from VASP calculations.
 
@@ -51,7 +51,7 @@ plot_element_spd(elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict
 
 # vaspvis.core.dos
 
-## `class DOSPlot()`
+## `class Dos()`
 
 Method for constructing and plotting the density of states from VASP calculations.
 

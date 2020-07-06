@@ -9,7 +9,7 @@ import pandas as pd
 import time
 
 
-class BandStructure:
+class Band:
     """
     This class contains all the methods for constructing band structures
     from the outputs of VASP band structure calculations.
@@ -42,13 +42,14 @@ class BandStructure:
             read_velocities=False
         )
         self.projected = projected
+        self.forbitals = False
         self.hse = hse
         self.kpath = kpath
         self.n = n
         self.folder = folder
         self.spin = 'up'
         self.spin_dict = {'up': Spin.up, 'dowm': Spin.down}
-        self.bands_dict = self.load_bands()
+        self.bands_dict = self._load_bands()
         self.color_dict = {
             0: '#FF0000',
             1: '#0000FF',
@@ -69,16 +70,23 @@ class BandStructure:
             5: '$d_{yz}$',
             6: '$d_{z^{2}}$',
             7: '$d_{xz}$',
-            8: '$d_{x^{2}-y^{2}}$'
+            8: '$d_{x^{2}-y^{2}}$',
+            9: '$f_{y^{3}x^{2}}$',
+            10: '$f_{xyz}$',
+            11: '$f_{yz^{2}}$',
+            12: '$f_{z^{3}}$',
+            13: '$f_{xz^{2}}$',
+            14: '$f_{zx^{3}}$',
+            15: '$f_{x^{3}}$',
         }
 
         if projected:
-            self.projected_dict = self.load_projected_bands()
+            self.projected_dict = self._load_projected_bands()
 
         if not hse:
             self.kpoints = Kpoints.from_file(f'{folder}/KPOINTS')
 
-    def load_bands(self):
+    def _load_bands(self):
         """
         This function is used to load eigenvalues from the vasprun.xml
         file and into a dictionary which is in the form of
@@ -114,7 +122,7 @@ class BandStructure:
 
         return bands_dict
 
-    def load_projected_bands(self):
+    def _load_projected_bands(self):
         """
         This function loads the project weights of the orbitals in each band
         from vasprun.xml into a dictionary of the form:
@@ -147,16 +155,20 @@ class BandStructure:
         natoms = np.sum(poscar.natoms)
         nkpoints = len(projected_eigenvalues)
         nbands = len(projected_eigenvalues[0])
+        norbitals = len(projected_eigenvalues[0][0][0])
+
+        if norbitals == 16:
+            self.forbitals = True
 
         projected_dict = {f'band{i+1}':
-                          {atom: np.zeros(9) for atom in range(natoms)}
+                          {atom: np.zeros(norbitals) for atom in range(natoms)}
                           for i in range(nbands)}
 
         for i in range(nkpoints):
             for j in range(nbands):
                 band = f'band{j+1}'
                 for atom in range(natoms):
-                    orbital_weights = projected_eigenvalues[i][j][atom][:9]
+                    orbital_weights = projected_eigenvalues[i][j][atom]
                     projected_dict[band][atom] = np.vstack([
                         projected_dict[band][atom],
                         orbital_weights
@@ -170,7 +182,7 @@ class BandStructure:
 
         return projected_dict
 
-    def sum_spd(self):
+    def _sum_spd(self):
         """
         This function sums the weights of the s, p, and d orbitals for each atom
         and creates a dictionary of the form:
@@ -182,7 +194,7 @@ class BandStructure:
             weights for the s, p, and d orbitals for each band
         """
 
-        spd_orbitals = {'s': [0], 'p': [1, 2, 3], 'd': [4, 5, 6, 7, 8]}
+        # spd_orbitals = {'s': [0], 'p': [1, 2, 3], 'd': [4, 5, 6, 7, 8]}
 
         spd_dict = {band: np.nan for band in self.projected_dict}
 
@@ -198,11 +210,17 @@ class BandStructure:
             spd_dict[band]['s'] = df[0]
             spd_dict[band]['p'] = df[1] + df[2] + df[3]
             spd_dict[band]['d'] = df[4] + df[5] + df[6] + df[7] + df[8]
-            spd_dict[band] = spd_dict[band].drop(columns=range(9))
+
+            if self.forbitals:
+                spd_dict[band]['f'] = df[9] + df[10] + \
+                    df[11] + df[12] + df[13] + df[14] + df[15]
+                spd_dict[band] = spd_dict[band].drop(columns=range(16))
+            else:
+                spd_dict[band] = spd_dict[band].drop(columns=range(9))
 
         return spd_dict
 
-    def sum_orbitals(self, orbitals):
+    def _sum_orbitals(self, orbitals):
         """
         This function finds the weights of desired orbitals for all atoms and
             returns a dictionary of the form:
@@ -220,6 +238,13 @@ class BandStructure:
             6 = dz2
             7 = dxz
             8 = dx2-y2
+            9 = fy3x2
+            10 = fxyz
+            11 = fyz2
+            12 = fz3
+            13 = fxz2
+            14 = fzx3
+            15 = fx3
 
         Outputs:
         ----------
@@ -244,7 +269,7 @@ class BandStructure:
 
         return orbital_dict
 
-    def sum_atoms(self, atoms):
+    def _sum_atoms(self, atoms):
         """
         This function finds the weights of desired atoms for all orbitals and
             returns a dictionary of the form:
@@ -271,7 +296,7 @@ class BandStructure:
 
         return atoms_dict
 
-    def sum_elements(self, elements, orbitals=False, spd=False):
+    def _sum_elements(self, elements, orbitals=False, spd=False):
         """
         This function sums the weights of the orbitals of specific elements within the
         calculated structure and returns a dictionary of the form:
@@ -329,14 +354,19 @@ class BandStructure:
                             df[2] + df[3]
                         element_dict[band][element]['d'] = df[4] + \
                             df[5] + df[6] + df[7] + df[8]
-                        element_dict[band][element] = element_dict[band][element].drop(
-                            columns=range(9))
+
+                        if self.forbitals:
+                            element_dict[band][element]['f'] = df[9] + df[10] + \
+                                df[11] + df[12] + df[13] + df[14] + df[15]
+                            element_dict[band][element] = element_dict[band][element].drop(columns=range(16))
+                        else:
+                            element_dict[band][element] = element_dict[band][element].drop(columns=range(9))
                 else:
                     element_dict[band][element] = df.sum(axis=1).tolist()
 
         return element_dict
 
-    def get_kticks(self, ax):
+    def _get_kticks(self, ax):
         """
         This function extracts the kpoint labels and index locations for a regular
         band structure calculation (non HSE).
@@ -371,7 +401,7 @@ class BandStructure:
 
         plt.xticks(kpoints_index, kpts_labels)
 
-    def get_kticks_hse(self, ax, kpath, n):
+    def _get_kticks_hse(self, ax, kpath, n):
 
         kpoints_index = [(i*n) - 1 for i in range(len(kpath))
                          if 0 < i < len(kpath)-1]
@@ -393,7 +423,7 @@ class BandStructure:
     def plot_plain(self, ax, color='black', linewidth=1.5):
         """
         This function plots a plain band structure given that the band data
-        has already been loaded with the load_bands() method.
+        has already been loaded with the _load_bands() method.
 
         Inputs:
         ----------
@@ -415,16 +445,16 @@ class BandStructure:
             )
 
         if self.hse:
-            self.get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
+            self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
         else:
-            self.get_kticks(ax=ax)
+            self._get_kticks(ax=ax)
 
         plt.xlim(0, len(wave_vector)-1)
 
     def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True):
         """
         This function plots the s, p, d projected band structure given that the band
-        data has already been loaded with the load_bands() and load_projected_bands()
+        data has already been loaded with the _load_bands() and _load_projected_bands()
         methods
 
         Inputs:
@@ -444,18 +474,23 @@ class BandStructure:
         legend: (bool) Determines if the legend should be included or not.
         """
 
-        spd_dict = self.sum_spd()
+        spd_dict = self._sum_spd()
 
         if color_dict is None:
             color_dict = {
                 's': self.color_dict[0],
                 'p': self.color_dict[1],
                 'd': self.color_dict[2],
+                'f': self.color_dict[4],
             }
 
         self.plot_plain(ax, linewidth=0.5)
 
-        plot_df = pd.DataFrame(columns=['s', 'p', 'd'])
+        plot_df = pd.DataFrame()
+
+        if self.forbitals and 'f' not in order:
+            order.append('f')
+
         plot_band = []
         plot_wave_vec = []
 
@@ -506,7 +541,7 @@ class BandStructure:
         """
         This function plots the projected band structure of individual orbitals on
         individual atoms given that the band data has already been loaded with the
-        load_bands() and load_projected_bands() methods
+        _load_bands() and _load_projected_bands() methods
 
         Inputs:
         -----------
@@ -529,7 +564,6 @@ class BandStructure:
 
         if color_dict is None:
             color_dict = self.color_dict
-
 
         for band in projected_dict:
             for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
@@ -579,7 +613,7 @@ class BandStructure:
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
-        load_bands() and load_projected_bands() methods.
+        _load_bands() and _load_projected_bands() methods.
 
         Inputs:
         ----------
@@ -593,9 +627,9 @@ class BandStructure:
         legend: (bool) Determines if the legend should be included or not.
         """
         self.plot_plain(ax=ax, linewidth=0.75)
-        # self.get_kticks(ax=ax)
+        # self._get_kticks(ax=ax)
 
-        orbital_dict = self.sum_orbitals(orbitals=orbitals)
+        orbital_dict = self._sum_orbitals(orbitals=orbitals)
 
         if color_dict is None:
             color_dict = self.color_dict
@@ -651,7 +685,7 @@ class BandStructure:
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
-        load_bands() and load_projected_bands() methods.
+        _load_bands() and _load_projected_bands() methods.
 
         Inputs:
         ----------
@@ -667,7 +701,7 @@ class BandStructure:
 
         self.plot_plain(ax=ax, linewidth=0.75)
 
-        atom_dict = self.sum_atoms(atoms=atoms)
+        atom_dict = self._sum_atoms(atoms=atoms)
 
         if color_dict is None:
             color_dict = self.color_dict
@@ -740,7 +774,7 @@ class BandStructure:
 
         self.plot_plain(ax=ax, linewidth=0.75)
 
-        element_dict = self.sum_elements(elements=elements, orbitals=False)
+        element_dict = self._sum_elements(elements=elements, orbitals=False)
 
         if color_dict is None:
             color_dict = self.color_dict
@@ -817,7 +851,7 @@ class BandStructure:
 
         elements = [i[0] for i in element_orbital_pairs]
 
-        element_dict = self.sum_elements(elements=elements, orbitals=True)
+        element_dict = self._sum_elements(elements=elements, orbitals=True)
 
         if color_dict is None:
             color_dict = self.color_dict
@@ -903,7 +937,7 @@ class BandStructure:
 
         self.plot_plain(ax=ax, linewidth=0.75)
 
-        element_dict = self.sum_elements(
+        element_dict = self._sum_elements(
             elements=elements, orbitals=True, spd=True)
 
         if color_dict is None:
@@ -913,8 +947,11 @@ class BandStructure:
                 'd': self.color_dict[2],
             }
 
-        plot_element = {element: pd.DataFrame(
-            columns=['s', 'p', 'd']) for element in elements}
+        plot_element = {element: pd.DataFrame() for element in elements}
+
+        if self.forbitals and 'f' not in order:
+            order.append('f')
+
         plot_band = []
         plot_wave_vec = []
 
@@ -966,25 +1003,26 @@ class BandStructure:
 
 
 def main():
-    bands = BandStructure(
-        folder='../../vaspvis_data/hse/band',
-        projected=True,
-        spin='up',
-        hse=True,
-        kpath='GXWLGK',
-        n=50,
-    )
+    # bands = Band(
+        # folder='../../vaspvis_data/hse/band',
+        # projected=True,
+        # spin='up',
+        # hse=True,
+        # kpath='GXWLGK',
+        # n=50,
+    # )
+    bands = Band(folder='../../vaspvis_data/band', projected=True)
     fig = plt.figure(figsize=(4, 3), dpi=300)
     ax = fig.add_subplot(111)
-    # bands.get_kticks_hse(ax=ax, kpath='GXWLGK', n=20)
+    # bands._get_kticks_hse(ax=ax, kpath='GXWLGK', n=20)
 
-    # bands.get_kticks(ax=ax)
-    # bands.plot_spd(ax=ax, order=['s', 'p', 'd'], scale_factor=5)
+    # bands._get_kticks(ax=ax)
+    bands.plot_spd(ax=ax, scale_factor=5)
     # bands.plot_plain(ax=ax, linewidth=1)
     # bands.plot_atom_orbitals(ax=ax, atom_orbital_pairs=[[0, 0], [1, 3]])
     # bands.plot_atoms(ax=ax, atoms=[0])
-    # element_dict = bands.sum_elements(elements=['In'])
-    bands.plot_element_spd(ax=ax, elements=['Cd'])
+    # element_dict = bands._sum_elements(elements=['In'])
+    # bands.plot_element_spd(ax=ax, elements=['Cd'])
     # bands.plot_orbitals(
     # ax=ax, orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8], scale_factor=8)
     plt.ylim(-6, 6)
@@ -992,7 +1030,7 @@ def main():
     plt.tick_params(labelsize=6, length=1.5)
     plt.tick_params(axis='x', length=0)
     plt.tight_layout(pad=0.5)
-    plt.legend(ncol=3, loc='upper left', fontsize=5)
+    # plt.legend(ncol=3, loc='upper left', fontsize=5)
     # plt.savefig('bs_orbitals.png')
     plt.show()
 

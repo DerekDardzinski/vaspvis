@@ -11,11 +11,12 @@ import pandas as pd
 import time
 
 
-class DOSPlot:
+class Dos:
 
     def __init__(self, folder, spin='up'):
         self.folder = folder
         self.spin = spin
+        self.forbitals = False
         self.vasprun = Vasprun(
             f'{folder}/vasprun.xml',
             parse_dos=True,
@@ -48,12 +49,19 @@ class DOSPlot:
             6: '$d_{z^{2}}$',
             7: '$d_{xz}$',
             8: '$d_{x^{2}-y^{2}}$'
+            9: '$f_{y^{3}x^{2}}$',
+            10: '$f_{xyz}$',
+            11: '$f_{yz^{2}}$',
+            12: '$f_{z^{3}}$',
+            13: '$f_{xz^{2}}$',
+            14: '$f_{zx^{3}}$',
+            15: '$f_{x^{3}}$',
         }
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
-        self.tdos_dict = self.load_tdos()
-        self.pdos_dict = self.load_pdos()
+        self.tdos_dict = self._load_tdos()
+        self.pdos_dict = self._load_pdos()
 
-    def load_tdos(self):
+    def _load_tdos(self):
         """
         This function loads the total density of states into a dictionary
 
@@ -71,7 +79,7 @@ class DOSPlot:
 
         return tdos_dict
 
-    def load_pdos(self):
+    def _load_pdos(self):
         """
         This function loads the projected density of states into a dictionary
         of the form:
@@ -91,12 +99,16 @@ class DOSPlot:
             new_dict = {
                 i: atom[orbital][spin] for (i, orbital) in enumerate(atom)
             }
+
+            if len(list(new_dict.keys())) == 16:
+                self.forbitals = True
+
             df = pd.DataFrame.from_dict(new_dict)
             pdos_dict[i] = df
 
         return pdos_dict
 
-    def smear(self, dos, sigma):
+    def _smear(self, dos, sigma):
         """
         This function applied a 1D gaussian filter to the density of states
 
@@ -108,16 +120,16 @@ class DOSPlot:
 
         Outputs:
         ----------
-        smeared_dos: (np.ndarray) Array of smeared densities.
+        _smeared_dos: (np.ndarray) Array of _smeared densities.
         """
 
         diff = np.diff(self.tdos_dict['energy'])
         avgdiff = np.mean(diff)
-        smeared_dos = gaussian_filter1d(dos, sigma / avgdiff)
+        _smeared_dos = gaussian_filter1d(dos, sigma / avgdiff)
 
-        return smeared_dos
+        return _smeared_dos
 
-    def sum_orbitals(self):
+    def _sum_orbitals(self):
         """
         This function sums the weights of all orbitals for each atom
         and creates a Dataframe containing the projected densities:
@@ -135,7 +147,7 @@ class DOSPlot:
 
         return orbital_df
 
-    def sum_atoms(self):
+    def _sum_atoms(self):
         """
         This function sums all the orbitals for each atom and returns a Dataframe
         of atoms with their projected densities.
@@ -153,7 +165,7 @@ class DOSPlot:
 
         return atom_df
 
-    def sum_elements(self, elements, orbitals=False, spd=False):
+    def _sum_elements(self, elements, orbitals=False, spd=False):
         """
         This function sums the weights of the orbitals of specific elements within the
         calculated structure and returns a dictionary of the form:
@@ -206,14 +218,22 @@ class DOSPlot:
                         df[2] + df[3]
                     element_dict[element]['d'] = df[4] + \
                         df[5] + df[6] + df[7] + df[8]
-                    element_dict[element] = element_dict[element].drop(
-                        columns=range(9))
+
+                    if self.forbitals:
+                        element_dict[element]['f'] = df[9] + df[10] + \
+                            df[11] + df[12] + df[13] + df[14] + df[15]
+                        element_dict[element] = element_dict[element].drop(
+                            columns=range(16))
+                    else:
+                        element_dict[element] = element_dict[element].drop(
+                            columns=range(9))
+
             else:
                 element_dict[element] = df.sum(axis=1).tolist()
 
         return element_dict
 
-    def sum_spd(self):
+    def _sum_spd(self):
         """
         This function sums the weights of the s, p, and d orbitals for each atom
         and creates a Dataframe containing the projected densities:
@@ -224,12 +244,19 @@ class DOSPlot:
             s, p, and d orbitals across all atoms.
         """
 
-        spd_df = self.sum_orbitals()
+        spd_df = self._sum_orbitals()
 
         spd_df['s'] = spd_df[0]
         spd_df['p'] = spd_df[1] + spd_df[2] + spd_df[3]
         spd_df['d'] = spd_df[4] + spd_df[5] + spd_df[6] + spd_df[7] + spd_df[8]
         spd_df = spd_df.drop(columns=range(9))
+
+        if self.forbitals:
+            spd_dict['f'] = df[9] + df[10] + \
+                df[11] + df[12] + df[13] + df[14] + df[15]
+            spd_dict = spd_dict.drop(columns=range(16))
+        else:
+            spd_dict = spd_dict.drop(columns=range(9))
 
         return spd_df
 
@@ -250,7 +277,7 @@ class DOSPlot:
         tdos_dict = self.tdos_dict
 
         if sigma > 0:
-            tdensity = self.smear(
+            tdensity = self._smear(
                 tdos_dict['density'],
                 sigma=sigma
             )
@@ -311,15 +338,19 @@ class DOSPlot:
             {'s': <s color>, 'p': <p color>, 'd': <d color>}
         """
 
-        spd_df = self.sum_spd()
+        spd_df = self._sum_spd()
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
             color_dict = {
-                    's': self.color_dict[0],
-                    'p': self.color_dict[1],
-                    'd': self.color_dict[2],
-                    }
+                's': self.color_dict[0],
+                'p': self.color_dict[1],
+                'd': self.color_dict[2],
+                'f': self.color_dict[4],
+            }
+
+        if self.forbitals and 'f' not in order:
+            order.append('f')
 
         self.plot_plain(
             ax=ax,
@@ -332,7 +363,7 @@ class DOSPlot:
 
         for orbital in order:
             if sigma > 0:
-                pdensity = self.smear(
+                pdensity = self._smear(
                     spd_df[orbital],
                     sigma=sigma
                 )
@@ -441,7 +472,7 @@ class DOSPlot:
             orbital = atom_orbital_pair[1]
 
             if sigma > 0:
-                pdensity = self.smear(
+                pdensity = self._smear(
                     self.pdos_dict[atom][orbital],
                     sigma=sigma
                 )
@@ -515,7 +546,6 @@ class DOSPlot:
                 handletextpad=0.1,
             )
 
-
     def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
@@ -535,7 +565,7 @@ class DOSPlot:
             {'orbital index': <color>, 'orbital index': <color>, ...}
         """
 
-        orbital_df = self.sum_orbitals()
+        orbital_df = self._sum_orbitals()
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
@@ -552,7 +582,7 @@ class DOSPlot:
 
         for i, orbital in enumerate(orbitals):
             if sigma > 0:
-                pdensity = self.smear(
+                pdensity = self._smear(
                     orbital_df[orbital],
                     sigma=sigma
                 )
@@ -621,7 +651,6 @@ class DOSPlot:
                 handletextpad=0.1,
             )
 
-
     def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
         """
         This function plots the total density of states with the projected
@@ -642,7 +671,7 @@ class DOSPlot:
             {'atom index': <color>, 'atom index': <color>, ...}
         """
 
-        atom_df = self.sum_atoms()
+        atom_df = self._sum_atoms()
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
@@ -659,7 +688,7 @@ class DOSPlot:
 
         for i, atom in enumerate(atoms):
             if sigma > 0:
-                pdensity = self.smear(
+                pdensity = self._smear(
                     atom_df[atom],
                     sigma=sigma
                 )
@@ -751,7 +780,7 @@ class DOSPlot:
             {'element index': <color>, 'element index': <color>, ...}
         """
 
-        element_dict = self.sum_elements(
+        element_dict = self._sum_elements(
             elements=elements, orbitals=False, spd=False)
         tdos_dict = self.tdos_dict
 
@@ -769,7 +798,7 @@ class DOSPlot:
 
         for i, element in enumerate(elements):
             if sigma > 0:
-                pdensity = self.smear(
+                pdensity = self._smear(
                     element_dict[element],
                     sigma=sigma
                 )
@@ -864,7 +893,7 @@ class DOSPlot:
 
         elements = [i[0] for i in element_orbital_pairs]
 
-        element_dict = self.sum_elements(
+        element_dict = self._sum_elements(
             elements=elements, orbitals=True, spd=False)
         tdos_dict = self.tdos_dict
 
@@ -884,7 +913,7 @@ class DOSPlot:
             element = element_orbital_pair[0]
             orbital = element_orbital_pair[1]
             if sigma > 0:
-                pdensity = self.smear(
+                pdensity = self._smear(
                     element_dict[element][orbital],
                     sigma=sigma
                 )
@@ -926,7 +955,6 @@ class DOSPlot:
                         color=color_dict[i],
                         alpha=alpha,
                     )
-
 
         if legend:
             legend_lines = []
@@ -981,16 +1009,20 @@ class DOSPlot:
             {'element index': <color>, 'element index': <color>, ...}
         """
 
-        element_dict = self.sum_elements(
+        element_dict = self._sum_elements(
             elements=elements, orbitals=True, spd=True)
         tdos_dict = self.tdos_dict
 
         if color_dict is None:
             color_dict = {
-                    's': self.color_dict[0],
-                    'p': self.color_dict[1],
-                    'd': self.color_dict[2],
-                    }
+                's': self.color_dict[0],
+                'p': self.color_dict[1],
+                'd': self.color_dict[2],
+                'f': self.color_dict[4],
+            }
+
+        if self.forbitals and 'f' not in order:
+            order.append('f')
 
         self.plot_plain(
             ax=ax,
@@ -1004,7 +1036,7 @@ class DOSPlot:
         for element in elements:
             for i, orbital in enumerate(order):
                 if sigma > 0:
-                    pdensity = self.smear(
+                    pdensity = self._smear(
                         element_dict[element][orbital],
                         sigma=sigma
                     )
@@ -1086,7 +1118,7 @@ class DOSPlot:
         ax: (matplotlib.pyplot.axis) Axis to plot on
         ylim: (list) Upper and lower energy bounds for the plot.
         cmap: (str) Color map to use in the heat map
-        sigma: (float) Sigma parameter for the smearing of the heat map.
+        sigma: (float) Sigma parameter for the _smearing of the heat map.
         energyaxis: (str) Axis to plot the energy on. ('x' or 'y')
         """
 
@@ -1099,12 +1131,12 @@ class DOSPlot:
         ind = np.where((ylim[0] - 0.1 <= energy) & (energy <= ylim[-1] + 0.1))
         atom_index = range(len(zorder))
         energies = energy[ind]
-        densities = self.sum_atoms().to_numpy()[ind]
+        densities = self._sum_atoms().to_numpy()[ind]
         densities = np.transpose(densities)
         densities = np.transpose(densities[zorder])
         densities = gaussian_filter(densities, sigma=sigma)
 
-        if energyaxis=='y':
+        if energyaxis == 'y':
             ax.pcolormesh(
                 atom_index,
                 energies,
@@ -1114,7 +1146,7 @@ class DOSPlot:
                 vmax=0.6,
             )
 
-        if energyaxis=='x':
+        if energyaxis == 'x':
             ax.pcolormesh(
                 energies,
                 atom_index,
@@ -1130,7 +1162,7 @@ def main():
     ax = fig.add_subplot(111)
     plt.ylim(-6, 6)
     ax.margins(x=0.005, y=0.005)
-    dos = DOSPlot(folder='../../vaspvis_data/dos')
+    dos = Dos(folder='../../vaspvis_data/dos')
     dos.plot_spd(ax=ax, energyaxis='y')
     # dos.plot_layers(ax=ax)
     # dos.plot_atoms(ax=ax, atoms=[0, 1], sigma=0.1, fill=True, energyaxis='y')
