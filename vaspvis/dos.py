@@ -318,7 +318,7 @@ class Dos:
                     alpha=alpha,
                 )
 
-    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
+    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -352,14 +352,15 @@ class Dos:
         if self.forbitals and 'f' not in order:
             order.append('f')
 
-        self.plot_plain(
-            ax=ax,
-            linewidth=linewidth,
-            fill=fill,
-            alpha=alpha,
-            sigma=sigma,
-            energyaxis=energyaxis,
-        )
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                sigma=sigma,
+                energyaxis=energyaxis,
+            )
 
         for orbital in order:
             if sigma > 0:
@@ -434,7 +435,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
+    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -458,14 +459,15 @@ class Dos:
         if color_dict is None:
             color_dict = self.color_dict
 
-        self.plot_plain(
-            ax=ax,
-            linewidth=linewidth,
-            fill=fill,
-            alpha=alpha,
-            sigma=sigma,
-            energyaxis=energyaxis,
-        )
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                sigma=sigma,
+                energyaxis=energyaxis,
+            )
 
         for i, atom_orbital_pair in enumerate(atom_orbital_pairs):
             atom = atom_orbital_pair[0]
@@ -546,7 +548,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
+    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -571,14 +573,15 @@ class Dos:
         if color_dict is None:
             color_dict = self.color_dict
 
-        self.plot_plain(
-            ax=ax,
-            linewidth=linewidth,
-            fill=fill,
-            alpha=alpha,
-            sigma=sigma,
-            energyaxis=energyaxis,
-        )
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                sigma=sigma,
+                energyaxis=energyaxis,
+            )
 
         for i, orbital in enumerate(orbitals):
             if sigma > 0:
@@ -651,7 +654,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states on the given atoms.
@@ -677,14 +680,15 @@ class Dos:
         if color_dict is None:
             color_dict = self.color_dict
 
-        self.plot_plain(
-            ax=ax,
-            linewidth=linewidth,
-            fill=fill,
-            alpha=alpha,
-            sigma=sigma,
-            energyaxis=energyaxis,
-        )
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                sigma=sigma,
+                energyaxis=energyaxis,
+            )
 
         for i, atom in enumerate(atoms):
             if sigma > 0:
@@ -759,7 +763,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
+    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states for the projection onto specified elements. This is 
@@ -787,14 +791,15 @@ class Dos:
         if color_dict is None:
             color_dict = self.color_dict
 
-        self.plot_plain(
-            ax=ax,
-            linewidth=linewidth,
-            fill=fill,
-            alpha=alpha,
-            sigma=sigma,
-            energyaxis=energyaxis,
-        )
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                sigma=sigma,
+                energyaxis=energyaxis,
+            )
 
         for i, element in enumerate(elements):
             if sigma > 0:
@@ -869,7 +874,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
+    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states onto the chosen orbitals of specified elements. This is 
@@ -900,14 +905,15 @@ class Dos:
         if color_dict is None:
             color_dict = self.color_dict
 
-        self.plot_plain(
-            ax=ax,
-            linewidth=linewidth,
-            fill=fill,
-            alpha=alpha,
-            sigma=sigma,
-            energyaxis=energyaxis,
-        )
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                sigma=sigma,
+                energyaxis=energyaxis,
+            )
 
         for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
             element = element_orbital_pair[0]
@@ -986,7 +992,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True):
+    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states onto the s, p, and d orbitals of specified elements. 
@@ -1024,14 +1030,15 @@ class Dos:
         if self.forbitals and 'f' not in order:
             order.append('f')
 
-        self.plot_plain(
-            ax=ax,
-            linewidth=linewidth,
-            fill=fill,
-            alpha=alpha,
-            sigma=sigma,
-            energyaxis=energyaxis,
-        )
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                sigma=sigma,
+                energyaxis=energyaxis,
+            )
 
         for element in elements:
             for i, orbital in enumerate(order):
