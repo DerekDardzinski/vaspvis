@@ -745,7 +745,7 @@ class Dos:
                     marker='o',
                     markersize=2,
                     linestyle='',
-                    color=color_dict[atom])
+                    color=color_dict[i])
                 )
                 legend_labels.append(
                     f'{atom}'
