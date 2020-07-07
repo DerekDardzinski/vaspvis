@@ -98,6 +98,7 @@ plot_element_spd(ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, line
 ```python
 plot_layers(ax, ylim=[-6, 6], cmap='magma', sigma=5)
 ```
+<img src="./img/dos/layer_dos.png"  width="1050" height="450">
 
 
 

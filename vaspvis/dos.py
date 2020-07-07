@@ -38,6 +38,13 @@ class Dos:
             6: '#778392',
             7: '#07C589',
             8: '#40BAF2',
+            9: '#FF0000',
+            10: '#0000FF',
+            11: '#008000',
+            12: '#800080',
+            13: '#E09200',
+            14: '#FF5C77',
+            15: '#778392',
         }
         self.orbital_labels = {
             0: '$s$',
@@ -249,18 +256,17 @@ class Dos:
         spd_df['s'] = spd_df[0]
         spd_df['p'] = spd_df[1] + spd_df[2] + spd_df[3]
         spd_df['d'] = spd_df[4] + spd_df[5] + spd_df[6] + spd_df[7] + spd_df[8]
-        spd_df = spd_df.drop(columns=range(9))
 
         if self.forbitals:
-            spd_dict['f'] = df[9] + df[10] + \
-                df[11] + df[12] + df[13] + df[14] + df[15]
-            spd_dict = spd_dict.drop(columns=range(16))
+            spd_df['f'] = spd_df[9] + spd_df[10] + \
+                spd_df[11] + spd_df[12] + spd_df[13] + spd_df[14] + spd_df[15]
+            spd_df = spd_df.drop(columns=range(16))
         else:
-            spd_dict = spd_dict.drop(columns=range(9))
+            spd_df = spd_df.drop(columns=range(9))
 
         return spd_df
 
-    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y'):
+    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y', color='black'):
         """
         This function plots the total density of states
 
@@ -288,8 +294,8 @@ class Dos:
             ax.plot(
                 tdensity,
                 tdos_dict['energy'],
-                color='black',
                 linewidth=linewidth,
+                color=color,
             )
 
             if fill:
@@ -297,16 +303,16 @@ class Dos:
                     tdos_dict['energy'],
                     tdensity,
                     0,
-                    color='black',
                     alpha=alpha,
+                    color=color,
                 )
 
         if energyaxis == 'x':
             ax.plot(
                 tdos_dict['energy'],
                 tdensity,
-                color='black',
                 linewidth=linewidth,
+                color=color,
             )
 
             if fill:
@@ -314,7 +320,7 @@ class Dos:
                     tdos_dict['energy'],
                     tdensity,
                     0,
-                    color='black',
+                    color=color,
                     alpha=alpha,
                 )
 
@@ -1144,7 +1150,7 @@ class Dos:
         densities = gaussian_filter(densities, sigma=sigma)
 
         if energyaxis == 'y':
-            ax.pcolormesh(
+            im = ax.pcolormesh(
                 atom_index,
                 energies,
                 densities,
@@ -1154,7 +1160,7 @@ class Dos:
             )
 
         if energyaxis == 'x':
-            ax.pcolormesh(
+            im = ax.pcolormesh(
                 energies,
                 atom_index,
                 np.transpose(densities),
@@ -1162,6 +1168,11 @@ class Dos:
                 shading='gouraud',
                 vmax=0.6,
             )
+
+        fig = plt.gcf()
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.ax.tick_params(labelsize=6)
+        cbar.set_label('Density of States', fontsize=6)
 
 
 def main():
