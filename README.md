@@ -58,47 +58,47 @@ Method for constructing and plotting the density of states from VASP calculation
 ```python
 plot_plain(ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y')
 ```
-<img src="./img/dos/plain_dos.png"  width="1050" height="450">
+<img src="./img/dos/plain_dos.png"  width="1050" height="425">
 
 ```python
 plot_spd(ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/spd_dos.png"  width="1050" height="450">
+<img src="./img/dos/spd_dos.png"  width="1050" height="425">
 
 ```python
 plot_orbitals(ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/orbital_dos.png"  width="1050" height="450">
+<img src="./img/dos/orbital_dos.png"  width="1050" height="425">
 
 ```python
 plot_atom_orbitals(ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/atom_orbital_dos.png"  width="1050" height="450">
+<img src="./img/dos/atom_orbital_dos.png"  width="1050" height="425">
 
 ```python
 plot_atoms(ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/atom_dos.png"  width="1050" height="450">
+<img src="./img/dos/atom_dos.png"  width="1050" height="425">
 
 ```python
 plot_elements(ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/elements_dos.png"  width="1050" height="450">
+<img src="./img/dos/elements_dos.png"  width="1050" height="425">
 
 ```python
 plot_element_orbitals(ax, elements, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/elements_orbitals_dos.png"  width="1050" height="450">
+<img src="./img/dos/elements_orbitals_dos.png"  width="1050" height="425">
 
 ```python
 plot_element_spd(ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/elements_spd_dos.png"  width="1050" height="450">
+<img src="./img/dos/elements_spd_dos.png"  width="1050" height="425">
 
 ```python
 plot_layers(ax, ylim=[-6, 6], cmap='magma', sigma=5)
 ```
-<img src="./img/dos/layer_dos.png"  width="1050" height="450">
+<img src="./img/dos/layer_dos.png"  width="1050" height="425">
 
 
 
