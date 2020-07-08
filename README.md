@@ -1,6 +1,49 @@
 # vaspvis
 A highly flexible and customizable library for visualizing electronic structure data from VASP calculations.
 
+# Installation
+
+```bash
+pip install vaspvis
+```
+
+# Loading Data
+
+
+```python
+from vaspvis import Band, Dos
+
+# Non-HSE Calculation (plain band structure)
+bs = Band(folder='path to vasp output folder')
+
+
+# Non-HSE Calculation (projected band structure)
+bs_projected = Band(folder='path to vasp output folder', projected=True)
+
+# HSE Calculation (plain band structure)
+bs_hse = Band(
+    folder='path to vasp output folder',
+    hse=True,
+    kpath='GXWLGK', # Path used in calculation
+    n=30, # Number of points between with high symmetry points
+)
+
+# HSE Calculation (plain band structure)
+bs_hse = Band(
+    folder='path to vasp output folder',
+    projected=True,
+    hse=True,
+    kpath='GXWLGK', # Path used in calculation
+    n=30, # Number of points between with high symmetry points
+)
+
+# Density of states (projected or non-projected)
+dos = Dos(folder='path to vasp output folder')
+```
+
+**Important Note** For spin projected orbitals you must load the spin up and spin down chanels separately using the `spin = 'up'` or `spin = 'down'` options with loading data. Default is `spin = 'up'`. An example of a spin projected band plot is coming soon.
+
+
 # vaspvis.core.band
 
 ## `class Band()`
