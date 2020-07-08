@@ -1,6 +1,7 @@
 from pymatgen.electronic_structure.core import Spin, Orbital
 from pymatgen.io.vasp.outputs import BSVasprun
 from pymatgen.io.vasp.inputs import Kpoints, Poscar
+from pymatgen.core.periodic_table import Element
 from functools import reduce
 from collections import OrderedDict
 import matplotlib.pyplot as plt
@@ -420,7 +421,7 @@ class Band:
 
         plt.xticks(kpoints_index, kpath)
 
-    def plot_plain(self, ax, color='black', linewidth=1.5):
+    def plot_plain(self, ax, color='black', linewidth=1.25):
         """
         This function plots a plain band structure given that the band data
         has already been loaded with the _load_bands() method.
@@ -451,7 +452,7 @@ class Band:
 
         plt.xlim(0, len(wave_vector)-1)
 
-    def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True):
+    def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the s, p, d projected band structure given that the band
         data has already been loaded with the _load_bands() and _load_projected_bands()
@@ -472,7 +473,11 @@ class Band:
             orbitals to be specified. Should be in the form of:
             {'s': <s color>, 'p': <p color>, 'd': <d color>}
         legend: (bool) Determines if the legend should be included or not.
+        linewidth: (float) Line width of the plain band structure plotted in the background
+        band_color: (string) Color of the plain band structure
         """
+
+        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         spd_dict = self._sum_spd()
 
@@ -483,8 +488,6 @@ class Band:
                 'd': self.color_dict[2],
                 'f': self.color_dict[4],
             }
-
-        self.plot_plain(ax, linewidth=0.5)
 
         plot_df = pd.DataFrame()
 
@@ -506,7 +509,6 @@ class Band:
                 c=color_dict[col],
                 s=scale_factor * plot_df[col],
                 zorder=1,
-                label=f'${col}$',
             )
 
         if legend:
@@ -537,7 +539,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True):
+    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure of individual orbitals on
         individual atoms given that the band data has already been loaded with the
@@ -555,9 +557,11 @@ class Band:
         color_dict: (dict[int][str]) Dictionary of colors for the atom-orbital pairs in       
             the order that the atom-orbital pairs were given.
         legend: (bool) Determines if the legend should be included or not.
+        linewidth: (float) Line width of the plain band structure plotted in the background
+        band_color: (string) Color of the plain band structure
         """
 
-        self.plot_plain(ax=ax, linewidth=0.75)
+        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         projected_dict = self.projected_dict
         wave_vector = range(len(self.bands_dict['band1']))
@@ -609,7 +613,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None, legend=True):
+    def plot_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
@@ -625,9 +629,11 @@ class Band:
             specified. Should be in the form of:
             {'orbital index': <color>, 'orbital index': <color>, ...}
         legend: (bool) Determines if the legend should be included or not.
+        linewidth: (float) Line width of the plain band structure plotted in the background
+        band_color: (string) Color of the plain band structure
         """
-        self.plot_plain(ax=ax, linewidth=0.75)
-        # self._get_kticks(ax=ax)
+
+        self.plot_plain(ax=ax, linewidth=linewidth, band_color=band_color)
 
         orbital_dict = self._sum_orbitals(orbitals=orbitals)
 
@@ -681,7 +687,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_atoms(self, atoms, ax, scale_factor=5, color_dict=None, legend=True):
+    def plot_atoms(self, atoms, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
@@ -697,9 +703,11 @@ class Band:
             specified. Should be in the form of:
             {'atom index': <color>, 'atom index': <color>, ...}
         legend: (bool) Determines if the legend should be included or not.
+        linewidth: (float) Line width of the plain band structure plotted in the background
+        band_color: (string) Color of the plain band structure
         """
 
-        self.plot_plain(ax=ax, linewidth=0.75)
+        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         atom_dict = self._sum_atoms(atoms=atoms)
 
@@ -753,7 +761,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_elements(self, elements, ax, scale_factor=5, color_dict=None, legend=True):
+    def plot_elements(self, elements, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure on specified element in
         the calculated structure. This is useful for supercells where there are
@@ -770,9 +778,11 @@ class Band:
             specified. Should be in the form of:
             {'element index': <color>, 'element index': <color>, ...}
         legend: (bool) Determines if the legend should be included or not.
+        linewidth: (float) Line width of the plain band structure plotted in the background
+        band_color: (string) Color of the plain band structure
         """
 
-        self.plot_plain(ax=ax, linewidth=0.75)
+        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         element_dict = self._sum_elements(elements=elements, orbitals=False)
 
@@ -827,7 +837,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True):
+    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure on chosen orbitals for each 
         specified element in the calculated structure. This is useful for supercells 
@@ -845,9 +855,11 @@ class Band:
             specified. Should be in the form of:
             {'orbital index': <color>, 'orbital index': <color>, ...}
         legend: (bool) Determines if the legend should be included or not.
+        linewidth: (float) Line width of the plain band structure plotted in the background
+        band_color: (string) Color of the plain band structure
         """
 
-        self.plot_plain(ax=ax, linewidth=0.75)
+        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         elements = [i[0] for i in element_orbital_pairs]
 
@@ -910,7 +922,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True):
+    def plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure on the s, p, and d orbitals
         for each specified element in the calculated structure. This is useful for 
@@ -932,10 +944,12 @@ class Band:
         color_dict: (dict[str][str]) This option allow the colors of the s, p, and d
             orbitals to be specified. Should be in the form of:
             {'s': <s color>, 'p': <p color>, 'd': <d color>}
-
+        legend: (bool) Determines if the legend should be included or not.
+        linewidth: (float) Line width of the plain band structure plotted in the background
+        band_color: (string) Color of the plain band structure
         """
 
-        self.plot_plain(ax=ax, linewidth=0.75)
+        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         element_dict = self._sum_elements(
             elements=elements, orbitals=True, spd=True)
@@ -945,6 +959,7 @@ class Band:
                 's': self.color_dict[0],
                 'p': self.color_dict[1],
                 'd': self.color_dict[2],
+                'f': self.color_dict[4],
             }
 
         plot_element = {element: pd.DataFrame() for element in elements}
@@ -963,6 +978,10 @@ class Band:
                     element_dict[band][element])
 
         for (i, element) in enumerate(elements):
+            if self.forbitals:
+                electronic_structure = Element(element).full_electronic_structure
+                if not np.isin('f', electronic_structure):
+                    order = order.remove('f')
             for orbital in order:
                 ax.scatter(
                     plot_wave_vec,
