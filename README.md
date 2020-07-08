@@ -36,17 +36,17 @@ plot_atoms(atoms, ax, scale_factor=5, color_dict=None, legend=True)
 ```python
 plot_elements(elements, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-<img src="./img/band/element_band.png"  width="450" height="450">
+<!--<img src="./img/band/element_band.png"  width="450" height="450">-->
 
 ```python
 plot_element_orbitals(elements, orbitals, ax, scale_factor=5, color_dict=None, legend=True)
 ```
-<img src="./img/band/element_orbital_band.png"  width="450" height="450">
+<!--<img src="./img/band/element_orbital_band.png"  width="450" height="450">-->
 
 ```python
 plot_element_spd(elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True)
 ```
-<img src="./img/band/element_spd_band.png"  width="450" height="450">
+<!--<img src="./img/band/element_spd_band.png"  width="450" height="450">-->
 
 
 # vaspvis.core.dos
@@ -83,22 +83,22 @@ plot_atoms(ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxi
 ```python
 plot_elements(ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/elements_dos.png"  width="1050" height="425">
+<!--<img src="./img/dos/elements_dos.png"  width="1050" height="425">-->
 
 ```python
 plot_element_orbitals(ax, elements, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/elements_orbitals_dos.png"  width="1050" height="425">
+<!--<img src="./img/dos/elements_orbitals_dos.png"  width="1050" height="425">-->
 
 ```python
 plot_element_spd(ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None)
 ```
-<img src="./img/dos/elements_spd_dos.png"  width="1050" height="425">
+<!--<img src="./img/dos/elements_spd_dos.png"  width="1050" height="425">-->
 
 ```python
 plot_layers(ax, ylim=[-6, 6], cmap='magma', sigma=5)
 ```
-<img src="./img/dos/layer_dos.png"  width="1050" height="425">
+<!--<img src="./img/dos/layer_dos.png"  width="1050" height="425">-->
 
 
 
