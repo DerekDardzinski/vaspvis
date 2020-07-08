@@ -41,7 +41,7 @@ bs_hse = Band(
 dos = Dos(folder='path to vasp output folder')
 ```
 
-**Important Note** For spin projected orbitals you must load the spin up and spin down chanels separately using the `spin = 'up'` or `spin = 'down'` options with loading data. Default is `spin = 'up'`. An example of a spin projected band plot is coming soon.
+**Important Note:** For spin projected orbitals you must load the spin up and spin down chanels separately using the `spin = 'up'` or `spin = 'down'` options with loading data. Default is `spin = 'up'`. An example of a spin projected band plot is coming soon.
 
 
 # vaspvis.core.band
