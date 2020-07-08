@@ -28,7 +28,7 @@ bs_hse = Band(
     n=30, # Number of points between with high symmetry points
 )
 
-# HSE Calculation (plain band structure)
+# HSE Calculation (projected band structure)
 bs_hse = Band(
     folder='path to vasp output folder',
     projected=True,
