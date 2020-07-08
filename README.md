@@ -47,26 +47,6 @@ plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_dic
 plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black')
 ```
 
-
-<!--> **elements**: (list) List of element symbols to project onto-->
-
-<!--> **ax**: (matplotlib.pyplot.axis) Axis to plot the data on-->
-
-<!--> **scale_factor**: (float) Factor to scale weights. This changes the size of the points in the scatter plot-->
-
-<!--> **order**: (list) This determines the order in which the points are plotted on the graph. This is an option because sometimes certain orbitals can be hidden under other orbitals because they have a larger weight. For example, if the signitures of the d orbitals are greater than that of the s orbitals, it might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are plotted over the d orbitals.-->
-
-<!--> **color_dict**: (dict[str][str]) This option allow the colors of the s, p, and orbitals to be specified. Should be in the form of: \{'s': \<s color\>, 'p': \<p color\>, 'd': \<d color\>\}-->
-
-<!--> **legend**: (bool) Determines if the legend should be included or not.-->
-
-<!--> **linewidth**: (float) Line width of the plain band structure plotted in the background-->
-
-<!--> **band_color**: (string) Color of the plain band structure-->
-
-<!--<img src="./img/band/element_spd_band.png"  width="450" height="450">-->
-
-
 # vaspvis.core.dos
 
 ## `class Dos()`
