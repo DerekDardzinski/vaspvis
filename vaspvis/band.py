@@ -633,7 +633,7 @@ class Band:
         band_color: (string) Color of the plain band structure
         """
 
-        self.plot_plain(ax=ax, linewidth=linewidth, band_color=band_color)
+        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         orbital_dict = self._sum_orbitals(orbitals=orbitals)
 
