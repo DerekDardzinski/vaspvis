@@ -48,7 +48,7 @@ class Band:
         self.kpath = kpath
         self.n = n
         self.folder = folder
-        self.spin = 'up'
+        self.spin = spin 
         self.spin_dict = {'up': Spin.up, 'dowm': Spin.down}
         self.bands_dict = self._load_bands()
         self.color_dict = {
