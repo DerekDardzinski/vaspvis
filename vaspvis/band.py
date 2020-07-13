@@ -3,7 +3,6 @@ from pymatgen.io.vasp.outputs import BSVasprun
 from pymatgen.io.vasp.inputs import Kpoints, Poscar
 from pymatgen.core.periodic_table import Element
 from functools import reduce
-from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -49,7 +48,7 @@ class Band:
         self.n = n
         self.folder = folder
         self.spin = spin 
-        self.spin_dict = {'up': Spin.up, 'dowm': Spin.down}
+        self.spin_dict = {'up': Spin.up, 'down': Spin.down}
         self.bands_dict = self._load_bands()
         self.color_dict = {
             0: '#FF0000',
@@ -400,7 +399,8 @@ class Band:
         for k in kpoints_index:
             ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
 
-        plt.xticks(kpoints_index, kpts_labels)
+        ax.set_xticks(kpoints_index)
+        ax.set_xticklabels(kpts_labels)
 
     def _get_kticks_hse(self, ax, kpath, n):
 
@@ -421,7 +421,7 @@ class Band:
 
         plt.xticks(kpoints_index, kpath)
 
-    def plot_plain(self, ax, color='black', linewidth=1.25):
+    def plot_plain(self, ax, color='black', linewidth=1.25, linestyle='-'):
         """
         This function plots a plain band structure given that the band data
         has already been loaded with the _load_bands() method.
@@ -442,6 +442,7 @@ class Band:
                 band_values,
                 color=color,
                 linewidth=linewidth,
+                linestyle=linestyle,
                 zorder=0,
             )
 
@@ -450,7 +451,7 @@ class Band:
         else:
             self._get_kticks(ax=ax)
 
-        plt.xlim(0, len(wave_vector)-1)
+        ax.set_xlim(0, len(wave_vector)-1)
 
     def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
@@ -568,6 +569,7 @@ class Band:
 
         if color_dict is None:
             color_dict = self.color_dict
+
 
         for band in projected_dict:
             for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
