@@ -450,7 +450,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
+    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -471,8 +471,10 @@ class Dos:
 
         tdos_dict = self.tdos_dict
 
-        if color_dict is None:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
         if total:
             self.plot_plain(
@@ -687,7 +689,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states on the given atoms.
@@ -710,8 +712,10 @@ class Dos:
         atom_df = self._sum_atoms()
         tdos_dict = self.tdos_dict
 
-        if color_dict is None:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
         if total:
             self.plot_plain(
@@ -805,7 +809,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
+    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states for the projection onto specified elements. This is 
@@ -830,8 +834,10 @@ class Dos:
             elements=elements, orbitals=False, spd=False)
         tdos_dict = self.tdos_dict
 
-        if color_dict is None:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
         if total:
             self.plot_plain(
@@ -925,7 +931,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
+    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
         """
         This function plots the total density of states with the projected
         density of states onto the chosen orbitals of specified elements. This is 
@@ -953,8 +959,10 @@ class Dos:
             elements=elements, orbitals=True, spd=False)
         tdos_dict = self.tdos_dict
 
-        if color_dict is None:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
         if total:
             self.plot_plain(

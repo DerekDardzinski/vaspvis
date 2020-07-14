@@ -549,7 +549,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure of individual orbitals on
         individual atoms given that the band data has already been loaded with the
@@ -576,8 +576,10 @@ class Band:
         projected_dict = self.projected_dict
         wave_vector = range(len(self.bands_dict['band1']))
 
-        if color_dict is None:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
 
         for band in projected_dict:
@@ -707,7 +709,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_atoms(self, atoms, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_atoms(self, atoms, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure of given orbitals summed
         across all atoms given that the band data has already been loaded with the
@@ -731,8 +733,10 @@ class Band:
 
         atom_dict = self._sum_atoms(atoms=atoms)
 
-        if color_dict is None:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
         plot_df = pd.DataFrame(columns=atoms)
         plot_band = []
@@ -743,11 +747,11 @@ class Band:
             plot_band.extend(self.bands_dict[band])
             plot_wave_vec.extend(range(len(atom_dict[band])))
 
-        for atom in atoms:
+        for (i, atom) in enumerate(atoms):
             ax.scatter(
                 plot_wave_vec,
                 plot_band,
-                c=color_dict[atom],
+                c=color_dict[i],
                 s=scale_factor * plot_df[atom],
                 zorder=1,
                 label=atom,
@@ -756,14 +760,14 @@ class Band:
         if legend:
             legend_lines = []
             legend_labels = []
-            for atom in atoms:
+            for (i, atom) in enumerate(atoms):
                 legend_lines.append(plt.Line2D(
                     [0],
                     [0],
                     marker='o',
                     markersize=2,
                     linestyle='',
-                    color=color_dict[atom])
+                    color=color_dict[i])
                 )
                 legend_labels.append(
                     f'{atom}'
@@ -790,7 +794,7 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_elements(self, elements, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_elements(self, elements, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
         This function plots the projected band structure on specified element in
         the calculated structure. This is useful for supercells where there are
@@ -815,8 +819,10 @@ class Band:
 
         element_dict = self._sum_elements(elements=elements, orbitals=False)
 
-        if color_dict is None:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
         plot_element = {element: [] for element in elements}
         plot_band = []
@@ -871,11 +877,11 @@ class Band:
                 fontsize=5,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
-                frameon=false,
+                frameon=False,
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_dict=none, legend=true, linewidth=0.75, band_color='black'):
+    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
         this function plots the projected band structure on chosen orbitals for each 
         specified element in the calculated structure. this is useful for supercells 
@@ -901,10 +907,12 @@ class Band:
 
         elements = [i[0] for i in element_orbital_pairs]
 
-        element_dict = self._sum_elements(elements=elements, orbitals=true)
+        element_dict = self._sum_elements(elements=elements, orbitals=True)
 
-        if color_dict is none:
+        if color_list is None:
             color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
 
         plot_element = {element: pd.dataframe(
             columns=[range(9)]) for element in elements}
@@ -918,7 +926,7 @@ class Band:
                 plot_element[element] = plot_element[element].append(
                     element_dict[band][element])
 
-        for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
+        for i, element_orbital_pair in enumerate(element_orbital_pairs):
             element = element_orbital_pair[0]
             orbital = element_orbital_pair[1]
             ax.scatter(
@@ -933,7 +941,7 @@ class Band:
         if legend:
             legend_lines = []
             legend_labels = []
-            for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
+            for i, element_orbital_pair in enumerate(element_orbital_pairs):
                 element = element_orbital_pair[0]
                 orbital = element_orbital_pair[1]
                 legend_lines.append(plt.Line2D(

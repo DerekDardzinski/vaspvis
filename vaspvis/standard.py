@@ -656,6 +656,114 @@ def band_orbitals_spin_projected(
     plt.savefig(output)
 
 
+# =============================================================
+# -------------------- Density of States ----------------------
+# =============================================================
+
+def dos_plain():
+    pass
+
+def dos_spd():
+    pass
+
+def dos_atom_orbitals():
+    pass
+
+def dos_orbitals():
+    pass
+
+def dos_atoms():
+    pass
+
+def dos_elements():
+    pass
+
+def dos_element_spd():
+    pass
+
+def dos_element_orbitals():
+    pass
+
+def dos_plain_spin_projected():
+    pass
+
+def dos_spd_spin_projected():
+    pass
+
+def dos_atom_orbitals_spin_projected():
+    pass
+
+def dos_orbitals_spin_projected():
+    pass
+
+def dos_atoms_spin_projected():
+    pass
+
+def dos_elements_spin_projected():
+    pass
+
+def dos_element_spd_spin_projected():
+    pass
+
+def dos_element_orbitals_spin_projected():
+    pass
+
+
+# =============================================================
+# ---------------------- Band-Dos Plots -----------------------
+# =============================================================
+
+def band_dos_plain():
+    pass
+
+def band_dos_spd():
+    pass
+
+def band_dos_atom_orbitals():
+    pass
+
+def band_dos_orbitals():
+    pass
+
+def band_dos_atoms():
+    pass
+
+def band_dos_elements():
+    pass
+
+def band_dos_element_spd():
+    pass
+
+def band_dos_element_orbitals():
+    pass
+
+def band_dos_plain_spin_projected():
+    pass
+
+def band_dos_spd_spin_projected():
+    pass
+
+def band_dos_atom_orbitals_spin_projected():
+    pass
+
+def band_dos_orbitals_spin_projected():
+    pass
+
+def band_dos_atoms_spin_projected():
+    pass
+
+def band_dos_elements_spin_projected():
+    pass
+
+def band_dos_element_spd_spin_projected():
+    pass
+
+def band_dos_element_orbitals_spin_projected():
+    pass
+
+
+
+
 def main():
     band_atom_orbital_spin_projected(
         folder='../../../../../../../for_James/band',
