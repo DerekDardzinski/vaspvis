@@ -429,9 +429,18 @@ class Dos:
                     f'${orbital}$'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -542,9 +551,18 @@ class Dos:
                     f'{atom}({self.orbital_labels[atom_orbital_pair[1]]})'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -648,9 +666,18 @@ class Dos:
                     f'{self.orbital_labels[orbital]}'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -757,9 +784,18 @@ class Dos:
                     f'{atom}'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -868,9 +904,18 @@ class Dos:
                     f'{element}'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -986,9 +1031,18 @@ class Dos:
                     f'{element}({self.orbital_labels[orbital]})'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -1109,9 +1163,18 @@ class Dos:
                         f'{element}(${orbital}$)'
                     )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,

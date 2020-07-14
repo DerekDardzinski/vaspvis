@@ -527,10 +527,19 @@ class Band:
                 legend_labels.append(
                     f'${orbital}$'
                 )
+            
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
 
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -677,9 +686,18 @@ class Band:
                     f'{self.orbital_labels[orbital]}'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -751,9 +769,18 @@ class Band:
                     f'{atom}'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -806,7 +833,7 @@ class Band:
                 plot_wave_vec,
                 plot_band,
                 c=color_dict[i],
-                s=scale_factor * plot_element[element],
+                s=scale_factor * np.array(plot_element[element]),
                 zorder=1,
                 label=element
             )
@@ -827,50 +854,59 @@ class Band:
                     f'{element}'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
-                frameon=False,
+                frameon=false,
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_dict=none, legend=true, linewidth=0.75, band_color='black'):
         """
-        This function plots the projected band structure on chosen orbitals for each 
-        specified element in the calculated structure. This is useful for supercells 
+        this function plots the projected band structure on chosen orbitals for each 
+        specified element in the calculated structure. this is useful for supercells 
         where the are many atoms of the same element and it is inconvienient to manually
-        list each index in the POSCAR.
+        list each index in the poscar.
 
-        Inputs:
+        inputs:
         ----------
-        elements: (list) List of element symbols to project onto
-        orbitals: (list) List of orbitals to plot for each element listed.
-        ax: (matplotlib.pyplot.axis) Axis to plot the data on
-        scale_factor: (float) Factor to scale weights. This changes the size of the
+        elements: (list) list of element symbols to project onto
+        orbitals: (list) list of orbitals to plot for each element listed.
+        ax: (matplotlib.pyplot.axis) axis to plot the data on
+        scale_factor: (float) factor to scale weights. this changes the size of the
             points in the scatter plot
-        color_dict: (dict[str][str]) This option allow the colors of each orbital
-            specified. Should be in the form of:
+        color_dict: (dict[str][str]) this option allow the colors of each orbital
+            specified. should be in the form of:
             {'orbital index': <color>, 'orbital index': <color>, ...}
-        legend: (bool) Determines if the legend should be included or not.
-        linewidth: (float) Line width of the plain band structure plotted in the background
-        band_color: (string) Color of the plain band structure
+        legend: (bool) determines if the legend should be included or not.
+        linewidth: (float) line width of the plain band structure plotted in the background
+        band_color: (string) color of the plain band structure
         """
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         elements = [i[0] for i in element_orbital_pairs]
 
-        element_dict = self._sum_elements(elements=elements, orbitals=True)
+        element_dict = self._sum_elements(elements=elements, orbitals=true)
 
-        if color_dict is None:
+        if color_dict is none:
             color_dict = self.color_dict
 
-        plot_element = {element: pd.DataFrame(
+        plot_element = {element: pd.dataframe(
             columns=[range(9)]) for element in elements}
         plot_band = []
         plot_wave_vec = []
@@ -912,9 +948,18 @@ class Band:
                     f'{element}({self.orbital_labels[orbital]})'
                 )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
@@ -1010,9 +1055,18 @@ class Band:
                         f'{element}(${orbital}$)'
                     )
 
+            handles, labels = ax.get_legend_handles_labels()
+
+            if handles == [] and labels == []:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
             ax.legend(
-                legend_lines,
-                legend_labels,
+                handles,
+                labels,
                 ncol=1,
                 loc='upper left',
                 fontsize=5,
