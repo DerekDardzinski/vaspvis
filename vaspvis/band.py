@@ -669,7 +669,6 @@ class Band:
                 c=color_dict[orbital],
                 s=scale_factor * plot_df[orbital],
                 zorder=1,
-                label=self.orbital_labels[orbital],
             )
 
         if legend:
@@ -754,7 +753,6 @@ class Band:
                 c=color_dict[i],
                 s=scale_factor * plot_df[atom],
                 zorder=1,
-                label=atom,
             )
 
         if legend:
@@ -841,7 +839,6 @@ class Band:
                 c=color_dict[i],
                 s=scale_factor * np.array(plot_element[element]),
                 zorder=1,
-                label=element
             )
 
         if legend:
@@ -935,7 +932,6 @@ class Band:
                 c=color_dict[i],
                 s=scale_factor * plot_element[element][orbital],
                 zorder=1,
-                label=f'{element}({self.orbital_labels[orbital]})'
             )
 
         if legend:

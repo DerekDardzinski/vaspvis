@@ -383,7 +383,6 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[orbital],
                     linewidth=linewidth,
-                    label=f'${orbital}$',
                 )
 
                 if fill:
@@ -401,7 +400,6 @@ class Dos:
                     pdensity,
                     color=color_dict[orbital],
                     linewidth=linewidth,
-                    label=f'${orbital}$',
                 )
 
                 if fill:
@@ -504,7 +502,6 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'${atom}({self.orbital_labels[orbital]})$',
                 )
 
                 if fill:
@@ -522,7 +519,6 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'${atom}({self.orbital_labels[orbital]})$',
                 )
 
                 if fill:
@@ -742,7 +738,6 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=atom,
                 )
 
                 if fill:
@@ -760,7 +755,6 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=atom,
                 )
 
                 if fill:
@@ -864,7 +858,6 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'{element}',
                 )
 
                 if fill:
@@ -882,7 +875,6 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'{element}',
                 )
 
                 if fill:
@@ -991,7 +983,6 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'{element}({self.orbital_labels[orbital]})',
                 )
 
                 if fill:
@@ -1009,7 +1000,6 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
-                    label=f'{element}({self.orbital_labels[orbital]})',
                 )
 
                 if fill:
@@ -1124,7 +1114,6 @@ class Dos:
                         tdos_dict['energy'],
                         color=color_dict[orbital],
                         linewidth=linewidth,
-                        label=f'{element}({orbital})',
                     )
 
                     if fill:
@@ -1142,7 +1131,6 @@ class Dos:
                         pdensity,
                         color=color_dict[orbital],
                         linewidth=linewidth,
-                        label=f'{element}({orbital})',
                     )
 
                     if fill:
