@@ -427,12 +427,14 @@ class Dos:
                     f'${orbital}$'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -549,12 +551,14 @@ class Dos:
                     f'{atom}({self.orbital_labels[atom_orbital_pair[1]]})'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -664,12 +668,14 @@ class Dos:
                     f'{self.orbital_labels[orbital]}'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -782,12 +788,14 @@ class Dos:
                     f'{atom}'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -902,12 +910,14 @@ class Dos:
                     f'{element}'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -1029,12 +1039,14 @@ class Dos:
                     f'{element}({self.orbital_labels[orbital]})'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -1159,12 +1171,14 @@ class Dos:
                         f'{element}(${orbital}$)'
                     )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 

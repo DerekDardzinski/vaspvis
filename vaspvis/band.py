@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import time
+from copy import deepcopy
 
 
 class Band:
@@ -47,7 +48,7 @@ class Band:
         self.kpath = kpath
         self.n = n
         self.folder = folder
-        self.spin = spin 
+        self.spin = spin
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
         self.bands_dict = self._load_bands()
         self.color_dict = {
@@ -358,9 +359,11 @@ class Band:
                         if self.forbitals:
                             element_dict[band][element]['f'] = df[9] + df[10] + \
                                 df[11] + df[12] + df[13] + df[14] + df[15]
-                            element_dict[band][element] = element_dict[band][element].drop(columns=range(16))
+                            element_dict[band][element] = element_dict[band][element].drop(
+                                columns=range(16))
                         else:
-                            element_dict[band][element] = element_dict[band][element].drop(columns=range(9))
+                            element_dict[band][element] = element_dict[band][element].drop(
+                                columns=range(9))
                 else:
                     element_dict[band][element] = df.sum(axis=1).tolist()
 
@@ -522,18 +525,20 @@ class Band:
                     marker='o',
                     markersize=2,
                     linestyle='',
-                    color=color_dict[orbital])
-                )
+                    color=color_dict[orbital]
+                ))
                 legend_labels.append(
                     f'${orbital}$'
                 )
-            
-            handles, labels = ax.get_legend_handles_labels()
 
-            if handles == [] and labels == []:
+            leg = ax.get_legend()
+
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -580,7 +585,6 @@ class Band:
             color_dict = self.color_dict
         else:
             color_dict = {i: color for i, color in enumerate(color_list)}
-
 
         for band in projected_dict:
             for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
@@ -687,12 +691,14 @@ class Band:
                     f'{self.orbital_labels[orbital]}'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -771,12 +777,14 @@ class Band:
                     f'{atom}'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -857,12 +865,14 @@ class Band:
                     f'{element}'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -952,12 +962,14 @@ class Band:
                     f'{element}({self.orbital_labels[orbital]})'
                 )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -1030,7 +1042,8 @@ class Band:
 
         for (i, element) in enumerate(elements):
             if self.forbitals:
-                electronic_structure = Element(element).full_electronic_structure
+                electronic_structure = Element(
+                    element).full_electronic_structure
                 if not np.isin('f', electronic_structure):
                     order = order.remove('f')
             for orbital in order:
@@ -1059,12 +1072,14 @@ class Band:
                         f'{element}(${orbital}$)'
                     )
 
-            handles, labels = ax.get_legend_handles_labels()
+            leg = ax.get_legend()
 
-            if handles == [] and labels == []:
+            if leg is None:
                 handles = legend_lines
                 labels = legend_labels
             else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
                 handles.extend(legend_lines)
                 labels.extend(legend_labels)
 
@@ -1096,9 +1111,13 @@ def main():
     # bands._get_kticks_hse(ax=ax, kpath='GXWLGK', n=20)
 
     # bands._get_kticks(ax=ax)
-    bands.plot_spd(ax=ax, scale_factor=5)
-    # bands.plot_plain(ax=ax, linewidth=1)
     # bands.plot_atom_orbitals(ax=ax, atom_orbital_pairs=[[0, 0], [1, 3]])
+    # bands.plot_orbitals(ax=ax, orbitals=[1, 2, 3, 4, 5, 6, 7, 8])
+    bands.plot_spd(ax=ax, order=['s'], scale_factor=5)
+    bands.plot_spd(ax=ax, order=['p'], scale_factor=5)
+    bands.plot_spd(ax=ax, order=['d'], scale_factor=5)
+    print(ax.get_legend().legendHandles[1]._color)
+    # bands.plot_plain(ax=ax, linewidth=1)
     # bands.plot_atoms(ax=ax, atoms=[0])
     # element_dict = bands._sum_elements(elements=['In'])
     # bands.plot_element_spd(ax=ax, elements=['Cd'])
@@ -1108,7 +1127,7 @@ def main():
     plt.ylabel('$E - E_F$ $(eV)$', fontsize=6)
     plt.tick_params(labelsize=6, length=1.5)
     plt.tick_params(axis='x', length=0)
-    plt.tight_layout(pad=0.5)
+    # plt.tight_layout(pad=0.5)
     # plt.legend(ncol=3, loc='upper left', fontsize=5)
     # plt.savefig('bs_orbitals.png')
     plt.show()
