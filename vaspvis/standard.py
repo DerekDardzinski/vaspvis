@@ -1,5 +1,5 @@
-from band import Band
-from dos import Dos
+from .band import Band
+from .dos import Dos
 import matplotlib.pyplot as plt
 
 
@@ -37,7 +37,7 @@ def _figure_setup_band_dos(ax, fontsize, ylim):
 
 def band_plain(
     folder,
-    output='plain_band.png',
+    output='band_plain.png',
     spin='up',
     color='black',
     linewidth=1.25,
@@ -77,7 +77,7 @@ def band_plain(
 
 def band_spd(
     folder,
-    output='spd_band.png',
+    output='band_spd.png',
     spin='up',
     scale_factor=5,
     order=['s', 'p', 'd'],
@@ -106,7 +106,7 @@ def band_spd(
     ax = fig.add_subplot(111)
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_spd(
-        ax,
+        ax=ax,
         scale_factor=scale_factor,
         order=order,
         color_dict=color_dict,
@@ -125,7 +125,7 @@ def band_spd(
 def band_atom_orbital(
     folder,
     atom_orbital_pairs,
-    output='atom_orbital_band.png',
+    output='band_atom_orbital.png',
     spin='up',
     scale_factor=5,
     color_list=None,
@@ -172,7 +172,7 @@ def band_atom_orbital(
 def band_orbitals(
     folder,
     orbitals,
-    output='orbital_band.png',
+    output='band_orbital.png',
     spin='up',
     scale_factor=5,
     color_dict=None,
@@ -219,7 +219,7 @@ def band_orbitals(
 def band_atoms(
     folder,
     atoms,
-    output='orbital_band.png',
+    output='band_orbital.png',
     spin='up',
     scale_factor=5,
     color_list=None,
@@ -266,7 +266,7 @@ def band_atoms(
 def band_elements(
     folder,
     elements,
-    output='orbital_band.png',
+    output='band_elements.png',
     spin='up',
     scale_factor=5,
     color_list=None,
@@ -294,7 +294,7 @@ def band_elements(
     ax = fig.add_subplot(111)
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_elements(
-        ax,
+        ax=ax,
         elements=elements,
         scale_factor=scale_factor,
         color_list=color_list,
@@ -313,7 +313,7 @@ def band_elements(
 def band_element_orbitals(
     folder,
     element_orbital_pairs,
-    output='atom_orbital_band.png',
+    output='band_element_orbital.png',
     spin='up',
     scale_factor=5,
     color_list=None,
@@ -341,7 +341,7 @@ def band_element_orbitals(
     ax = fig.add_subplot(111)
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_orbitals(
-        ax,
+        ax=ax,
         element_orbital_pairs=element_orbital_pairs,
         scale_factor=scale_factor,
         color_list=color_list,
@@ -359,8 +359,9 @@ def band_element_orbitals(
 
 def band_element_spd(
     folder,
+    elements,
     order=['s', 'p', 'd'],
-    output='atom_orbital_band.png',
+    output='band_element_spd.png',
     spin='up',
     scale_factor=5,
     color_dict=None,
@@ -388,7 +389,8 @@ def band_element_spd(
     ax = fig.add_subplot(111)
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_spd(
-        ax,
+        ax=ax,
+        elements=elements,
         order=order,
         scale_factor=scale_factor,
         color_dict=color_dict,
@@ -406,7 +408,7 @@ def band_element_spd(
 
 def band_plain_spin_projected(
     folder,
-    output='plain_sp_band.png',
+    output='band_plain_sp.png',
     up_color='black',
     down_color='red',
     linewidth=1.25,
@@ -491,7 +493,7 @@ def band_plain_spin_projected(
 
 def band_spd_spin_projected(
     folder,
-    output='spd_sp_band.png',
+    output='band_spd_sp.png',
     scale_factor=2,
     order=['s', 'p', 'd'],
     color_dict=None,
@@ -565,7 +567,7 @@ def band_spd_spin_projected(
     )
 
     band_up.plot_spd(
-        ax1,
+        ax=ax1,
         scale_factor=scale_factor,
         order=order,
         color_dict=color_dict,
@@ -580,7 +582,7 @@ def band_spd_spin_projected(
     )
 
     band_down.plot_spd(
-        ax2,
+        ax=ax2,
         scale_factor=scale_factor,
         order=order,
         color_dict=color_dict,
@@ -605,7 +607,7 @@ def band_spd_spin_projected(
 def band_atom_orbital_spin_projected(
     folder,
     atom_orbital_pairs,
-    output='atom_orbital_sp_band.png',
+    output='band_atom_orbital_sp.png',
     scale_factor=5,
     color_list=None,
     legend=True,
@@ -718,7 +720,7 @@ def band_atom_orbital_spin_projected(
 def band_orbitals_spin_projected(
     folder,
     orbitals,
-    output='spd_sp_band.png',
+    output='band_orbitals_sp.png',
     scale_factor=5,
     color_dict=None,
     legend=True,
@@ -784,8 +786,8 @@ def band_orbitals_spin_projected(
         bbox=bbox,
     )
 
-    band_up.plot_spd(
-        ax1,
+    band_up.plot_orbitals(
+        ax=ax1,
         scale_factor=scale_factor,
         orbitals=orbitals,
         color_dict=color_dict,
@@ -799,8 +801,8 @@ def band_orbitals_spin_projected(
         linewidth=0.5,
     )
 
-    band_down.plot_spd(
-        ax1,
+    band_down.plot_orbitals(
+        ax=ax1,
         scale_factor=scale_factor,
         orbitals=orbitals,
         color_dict=color_dict,
@@ -1811,7 +1813,7 @@ def band_dos_spd(
     dos = Dos(folder=dos_folder, spin=spin)
 
     band.plot_spd(
-        ax1,
+        ax=ax1,
         scale_factor=scale_factor,
         order=order,
         color_dict=color_dict,
@@ -1898,7 +1900,7 @@ def band_dos_atom_orbitals(
     dos = Dos(folder=dos_folder, spin=spin)
 
     band.plot_atom_orbitals(
-        ax1,
+        ax=ax1,
         scale_factor=scale_factor,
         atom_orbital_pairs=atom_orbital_pairs,
         color_list=color_list,
@@ -2336,7 +2338,7 @@ def band_dos_element_orbitals(
     dos = Dos(folder=dos_folder, spin=spin)
 
     band.plot_element_orbitals(
-        ax1,
+        ax=ax1,
         scale_factor=scale_factor,
         element_orbital_pairs=element_orbital_pairs,
         color_list=color_list,
