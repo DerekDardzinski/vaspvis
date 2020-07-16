@@ -266,7 +266,54 @@ class Dos:
 
         return spd_df
 
-    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y', color='black'):
+    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin):
+        energy_in_plot_index = np.where(
+            (tenergy > erange[0]) & (tenergy < erange[1])
+        )[0]
+        density_in_plot = tdensity[energy_in_plot_index]
+
+        if len(ax.lines) == 0:
+            if energyaxis == 'y':
+                ax.set_ylim(erange)
+                if spin == 'up':
+                    ax.set_xlim(0, np.max(density_in_plot) * 1.1)
+                elif spin == 'down':
+                    ax.set_xlim(np.min(density_in_plot) * 1.1, 0)
+            elif energyaxis == 'x':
+                ax.set_xlim(erange)
+                if spin == 'up':
+                    ax.set_ylim(0, np.max(density_in_plot) * 1.1)
+                elif spin == 'down':
+                    ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
+        elif len(ax.lines) > 0:
+            if energyaxis == 'y':
+                ax.set_ylim(erange)
+                xlims = ax.get_xlim()
+                if xlims[0] == 0:
+                    if spin == 'up':
+                        ax.set_xlim(0, np.max(density_in_plot) * 1.1)
+                    elif spin == 'down':
+                        ax.set_xlim(np.min(density_in_plot) * 1.1, xlims[1])
+                if xlims[1] == 0:
+                    if spin == 'up':
+                        ax.set_xlim(xlims[0], np.max(density_in_plot) * 1.1)
+                    elif spin == 'down':
+                        ax.set_xlim(np.min(density_in_plot) * 1.1, 0)
+            elif energyaxis == 'x':
+                ax.set_xlim(erange)
+                ylims = ax.get_ylim()
+                if ylims[0] == 0:
+                    if spin == 'up':
+                        ax.set_ylim(0, np.max(density_in_plot) * 1.1)
+                    elif spin == 'down':
+                        ax.set_ylim(np.min(density_in_plot) * 1.1, ylims[1])
+                if ylims[1] == 0:
+                    if spin == 'up':
+                        ax.set_ylim(ylims[0], np.max(density_in_plot) * 1.1)
+                    elif spin == 'down':
+                        ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
+
+    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y', color='black', erange=[-6, 6]):
         """
         This function plots the total density of states
 
@@ -289,6 +336,15 @@ class Dos:
             )
         else:
             tdensity = tdos_dict['density']
+
+        self._set_density_lims(
+            ax=ax,
+            tdensity=tdensity,
+            tenergy=tdos_dict['energy'],
+            erange=erange,
+            energyaxis=energyaxis,
+            spin=self.spin,
+        )
 
         if energyaxis == 'y':
             ax.plot(
@@ -324,7 +380,7 @@ class Dos:
                     alpha=alpha,
                 )
 
-    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
+    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -366,6 +422,7 @@ class Dos:
                 alpha=alpha,
                 sigma=sigma,
                 energyaxis=energyaxis,
+                erange=erange,
             )
 
         for orbital in order:
@@ -450,7 +507,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
+    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -484,6 +541,7 @@ class Dos:
                 alpha=alpha,
                 sigma=sigma,
                 energyaxis=energyaxis,
+                erange=erange,
             )
 
         for i, atom_orbital_pair in enumerate(atom_orbital_pairs):
@@ -574,7 +632,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
+    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -607,6 +665,7 @@ class Dos:
                 alpha=alpha,
                 sigma=sigma,
                 energyaxis=energyaxis,
+                erange=erange,
             )
 
         for i, orbital in enumerate(orbitals):
@@ -691,7 +750,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states on the given atoms.
@@ -727,6 +786,7 @@ class Dos:
                 alpha=alpha,
                 sigma=sigma,
                 energyaxis=energyaxis,
+                erange=erange,
             )
 
         for i, atom in enumerate(atoms):
@@ -811,7 +871,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
+    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the projection onto specified elements. This is 
@@ -849,6 +909,7 @@ class Dos:
                 alpha=alpha,
                 sigma=sigma,
                 energyaxis=energyaxis,
+                erange=erange,
             )
 
         for i, element in enumerate(elements):
@@ -933,7 +994,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True):
+    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states onto the chosen orbitals of specified elements. This is 
@@ -974,6 +1035,7 @@ class Dos:
                 alpha=alpha,
                 sigma=sigma,
                 energyaxis=energyaxis,
+                erange=erange,
             )
 
         for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
@@ -1062,7 +1124,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True):
+    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states onto the s, p, and d orbitals of specified elements. 
@@ -1108,6 +1170,7 @@ class Dos:
                 alpha=alpha,
                 sigma=sigma,
                 energyaxis=energyaxis,
+                erange=erange,
             )
 
         for element in elements:
@@ -1251,10 +1314,13 @@ class Dos:
 def main():
     fig = plt.figure(figsize=(4, 8), dpi=200)
     ax = fig.add_subplot(111)
-    plt.ylim(-6, 6)
+    # plt.xlim(-6, 6)
     ax.margins(x=0.005, y=0.005)
     dos = Dos(folder='../../vaspvis_data/dos')
-    dos.plot_spd(ax=ax, energyaxis='y')
+    dos.plot_spd(ax=ax, energyaxis='x')
+    dos.tdos_dict['density'] = -1 * dos.tdos_dict['density']
+    dos.spin = 'down'
+    dos.plot_spd(ax=ax, energyaxis='x', erange=[-6, 9], legend=False)
     # dos.plot_layers(ax=ax)
     # dos.plot_atoms(ax=ax, atoms=[0, 1], sigma=0.1, fill=True, energyaxis='y')
     plt.show()

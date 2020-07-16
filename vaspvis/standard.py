@@ -10,21 +10,57 @@ def _figure_setup(ax, fontsize=6, ylim=[-6, 6]):
     ax.tick_params(axis='x', length=0)
 
 
+def _figure_setup_dos(ax, fontsize=6, energyaxis='y'):
+    ax.tick_params(labelsize=fontsize, length=2.5)
+    if energyaxis == 'y':
+        ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
+        ax.set_xlabel('Density of States', fontsize=fontsize)
+    if energyaxis == 'x':
+        ax.set_xlabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
+        ax.set_ylabel('Density of States', fontsize=fontsize)
+
+
+def _figure_setup_band_dos(ax, fontsize, ylim):
+    ax1 = ax[0]
+    ax2 = ax[1]
+    ax2.tick_params(axis='y', length=0)
+    ax2.tick_params(axis='x', length=0, labelsize=fontsize)
+    ax2.set_xlabel('Density of States', fontsize=fontsize)
+    ax1.tick_params(labelsize=fontsize)
+    ax1.tick_params(axis='x', length=0)
+    ax1.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
+    ax1.set_xlabel('Wave Vector', fontsize=fontsize)
+    ax1.set_ylim(ylim[0], ylim[1])
+
+    return ax1, ax2
+
+
 def band_plain(
-        folder,
-        output='plain_band.png',
-        spin='up',
-        color='black',
-        linewidth=1.25,
-        linestyle='-',
-        figsize=(4, 3),
-        erange=[-6, 6],
+    folder,
+    output='plain_band.png',
+    spin='up',
+    color='black',
+    linewidth=1.25,
+    linestyle='-',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
-    band = Band(folder=folder, spin=spin)
+    band = Band(
+        folder=folder,
+        spin=spin,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_plain(
         ax=ax,
         color=color,
@@ -32,32 +68,43 @@ def band_plain(
         linestyle=linestyle,
     )
     plt.tight_layout(pad=0.2)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_spd(
-        folder,
-        output='spd_band.png',
-        spin='up',
-        scale_factor=5,
-        order=['s', 'p', 'd'],
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.89,
+    folder,
+    output='spd_band.png',
+    spin='up',
+    scale_factor=5,
+    order=['s', 'p', 'd'],
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band = Band(
         folder=folder,
         spin=spin,
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_spd(
         ax,
         scale_factor=scale_factor,
@@ -68,72 +115,92 @@ def band_spd(
         band_color=band_color,
     )
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_atom_orbital(
-        folder,
-        atom_orbital_pairs,
-        output='atom_orbital_band.png',
-        spin='up',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.83,
+    folder,
+    atom_orbital_pairs,
+    output='atom_orbital_band.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band = Band(
         folder=folder,
         spin=spin,
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_atom_orbitals(
         ax=ax,
         atom_orbital_pairs=atom_orbital_pairs,
         scale_factor=scale_factor,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
     )
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_orbitals(
-        folder,
-        orbitals,
-        output='orbital_band.png',
-        spin='up',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.85,
+    folder,
+    orbitals,
+    output='orbital_band.png',
+    spin='up',
+    scale_factor=5,
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band = Band(
         folder=folder,
         spin=spin,
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_orbitals(
-        ax,
+        ax=ax,
         orbitals=orbitals,
         scale_factor=scale_factor,
         color_dict=color_dict,
@@ -142,144 +209,184 @@ def band_orbitals(
         band_color=band_color,
     )
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_atoms(
-        folder,
-        atoms,
-        output='orbital_band.png',
-        spin='up',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.85,
+    folder,
+    atoms,
+    output='orbital_band.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band = Band(
         folder=folder,
         spin=spin,
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
-    band.plot_orbitals(
-        ax,
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
+    band.plot_atoms(
+        ax=ax,
         atoms=atoms,
         scale_factor=scale_factor,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
     )
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_elements(
-        folder,
-        elements,
-        output='orbital_band.png',
-        spin='up',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.85,
+    folder,
+    elements,
+    output='orbital_band.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band = Band(
         folder=folder,
         spin=spin,
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_elements(
         ax,
         elements=elements,
         scale_factor=scale_factor,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
     )
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_element_orbitals(
-        folder,
-        element_orbital_pairs,
-        output='atom_orbital_band.png',
-        spin='up',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.83,
+    folder,
+    element_orbital_pairs,
+    output='atom_orbital_band.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band = Band(
         folder=folder,
         spin=spin,
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_orbitals(
         ax,
         element_orbital_pairs=element_orbital_pairs,
         scale_factor=scale_factor,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
     )
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_element_spd(
-        folder,
-        order=['s', 'p', 'd'],
-        output='atom_orbital_band.png',
-        spin='up',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.83,
+    folder,
+    order=['s', 'p', 'd'],
+    output='atom_orbital_band.png',
+    spin='up',
+    scale_factor=5,
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band = Band(
         folder=folder,
         spin=spin,
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_spd(
         ax,
         order=order,
@@ -290,28 +397,47 @@ def band_element_spd(
         band_color=band_color,
     )
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_plain_spin_projected(
-        folder,
-        output='plain_sp_band.png',
-        up_color='black',
-        down_color='red',
-        linewidth=1.25,
-        up_linestyle='-',
-        down_linestyle='-',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.89,
+    folder,
+    output='plain_sp_band.png',
+    up_color='black',
+    down_color='red',
+    linewidth=1.25,
+    up_linestyle='-',
+    down_linestyle='-',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
-    band_up = Band(folder=folder, spin='up')
-    band_down = Band(folder=folder, spin='down')
+    band_up = Band(
+        folder=folder,
+        spin='up',
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+    band_down = Band(
+        folder=folder,
+        spin='down',
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
     fig = plt.figure(figsize=(figsize), dpi=300)
     ax = fig.add_subplot(111)
-    _figure_setup(ax=ax, fontsize=6, ylim=[erange[0], erange[1]])
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band_up.plot_plain(
         ax=ax,
         color=up_color,
@@ -356,54 +482,66 @@ def band_plain_spin_projected(
     )
 
     plt.tight_layout(pad=0.2)
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 def band_spd_spin_projected(
-        folder,
-        output='spd_sp_band.png',
-        scale_factor=2,
-        order=['s', 'p', 'd'],
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        unprojected_band_color='gray',
-        unprojected_linewidth=0.6,
-        fontsize=7,
-        annotations=['$\\uparrow$ ', '$\\downarrow$ '],
-        annotation_xy=(0.02, 0.98),
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.89,
-        stack='vertical',
+    folder,
+    output='spd_sp_band.png',
+    scale_factor=2,
+    order=['s', 'p', 'd'],
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    unprojected_linewidth=0.6,
+    fontsize=7,
+    annotations=['$\\uparrow$ ', '$\\downarrow$ '],
+    annotation_xy=(0.02, 0.98),
+    figsize=(4, 3),
+    erange=[-6, 6],
+    stack='vertical',
+    hse=False,
+    kpath=None,
+    n=None,
+    save=True,
 ):
 
     band_up = Band(
         folder=folder,
         spin='up',
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
 
     band_down = Band(
         folder=folder,
         spin='down',
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
 
     if stack == 'vertical':
         fig = plt.figure(figsize=(figsize[0], 2 * figsize[1]), dpi=300)
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
-        _figure_setup(ax=ax1, fontsize=6, ylim=[erange[0], erange[1]])
-        _figure_setup(ax=ax2, fontsize=6, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
     elif stack == 'horizontal':
         fig = plt.figure(figsize=(2 * figsize[0], figsize[1]), dpi=300)
         ax1 = fig.add_subplot(121)
         ax2 = fig.add_subplot(122)
-        _figure_setup(ax=ax1, fontsize=6, ylim=[erange[0], erange[1]])
-        _figure_setup(ax=ax2, fontsize=6, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -456,55 +594,67 @@ def band_spd_spin_projected(
         linewidth=unprojected_linewidth,
     )
 
-    plt.tight_layout()
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
 
 
 def band_atom_orbital_spin_projected(
-        folder,
-        atom_orbital_pairs,
-        output='atom_orbital_sp_band.png',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        unprojected_band_color='gray',
-        unprojected_linewidth=0.6,
-        fontsize=7,
-        annotations=['$\\uparrow$ ', '$\\downarrow$ '],
-        annotation_xy=(0.02, 0.98),
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.86,
-        stack='vertical',
+    folder,
+    atom_orbital_pairs,
+    output='atom_orbital_sp_band.png',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    unprojected_linewidth=0.6,
+    fontsize=7,
+    annotations=['$\\uparrow$ ', '$\\downarrow$ '],
+    annotation_xy=(0.02, 0.98),
+    figsize=(4, 3),
+    erange=[-6, 6],
+    stack='vertical',
+    hse=False,
+    kpath=None,
+    n=None,
+    save=True,
 ):
 
     band_up = Band(
         folder=folder,
         spin='up',
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
 
     band_down = Band(
         folder=folder,
         spin='down',
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
 
     if stack == 'vertical':
         fig = plt.figure(figsize=(figsize[0], 2 * figsize[1]), dpi=300)
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
-        _figure_setup(ax=ax1, fontsize=6, ylim=[erange[0], erange[1]])
-        _figure_setup(ax=ax2, fontsize=6, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
     elif stack == 'horizontal':
         fig = plt.figure(figsize=(2 * figsize[0], figsize[1]), dpi=300)
         ax1 = fig.add_subplot(121)
         ax2 = fig.add_subplot(122)
-        _figure_setup(ax=ax1, fontsize=6, ylim=[erange[0], erange[1]])
-        _figure_setup(ax=ax2, fontsize=6, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -531,7 +681,7 @@ def band_atom_orbital_spin_projected(
         ax=ax1,
         scale_factor=scale_factor,
         atom_orbital_pairs=atom_orbital_pairs,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
@@ -546,7 +696,7 @@ def band_atom_orbital_spin_projected(
         ax=ax2,
         scale_factor=scale_factor,
         atom_orbital_pairs=atom_orbital_pairs,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
@@ -557,51 +707,64 @@ def band_atom_orbital_spin_projected(
         linewidth=unprojected_linewidth,
     )
 
-    plt.tight_layout()
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
 
 
 def band_orbitals_spin_projected(
-        folder,
-        orbitals,
-        output='spd_sp_band.png',
-        scale_factor=5,
-        color_dict=None,
-        legend=True,
-        linewidth=0.75,
-        band_color='black',
-        unprojected_band_color='gray',
-        figsize=(4, 3),
-        erange=[-6, 6],
-        right_margin=0.85,
-        stack='vertical',
+    folder,
+    orbitals,
+    output='spd_sp_band.png',
+    scale_factor=5,
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    stack='vertical',
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
 ):
 
     band_up = Band(
         folder=folder,
         spin='up',
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
 
     band_down = Band(
         folder=folder,
         spin='down',
         projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
     )
 
     if stack == 'vertical':
         fig = plt.figure(figsize=(figsize[0], 2 * figsize[1]), dpi=300)
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
-        _figure_setup(ax=ax1, fontsize=6, ylim=[erange[0], erange[1]])
-        _figure_setup(ax=ax2, fontsize=6, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
     elif stack == 'horizontal':
         fig = plt.figure(figsize=(2 * figsize[0], figsize[1]), dpi=300)
         ax1 = fig.add_subplot(121)
         ax2 = fig.add_subplot(122)
-        _figure_setup(ax=ax1, fontsize=6, ylim=[erange[0], erange[1]])
-        _figure_setup(ax=ax2, fontsize=6, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
 
     bbox = dict(boxstyle="round", fc="white")
     ax1.annotate(
@@ -651,651 +814,1607 @@ def band_orbitals_spin_projected(
         linewidth=0.5,
     )
 
-    plt.tight_layout()
-    plt.subplots_adjust(right=right_margin)
-    plt.savefig(output)
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
 
 
 # =============================================================
 # -------------------- Density of States ----------------------
 # =============================================================
 
-def dos_plain():
-    pass
+def dos_plain(
+    folder,
+    output='dos_plain.png',
+    linewidth=1.5,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+    energyaxis='y',
+    color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
 
-def dos_spd():
-    pass
+    dos = Dos(folder=folder, spin=spin)
 
-def dos_atom_orbitals():
-    pass
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
 
-def dos_orbitals():
-    pass
+    dos.plot_plain(
+        ax=ax,
+        linewidth=linewidth,
+        fill=fill,
+        alpha=alpha,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color=color,
+        erange=erange,
+    )
 
-def dos_atoms():
-    pass
+    plt.tight_layout(pad=0.2)
 
-def dos_elements():
-    pass
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
-def dos_element_spd():
-    pass
 
-def dos_element_orbitals():
-    pass
+def dos_spd(
+    folder,
+    output='dos_spd.png',
+    order=['s', 'p', 'd'],
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_dict=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
 
-def dos_plain_spin_projected():
-    pass
+    dos = Dos(folder=folder, spin=spin)
 
-def dos_spd_spin_projected():
-    pass
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
 
-def dos_atom_orbitals_spin_projected():
-    pass
+    dos.plot_spd(
+        ax=ax,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
 
-def dos_orbitals_spin_projected():
-    pass
+    plt.tight_layout(pad=0.2)
 
-def dos_atoms_spin_projected():
-    pass
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
-def dos_elements_spin_projected():
-    pass
 
-def dos_element_spd_spin_projected():
-    pass
+def dos_atom_orbitals(
+    folder,
+    atom_orbital_pairs,
+    output='dos_atom_orbitals.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
 
-def dos_element_orbitals_spin_projected():
-    pass
+    dos = Dos(folder=folder, spin=spin)
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_atom_orbitals(
+        ax=ax,
+        atom_orbital_pairs=atom_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_orbitals(
+    folder,
+    orbitals,
+    output='dos_orbitals.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_dict=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
+
+    dos = Dos(folder=folder, spin=spin)
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_orbitals(
+        ax=ax,
+        orbitals=orbitals,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_atoms(
+    folder,
+    atoms,
+    output='dos_atoms.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
+
+    dos = Dos(folder=folder, spin=spin)
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_atoms(
+        ax=ax,
+        atoms=atoms,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_elements(
+    folder,
+    elements,
+    output='dos_elements.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
+
+    dos = Dos(folder=folder, spin=spin)
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_elements(
+        ax=ax,
+        elements=elements,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_element_spd(
+    folder,
+    elements,
+    order=['s', 'p', 'd'],
+    output='dos_element_spd.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_dict=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
+
+    dos = Dos(folder=folder, spin=spin)
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_element_spd(
+        ax=ax,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_element_orbitals(
+    folder,
+    element_orbital_pairs,
+    output='dos_element_orbitals.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    fontsize=7,
+    save=True,
+):
+
+    dos = Dos(folder=folder, spin=spin)
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_element_orbitals(
+        ax=ax,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_plain_spin_projected(
+    folder,
+    output='dos_plain_sp.png',
+    linewidth=1.5,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+    energyaxis='y',
+    color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_plain(
+        ax=ax,
+        linewidth=linewidth,
+        fill=fill,
+        alpha=alpha,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color=color,
+        erange=erange,
+    )
+
+    dos_down.plot_plain(
+        ax=ax,
+        linewidth=linewidth,
+        fill=fill,
+        alpha=alpha,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color=color,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_spd_spin_projected(
+    folder,
+    output='dos_spd_sp.png',
+    order=['s', 'p', 'd'],
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_dict=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_spd(
+        ax=ax,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    dos_down.plot_spd(
+        ax=ax,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=False,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_atom_orbitals_spin_projected(
+    folder,
+    atom_orbital_pairs,
+    output='dos_atom_orbitals_sp.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_atom_orbitals(
+        ax=ax,
+        atom_orbital_pairs=atom_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    dos_down.plot_atom_orbitals(
+        ax=ax,
+        atom_orbital_pairs=atom_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=False,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_orbitals_spin_projected(
+    folder,
+    orbitals,
+    output='dos_orbitals_sp.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_dict=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_orbitals(
+        ax=ax,
+        orbitals=orbitals,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    dos_down.plot_orbitals(
+        ax=ax,
+        orbitals=orbitals,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=False,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_atoms_spin_projected(
+    folder,
+    atoms,
+    output='dos_atoms_sp.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_atoms(
+        ax=ax,
+        atoms=atoms,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    dos_down.plot_atoms(
+        ax=ax,
+        atoms=atoms,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=False,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_elements_spin_projected(
+    folder,
+    elements,
+    output='dos_elements_sp.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_elements(
+        ax=ax,
+        elements=elements,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    dos_down.plot_elements(
+        ax=ax,
+        elements=elements,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=False,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_element_spd_spin_projected(
+    folder,
+    elements,
+    order=['s', 'p', 'd'],
+    output='dos_element_spd_sp.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_dict=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_element_spd(
+        ax=ax,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    dos_down.plot_element_spd(
+        ax=ax,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
+        legend=False,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+
+def dos_element_orbitals_spin_projected(
+    folder,
+    element_orbital_pairs,
+    output='dos_element_orbitals_sp.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_list=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    fontsize=7,
+    save=True,
+):
+
+    dos_up = Dos(folder=folder, spin='up')
+    dos_down = Dos(folder=folder, spin='down')
+
+    fig = plt.figure(figsize=figsize, dpi=300)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos_up.plot_element_orbitals(
+        ax=ax,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    dos_down.plot_element_orbitals(
+        ax=ax,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_list=color_list,
+        legend=False,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 
 # =============================================================
 # ---------------------- Band-Dos Plots -----------------------
 # =============================================================
 
-def band_dos_plain():
-    pass
+def band_dos_plain(
+    band_folder,
+    dos_folder,
+    output='band_dos_plain.png',
+    spin='up',
+    color='black',
+    linewidth=1.25,
+    linestyle='-',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
 
-def band_dos_spd():
-    pass
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
 
-def band_dos_atom_orbitals():
-    pass
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
 
-def band_dos_orbitals():
-    pass
+    dos = Dos(folder=dos_folder, spin=spin)
 
-def band_dos_atoms():
-    pass
+    band.plot_plain(
+        ax=ax1,
+        color=color,
+        linewidth=linewidth,
+        linestyle=linestyle,
+    )
 
-def band_dos_elements():
-    pass
+    dos.plot_plain(
+        ax=ax2,
+        linewidth=linewidth,
+        fill=fill,
+        alpha=alpha,
+        sigma=sigma,
+        energyaxis='y',
+        color=color,
+        erange=erange,
+    )
 
-def band_dos_element_spd():
-    pass
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
 
-def band_dos_element_orbitals():
-    pass
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+
+def band_dos_spd(
+    band_folder,
+    dos_folder,
+    output='band_dos_spd.png',
+    spin='up',
+    scale_factor=5,
+    order=['s', 'p', 'd'],
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos = Dos(folder=dos_folder, spin=spin)
+
+    band.plot_spd(
+        ax1,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    dos.plot_spd(
+        ax=ax2,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+
+def band_dos_atom_orbitals(
+    band_folder,
+    dos_folder,
+    atom_orbital_pairs,
+    output='band_dos_atom_orbitals.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos = Dos(folder=dos_folder, spin=spin)
+
+    band.plot_atom_orbitals(
+        ax1,
+        scale_factor=scale_factor,
+        atom_orbital_pairs=atom_orbital_pairs,
+        color_list=color_list,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    dos.plot_atom_orbitals(
+        ax=ax2,
+        atom_orbital_pairs=atom_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+
+def band_dos_orbitals(
+    band_folder,
+    dos_folder,
+    orbitals,
+    output='band_dos_orbitals.png',
+    spin='up',
+    scale_factor=5,
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos = Dos(folder=dos_folder, spin=spin)
+
+    band.plot_orbitals(
+        ax=ax1,
+        orbitals=orbitals,
+        scale_factor=scale_factor,
+        color_dict=color_dict,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    dos.plot_orbitals(
+        ax=ax2,
+        orbitals=orbitals,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+
+def band_dos_atoms(
+    band_folder,
+    dos_folder,
+    atoms,
+    output='band_dos_atoms.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos = Dos(folder=dos_folder, spin=spin)
+
+    band.plot_atoms(
+        ax=ax1,
+        atoms=atoms,
+        scale_factor=scale_factor,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    dos.plot_atoms(
+        ax=ax2,
+        atoms=atoms,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+
+def band_dos_elements(
+    band_folder,
+    dos_folder,
+    elements,
+    output='band_dos_elements.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos = Dos(folder=dos_folder, spin=spin)
+
+    band.plot_elements(
+        ax=ax1,
+        elements=elements,
+        scale_factor=scale_factor,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    dos.plot_atoms(
+        ax=ax2,
+        elements=elements,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+
+def band_dos_element_spd(
+    band_folder,
+    dos_folder,
+    elements,
+    output='band_dos_element_spd.png',
+    spin='up',
+    scale_factor=5,
+    order=['s', 'p', 'd'],
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos = Dos(folder=dos_folder, spin=spin)
+
+    band.plot_element_spd(
+        ax=ax1,
+        elements=elements,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    dos.plot_element_spd(
+        ax=ax2,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+
+def band_dos_element_orbitals(
+    band_folder,
+    dos_folder,
+    element_orbital_pairs,
+    output='band_dos_element_orbitals.png',
+    spin='up',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band = Band(
+        folder=band_folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos = Dos(folder=dos_folder, spin=spin)
+
+    band.plot_element_orbitals(
+        ax1,
+        scale_factor=scale_factor,
+        element_orbital_pairs=element_orbital_pairs,
+        color_list=color_list,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    dos.plot_element_orbitals(
+        ax=ax2,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
 
 def band_dos_plain_spin_projected():
     pass
 
+
 def band_dos_spd_spin_projected():
     pass
+
 
 def band_dos_atom_orbitals_spin_projected():
     pass
 
+
 def band_dos_orbitals_spin_projected():
     pass
+
 
 def band_dos_atoms_spin_projected():
     pass
 
+
 def band_dos_elements_spin_projected():
     pass
 
+
 def band_dos_element_spd_spin_projected():
     pass
+
 
 def band_dos_element_orbitals_spin_projected():
     pass
 
 
-
-
 def main():
-    band_atom_orbital_spin_projected(
-        folder='../../../../../../../for_James/band',
-        atom_orbital_pairs=[[0,3], [1,7]],
-    )
-    band_atom_orbital(
-        folder='../../vaspvis_data/band',
-        atom_orbital_pairs=[[0, 3], [1, 4]]
+    band_folder = '../../vaspvis_data/band'
+    dos_folder = '../../vaspvis_data/dos'
+    band_dos_orbitals(
+        band_folder=band_folder,
+        dos_folder=dos_folder,
+        orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8]
     )
 
 
 if __name__ == "__main__":
     main()
 
-
-# # Load Data
-# band = Band(
-    # folder=band_folder,
-    # projected=True,
-    # spin='up',
-# )
-
-
-# # ==========================================================
-# # ----------------- Plain Band Structure -------------------
-# # ==========================================================
-# fig1 = plt.figure(figsize=(4, 3), dpi=300)
-# ax1 = fig1.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.5)
-# plt.tick_params(labelsize=6, length=1.5)
-# plt.tick_params(axis='x', length=0)
-
-# band.plot_plain(ax=ax1, linewidth=1)
-
-# plt.savefig('./img/plain_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ------------------- SPD Band Structure -------------------
-# # ==========================================================
-# fig2 = plt.figure(figsize=(4, 3), dpi=300)
-# ax2 = fig2.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.2)
-# plt.subplots_adjust(right=0.89)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# band.plot_spd(ax=ax2)
-
-# plt.savefig('./img/spd_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ---------------- Orbitals Band Structure -----------------
-# # ==========================================================
-# fig3 = plt.figure(figsize=(4, 3), dpi=300)
-# ax3 = fig3.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.2)
-# plt.subplots_adjust(right=0.89)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# band.plot_orbitals(ax=ax3, orbitals=[
-    # 0, 1, 2, 3, 4, 5, 6, 7, 8], scale_factor=8)
-
-# plt.savefig('./img/orbital_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ------------------- Atom Band Structure ------------------
-# # ==========================================================
-# fig4 = plt.figure(figsize=(4, 3), dpi=300)
-# ax4 = fig4.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.2)
-# plt.subplots_adjust(right=0.89)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# band.plot_atoms(ax=ax4, atoms=[0, 1], scale_factor=8)
-
-# plt.savefig('./img/atom_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ------------- Atom Orbital Band Structure ----------------
-# # ==========================================================
-# fig5 = plt.figure(figsize=(4, 3), dpi=300)
-# ax5 = fig5.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.2)
-# plt.subplots_adjust(right=0.88)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# band.plot_atom_orbitals(ax=ax5, atom_orbital_pairs=[
-    # [0, 0], [0, 1], [0, 3]], scale_factor=8)
-
-# plt.savefig('./img/atom_orbital_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-# # Load Slab Data
-# band_slab = Band(
-    # folder=band_slab_folder,
-    # projected=True,
-    # spin='up',
-# )
-
-
-# # ==========================================================
-# # ------------- Element Band Structure ----------------
-# # ==========================================================
-# fig6 = plt.figure(figsize=(3, 3), dpi=300)
-# ax6 = fig6.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.2)
-# plt.subplots_adjust(right=0.86)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# band_slab.plot_elements(
-    # ax=ax6, elements=['In', 'As', 'Eu', 'S'], scale_factor=4)
-
-# plt.savefig('./img/element_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ------------- Element SPD Band Structure ----------------
-# # ==========================================================
-# fig7 = plt.figure(figsize=(3, 3), dpi=300)
-# ax7 = fig7.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.2)
-# plt.subplots_adjust(right=0.84)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# band_slab.plot_element_spd(
-    # ax=ax7, elements=['As'], scale_factor=4, order=['p', 's', 'd'])
-
-# plt.savefig('./img/element_spd_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ------------- Element SPD Band Structure ----------------
-# # ==========================================================
-# fig8 = plt.figure(figsize=(3, 3), dpi=300)
-# ax8 = fig8.add_subplot(111)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylim(-6, 6)
-# plt.tight_layout(pad=0.2)
-# plt.subplots_adjust(right=0.84)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# band_slab.plot_element_orbitals(ax=ax8, element_orbital_pairs=[['In', 1], [
-    # 'As', 3], ['S', 0], ['Eu', 6]], scale_factor=4)
-
-# plt.savefig('./img/element_orbital_band.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# """
-# This section will plot the density of states
-# """
-
-# dos = Dos(
-    # folder=dos_folder,
-# )
-
-# # ==========================================================
-# # ----------------------- Plain DOS ------------------------
-# # ==========================================================
-# fig9 = plt.figure(figsize=(7, 3), dpi=300)
-# ax9_1 = fig9.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax9_2 = fig9.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.98, wspace=0.2)
-
-# dos.plot_plain(ax=ax9_1)
-# dos.plot_plain(ax=ax9_2, energyaxis='x')
-
-# plt.savefig('./img/dos/plain_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ----------------------- SPD DOS ------------------------
-# # ==========================================================
-# fig10 = plt.figure(figsize=(7, 3), dpi=300)
-# ax10_1 = fig10.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax10_2 = fig10.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.95, wspace=0.25)
-
-# dos.plot_spd(ax=ax10_1)
-# dos.plot_spd(ax=ax10_2, energyaxis='x')
-
-# plt.savefig('./img/dos/spd_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # --------------------- Orbital DOS ------------------------
-# # ==========================================================
-# fig11 = plt.figure(figsize=(7, 3), dpi=300)
-# ax11_1 = fig11.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax11_2 = fig11.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.93, wspace=0.35)
-
-# dos.plot_orbitals(ax=ax11_1, orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8])
-# dos.plot_orbitals(ax=ax11_2, orbitals=[
-    # 0, 1, 2, 3, 4, 5, 6, 7, 8], energyaxis='x')
-
-# plt.savefig('./img/dos/orbital_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ------------------ Atom Orbital DOS ----------------------
-# # ==========================================================
-# fig12 = plt.figure(figsize=(7, 3), dpi=300)
-# ax12_1 = fig12.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax12_2 = fig12.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.93, wspace=0.35)
-
-# dos.plot_atom_orbitals(ax=ax12_1, atom_orbital_pairs=[[0, 0], [0, 1], [0, 3]])
-# dos.plot_atom_orbitals(ax=ax12_2, atom_orbital_pairs=[
-    # [0, 0], [0, 1], [0, 3]], energyaxis='x')
-
-# plt.savefig('./img/dos/atom_orbital_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ---------------------- Atom DOS --------------------------
-# # ==========================================================
-# fig13 = plt.figure(figsize=(7, 3), dpi=300)
-# ax13_1 = fig13.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax13_2 = fig13.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.93, wspace=0.35)
-
-# dos.plot_atoms(ax=ax13_1, atoms=[0, 1])
-# dos.plot_atoms(ax=ax13_2, atoms=[0, 1], energyaxis='x')
-
-# plt.savefig('./img/dos/atom_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# dos_slab = Dos(
-    # folder=slab_dos_folder,
-# )
-
-# # ==========================================================
-# # ------------------- Element DOS --------------------------
-# # ==========================================================
-# fig14 = plt.figure(figsize=(7, 3), dpi=300)
-# ax14_1 = fig14.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 260)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax14_2 = fig14.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 260)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.93, wspace=0.35)
-
-# dos_slab.plot_elements(ax=ax14_1, elements=['In', 'As', 'Eu', 'S'])
-# dos_slab.plot_elements(ax=ax14_2, elements=[
-    # 'In', 'As', 'Eu', 'S'], energyaxis='x')
-
-# plt.savefig('./img/dos/elements_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ---------------- Element Orbital DOS ---------------------
-# # ==========================================================
-# fig15 = plt.figure(figsize=(7, 3), dpi=300)
-# ax15_1 = fig15.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 260)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax15_2 = fig15.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 260)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.93, wspace=0.35)
-
-# dos_slab.plot_element_orbitals(ax=ax15_1, element_orbital_pairs=[['In', 0], ['As', 1], [
-    # 'Eu', 0], ['Eu', 5], ['Eu', 6], ['Eu', 7], ['Eu', 8], ['S', 3], ['Eu', 10]])
-# dos_slab.plot_element_orbitals(ax=ax15_2, element_orbital_pairs=[['In', 0], ['As', 1], [
-    # 'Eu', 0], ['Eu', 5], ['Eu', 6], ['Eu', 7], ['Eu', 8], ['S', 3], ['Eu', 10]], energyaxis='x')
-
-# plt.savefig('./img/dos/elements_orbitals_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ------------------- Element SPD DOS ----------------------
-# # ==========================================================
-# fig16 = plt.figure(figsize=(7, 3), dpi=300)
-# ax16_1 = fig16.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Density', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-6, 6)
-# plt.xlim(0, 260)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax16_2 = fig16.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Density', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-6, 6)
-# plt.ylim(0, 260)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.93, wspace=0.35)
-
-# dos_slab.plot_element_spd(ax=ax16_1, elements=['Eu'])
-# dos_slab.plot_element_spd(ax=ax16_2, elements=['Eu'], energyaxis='x')
-
-# plt.savefig('./img/dos/elements_spd_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
-
-
-# # ==========================================================
-# # ---------------------- Layer DOS -------------------------
-# # ==========================================================
-# fig17 = plt.figure(figsize=(7, 3), dpi=300)
-# ax17_1 = fig17.add_subplot(121)
-# plt.ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.xlabel('Layers', fontsize=6)
-# plt.title("energyaxis='y'", fontsize=8)
-# plt.ylim(-2, 2.8)
-# # plt.xlim(0,3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# ax17_2 = fig17.add_subplot(122)
-# plt.xlabel('$E - E_{F}$ $(eV)$', fontsize=6)
-# plt.ylabel('Layers', fontsize=6)
-# plt.title("energyaxis='x'", fontsize=8)
-# plt.xlim(-2, 2.8)
-# # plt.ylim(0,3)
-# plt.tight_layout(pad=0.2)
-# plt.tick_params(labelsize=6, length=2.5)
-# plt.tick_params(axis='x', length=0)
-
-# plt.subplots_adjust(right=0.93, wspace=0.35)
-
-# dos_slab.plot_layers(ax=ax17_1, sigma=1.5, cmap='magma', ylim=[-2, 3])
-# dos_slab.plot_layers(ax=ax17_2, energyaxis='x', sigma=1.5,
-    # cmap='magma', ylim=[-2, 3])
-# ax17_1.axvline(x=42, color='white', linewidth=2, linestyle='--')
-# ax17_2.axhline(y=42, color='white', linewidth=2, linestyle='--')
-# ax17_1.annotate('InAs', xy=(20, 0.5), xycoords='data',
-    # color='white', ha='center')
-# ax17_1.annotate('EuS', xy=(60, 0.5), xycoords='data',
-    # color='white', ha='center')
-# ax17_2.annotate('InAs', xy=(0.5, 20), xycoords='data',
-    # color='white', ha='center')
-# ax17_2.annotate('EuS', xy=(0.5, 60), xycoords='data',
-    # color='white', ha='center')
-
-# plt.savefig('./img/dos/layer_dos.png')
-# plt.close()
-# # ==========================================================
-# # ==========================================================
