@@ -78,10 +78,15 @@ class Dos:
             energies and densities of the system.
         """
 
+        if self.spin == 'up':
+            spin_factor = 1
+        elif self.spin == 'down':
+            spin_factor = -1
+
         tdos = self.vasprun.tdos
         tdos_dict = {
             'energy': np.array(tdos.energies - tdos.efermi),
-            'density': np.array(tdos.densities[self.spin_dict[self.spin]])
+            'density': spin_factor * np.array(tdos.densities[self.spin_dict[self.spin]])
         }
 
         return tdos_dict
@@ -98,13 +103,18 @@ class Dos:
             with the orbital weights for each atom index.
         """
 
+        if self.spin == 'up':
+            spin_factor = 1
+        elif self.spin == 'down':
+            spin_factor = -1
+
         pdos = self.vasprun.pdos
         pdos_dict = {i: [] for i in range(len(pdos))}
         spin = self.spin_dict[self.spin]
 
         for (i, atom) in enumerate(pdos):
             new_dict = {
-                i: atom[orbital][spin] for (i, orbital) in enumerate(atom)
+                i: spin_factor * atom[orbital][spin] for (i, orbital) in enumerate(atom)
             }
 
             if len(list(new_dict.keys())) == 16:
