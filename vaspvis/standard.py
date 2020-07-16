@@ -773,16 +773,16 @@ def band_orbitals_spin_projected(
         '$\\uparrow$',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
-        ha='top',
-        va='left',
+        va='top',
+        ha='left',
         bbox=bbox,
     )
     ax2.annotate(
         '$\\downarrow$',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
-        ha='top',
-        va='left',
+        va='top',
+        ha='left',
         bbox=bbox,
     )
 
