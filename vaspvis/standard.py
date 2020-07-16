@@ -476,7 +476,7 @@ def band_plain_spin_projected(
         legend_labels,
         ncol=1,
         loc='upper left',
-        fontsize=5,
+        fontsize=fontsize,
         bbox_to_anchor=(1, 1),
         borderaxespad=0,
         frameon=False,
