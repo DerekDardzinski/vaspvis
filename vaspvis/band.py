@@ -632,23 +632,25 @@ class Band:
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot the data on
-            orbitals (list): List of orbits to compare \
-                0 = s \
-                1 = py \
-                2 = pz \
-                3 = px \
-                4 = dxy \
-                5 = dyz \
-                6 = dz2 \
-                7 = dxz \
-                8 = dx2-y2 \
-                9 = fy3x2 \
-                10 = fxyz \
-                11 = fyz2 \
-                12 = fz3 \
-                13 = fxz2 \
-                14 = fzx3 \
-                15 = fx3 \
+            orbitals (list): List of orbits to compare
+
+                | 0 = s
+                | 1 = py
+                | 2 = pz
+                | 3 = px
+                | 4 = dxy
+                | 5 = dyz
+                | 6 = dz2
+                | 7 = dxz
+                | 8 = dx2-y2
+                | 9 = fy3x2
+                | 10 = fxyz
+                | 11 = fyz2
+                | 12 = fz3
+                | 13 = fxz2
+                | 14 = fzx3
+                |15 = fx3
+
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
             color_dict (dict[str][str]): This option allow the colors of each orbital
