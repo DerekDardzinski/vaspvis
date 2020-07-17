@@ -649,7 +649,7 @@ class Band:
                 | 12 = fz3
                 | 13 = fxz2
                 | 14 = fzx3
-                |15 = fx3
+                | 15 = fx3
 
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
