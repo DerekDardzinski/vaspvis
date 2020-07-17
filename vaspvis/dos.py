@@ -1326,20 +1326,3 @@ class Dos:
         cbar.set_label('Density of States', fontsize=6)
 
 
-def main():
-    fig = plt.figure(figsize=(4, 8), dpi=200)
-    ax = fig.add_subplot(111)
-    # plt.xlim(-6, 6)
-    ax.margins(x=0.005, y=0.005)
-    dos = Dos(folder='../../vaspvis_data/dos')
-    dos.plot_spd(ax=ax, energyaxis='x')
-    dos.tdos_dict['density'] = -1 * dos.tdos_dict['density']
-    dos.spin = 'down'
-    dos.plot_spd(ax=ax, energyaxis='x', erange=[-6, 9], legend=False)
-    # dos.plot_layers(ax=ax)
-    # dos.plot_atoms(ax=ax, atoms=[0, 1], sigma=0.1, fill=True, energyaxis='y')
-    plt.show()
-
-
-if __name__ == '__main__':
-    main()

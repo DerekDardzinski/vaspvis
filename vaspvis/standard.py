@@ -2407,7 +2407,7 @@ def band_dos_element_orbitals_spin_projected():
     pass
 
 
-def main():
+def _main():
     band_folder = '../../vaspvis_data/band'
     dos_folder = '../../vaspvis_data/dos'
     band_dos_orbitals(
@@ -2418,5 +2418,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _main()
 
