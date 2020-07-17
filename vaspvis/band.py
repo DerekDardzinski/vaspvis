@@ -413,7 +413,7 @@ class Band:
         """
         This function plots a plain band structure.
 
-        Parameters:
+        Args:
             ax (matplotlib.pyplot.axis): Axis to plot the data on
             color (str): Color of the band structure lines
             linewidth (float): Line width of the band structure lines
