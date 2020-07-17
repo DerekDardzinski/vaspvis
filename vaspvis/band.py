@@ -17,6 +17,14 @@ class Band:
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+            folder_name
+            |----- POSCAR
+            |----- KPOINTS
+            |----- POTCAR
+            |----- INCAR
+            |----- vasprun.xml
+            |----- OUTCAR
+            |----- other files
         projected (bool): Determined wheter of not to parte the projected
             eigenvalues from the vasprun.xml file. Making this true
             increases the computational time, so only use if a projected

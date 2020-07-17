@@ -12,6 +12,21 @@ import time
 
 
 class Dos:
+    """
+    This class contains all the methods for contructing density of states plots from the outputs of VASP calculations.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files. The folder should have the following structure
+            folder_name
+            |----- POSCAR
+            |----- KPOINTS
+            |----- POTCAR
+            |----- INCAR
+            |----- vasprun.xml
+            |----- OUTCAR
+            |----- other files
+        spin (str): Which spin direction to parse
+    """
 
     def __init__(self, folder, spin='up'):
         self.folder = folder
