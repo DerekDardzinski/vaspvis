@@ -413,14 +413,14 @@ class Band:
         """
         This function plots a plain band structure.
 
-        Parameters:
-            ax (matplotlib.pyplot.axis): Axis to plot the data on
+        Args:
             color (str): Color of the band structure lines
             linewidth (float): Line width of the band structure lines
             linestyle (str): Line style of lines
         """
 
         wave_vector = range(len(self.bands_dict['band1']))
+            # ax (matplotlib.pyplot.axis): Axis to plot the data on
 
         for band in self.bands_dict:
             band_values = self.bands_dict[band]
