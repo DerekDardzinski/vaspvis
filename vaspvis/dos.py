@@ -17,7 +17,7 @@ class Dos:
 
     Parameters:
         folder (str): This is the folder that contains the VASP files.
-        spin (str): Which spin direction to parse
+        spin (str): Which spin direction to parse ('up' or 'down')
     """
 
     def __init__(self, folder, spin='up'):
@@ -771,7 +771,7 @@ class Dos:
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot on
-            atoms (list): Index of atoms atom plot
+            atoms (list): Index of atoms to plot
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
             color_list (list): Optional list of colors for each atom

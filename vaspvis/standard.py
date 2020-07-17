@@ -1,7 +1,7 @@
 """
 This module contains standardized plots as well as more complex plots,
 such as band structures and density of states put together, and spin
-projected plots.
+projected plots. 
 """
 
 
@@ -226,6 +226,7 @@ def band_atom_orbital(
         scale_factor (float): Factor to scale weights. This changes the size of the
             points in the scatter plot
         atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
+            This should take the form of [[atom index, orbital_index], ...]. 
         color_list (list): List of colors of the same length as the element_orbital_pairs
         legend (bool): Determines if the legend should be included or not.
         linewidth (float): Line width of the plain band structure plotted in the background
@@ -306,6 +307,24 @@ def band_orbitals(
         scale_factor (float): Factor to scale weights. This changes the size of the
             points in the scatter plot
         orbitals (list): List of orbits to compare
+
+            | 0 = s
+            | 1 = py
+            | 2 = pz
+            | 3 = px
+            | 4 = dxy
+            | 5 = dyz
+            | 6 = dz2
+            | 7 = dxz
+            | 8 = dx2-y2
+            | 9 = fy3x2
+            | 10 = fxyz
+            | 11 = fyz2
+            | 12 = fz3
+            | 13 = fxz2
+            | 14 = fzx3
+            | 15 = fx3
+
         color_dict (dict[str][str]): This option allow the colors of each orbital
             specified. Should be in the form of:
             {'orbital index': <color>, 'orbital index': <color>, ...}
@@ -708,7 +727,7 @@ def band_plain_spin_projected(
     save=True,
 ):
     """
-    This function generates a plain band structure
+    This function generates a plain spin projected band structure
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -851,9 +870,15 @@ def band_spd_spin_projected(
             {'s': <s color>, 'p': <p color>, 'd': <d color>}
         legend (bool): Determines if the legend should be included or not.
         linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
+        band_color (str): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
         figsize (list / tuple): Desired size of the image in inches (width, height)
         erange (list / tuple): Range of energy to show in the plot [low, high]
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
@@ -869,7 +894,7 @@ def band_spd_spin_projected(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing. (fig, ax1, ax2) 
     """
 
     band_up = Band(
@@ -984,6 +1009,48 @@ def band_atom_orbital_spin_projected(
     n=None,
     save=True,
 ):
+    """
+    This function generates an atom orbital spin projected band structure. This will plot two plots
+    stacked on top or eachother or next to eachother. The top or left plot will project on the 
+    spin up bands and the bottom or right plot will project onto the spin down bands.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
+            This should take the form of [[atom index, orbital_index], ...]. 
+        color_list (list): List of colors of the same length as the atom_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (str): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. (fig, ax1, ax2) 
+    """
 
     band_up = Band(
         folder=folder,
@@ -1094,6 +1161,67 @@ def band_orbitals_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function generates an orbital spin projected band structure. This will plot two plots
+    stacked on top or eachother or next to eachother. The top or left plot will project on the 
+    spin up bands and the bottom or right plot will project onto the spin down bands.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        orbitals (list): Selected orbital indicies to plot.
+
+            | 0 = s
+            | 1 = py
+            | 2 = pz
+            | 3 = px
+            | 4 = dxy
+            | 5 = dyz
+            | 6 = dz2
+            | 7 = dxz
+            | 8 = dx2-y2
+            | 9 = fy3x2
+            | 10 = fxyz
+            | 11 = fyz2
+            | 12 = fz3
+            | 13 = fxz2
+            | 14 = fzx3
+            | 15 = fx3
+
+        color_dict (dict[str][str]): This option allow the colors of each orbital
+            specified. Should be in the form of:
+            {'orbital index': <color>, 'orbital index': <color>, ...}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (str): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. (fig, ax1, ax2) 
+    """
 
     band_up = Band(
         folder=folder,
@@ -1181,6 +1309,617 @@ def band_orbitals_spin_projected(
     else:
         return fig, ax1, ax2
 
+def band_atoms_spin_projected(
+    folder,
+    atoms,
+    output='band_atoms_sp.png',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    stack='vertical',
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+):
+    """
+    This function generates an atom spin projected band structure. This will plot two plots
+    stacked on top or eachother or next to eachother. The top or left plot will project on the 
+    spin up bands and the bottom or right plot will project onto the spin down bands.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        atoms (list): Selected atom indicies to plot.
+        color_list (list): List of colors of the same length as the atoms list
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (str): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. (fig, ax1, ax2) 
+    """
+
+    band_up = Band(
+        folder=folder,
+        spin='up',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=folder,
+        spin='down',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    if stack == 'vertical':
+        fig = plt.figure(figsize=(figsize[0], 2 * figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+    elif stack == 'horizontal':
+        fig = plt.figure(figsize=(2 * figsize[0], figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+
+    bbox = dict(boxstyle="round", fc="white")
+    ax1.annotate(
+        '$\\uparrow$',
+        xy=(0.02, 0.98),
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+    )
+    ax2.annotate(
+        '$\\downarrow$',
+        xy=(0.02, 0.98),
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+    )
+
+    band_up.plot_atoms(
+        ax=ax1,
+        scale_factor=scale_factor,
+        atoms=atoms,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_up.plot_plain(
+        ax=ax1,
+        color=unprojected_band_color,
+        linewidth=0.5,
+    )
+
+    band_down.plot_atoms(
+        ax=ax1,
+        scale_factor=scale_factor,
+        atoms=atoms,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_down.plot_plain(
+        ax=ax1,
+        color=unprojected_band_color,
+        linewidth=0.5,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+def band_elements_spin_projected(
+    folder,
+    elements,
+    output='band_elements_sp.png',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    stack='vertical',
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+):
+    """
+    This function generates an element spin projected band structure. This will plot two plots
+    stacked on top or eachother or next to eachother. The top or left plot will project on the 
+    spin up bands and the bottom or right plot will project onto the spin down bands.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        elements (list): Selected atom indicies to plot.
+        color_list (list): List of colors of the same length as the elements list
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (str): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. (fig, ax1, ax2) 
+    """
+
+    band_up = Band(
+        folder=folder,
+        spin='up',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=folder,
+        spin='down',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    if stack == 'vertical':
+        fig = plt.figure(figsize=(figsize[0], 2 * figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+    elif stack == 'horizontal':
+        fig = plt.figure(figsize=(2 * figsize[0], figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+
+    bbox = dict(boxstyle="round", fc="white")
+    ax1.annotate(
+        '$\\uparrow$',
+        xy=(0.02, 0.98),
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+    )
+    ax2.annotate(
+        '$\\downarrow$',
+        xy=(0.02, 0.98),
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+    )
+
+    band_up.plot_elements(
+        ax=ax1,
+        scale_factor=scale_factor,
+        elements=elements,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_up.plot_plain(
+        ax=ax1,
+        color=unprojected_band_color,
+        linewidth=0.5,
+    )
+
+    band_down.plot_elements(
+        ax=ax1,
+        scale_factor=scale_factor,
+        elements=elements,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_down.plot_plain(
+        ax=ax1,
+        color=unprojected_band_color,
+        linewidth=0.5,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+def band_element_orbital_spin_projected(
+    folder,
+    element_orbital_pairs,
+    output='band_element_orbital_sp.png',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    unprojected_linewidth=0.6,
+    fontsize=7,
+    annotations=['$\\uparrow$ ', '$\\downarrow$ '],
+    annotation_xy=(0.02, 0.98),
+    figsize=(4, 3),
+    erange=[-6, 6],
+    stack='vertical',
+    hse=False,
+    kpath=None,
+    n=None,
+    save=True,
+):
+    """
+    This function generates an element orbital spin projected band structure. This will plot two plots
+    stacked on top or eachother or next to eachother. The top or left plot will project on the 
+    spin up bands and the bottom or right plot will project onto the spin down bands.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        element_orbital_pairs (list[list]): Selected orbitals on selected elements to plot.
+            This should take the form of [[element index, orbital_index], ...]. 
+        color_list (list): List of colors of the same length as the atom_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (str): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. (fig, ax1, ax2) 
+    """
+
+    band_up = Band(
+        folder=folder,
+        spin='up',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=folder,
+        spin='down',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    if stack == 'vertical':
+        fig = plt.figure(figsize=(figsize[0], 2 * figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+    elif stack == 'horizontal':
+        fig = plt.figure(figsize=(2 * figsize[0], figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+
+    bbox = dict(boxstyle='round', fc='white',
+                edgecolor='gray', alpha=0.95, pad=0.3)
+    ax1.annotate(
+        annotations[0],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize,
+    )
+    ax2.annotate(
+        annotations[1],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize,
+    )
+
+    band_up.plot_element_orbitals(
+        ax=ax1,
+        scale_factor=scale_factor,
+        element_orbital_pairs=element_orbital_pairs,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_down.plot_plain(
+        ax=ax1,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    band_down.plot_element_orbitals(
+        ax=ax2,
+        scale_factor=scale_factor,
+        element_orbital_pairs=element_orbital_pairs,
+        color_list=color_list,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_up.plot_plain(
+        ax=ax2,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
+
+def band_element_spd_spin_projected(
+    folder,
+    elements,
+    output='band_elements_spd_sp.png',
+    scale_factor=2,
+    order=['s', 'p', 'd'],
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    unprojected_linewidth=0.6,
+    fontsize=7,
+    annotations=['$\\uparrow$ ', '$\\downarrow$ '],
+    annotation_xy=(0.02, 0.98),
+    figsize=(4, 3),
+    erange=[-6, 6],
+    stack='vertical',
+    hse=False,
+    kpath=None,
+    n=None,
+    save=True,
+):
+    """
+    This function generates a s, p, d spin projected band structure on specific elements. This will plot two plots
+    stacked on top or eachother or next to eachother. The top or left plot will project on the 
+    spin up bands and the bottom or right plot will project onto the spin down bands.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        elements (list): Elements to project onto
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        order (list): This determines the order in which the points are plotted on the
+            graph. This is an option because sometimes certain orbitals can be hidden
+            under others because they have a larger weight. For example, if the
+            weights of the d orbitals are greater than that of the s orbitals, it
+            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
+            plotted over the d orbitals.
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (str): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. (fig, ax1, ax2) 
+    """
+
+    band_up = Band(
+        folder=folder,
+        spin='up',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=folder,
+        spin='down',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    if stack == 'vertical':
+        fig = plt.figure(figsize=(figsize[0], 2 * figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+    elif stack == 'horizontal':
+        fig = plt.figure(figsize=(2 * figsize[0], figsize[1]), dpi=300)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        _figure_setup(ax=ax1, fontsize=fontsize, ylim=[erange[0], erange[1]])
+        _figure_setup(ax=ax2, fontsize=fontsize, ylim=[erange[0], erange[1]])
+
+    bbox = dict(boxstyle='round', fc='white',
+                edgecolor='gray', alpha=0.95, pad=0.3)
+    ax1.annotate(
+        annotations[0],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize,
+    )
+    ax2.annotate(
+        annotations[1],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize,
+    )
+
+    band_up.plot_element_spd(
+        ax=ax1,
+        elements=elements,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_down.plot_plain(
+        ax=ax1,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    band_down.plot_element_spd(
+        ax=ax2,
+        elements=elements,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    band_up.plot_plain(
+        ax=ax2,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
 
 # =============================================================
 # -------------------- Density of States ----------------------
@@ -1201,6 +1940,30 @@ def dos_plain(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the total density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        linewidth (float): Linewidth of lines
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color (str): Color of line
+        fontsize (float): Font size of the text in the figure.
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1245,6 +2008,37 @@ def dos_spd(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots an s, p, d projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        order (list): Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1292,6 +2086,35 @@ def dos_atom_orbitals(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the orbital projected density of states on specific atoms.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        atom_orbital_pairs (list[list]): List of atoms orbitals pairs in the form of
+            [[atom index, orbital index], [atom index, orbital index], ..]
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the atom orbitals list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1339,6 +2162,36 @@ def dos_orbitals(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the orbital projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        orbitals (list): List of orbitals to project onto
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_dict (dict[str][str]): This option allow the colors of each orbital
+            specified. Should be in the form of:
+            {'orbital index': <color>, 'orbital index': <color>, ...}
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1386,6 +2239,34 @@ def dos_atoms(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the atom projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        atoms (list): Index of atoms to plot
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the atom list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1433,6 +2314,34 @@ def dos_elements(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the element projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        elements (list): List of element symbols to project onto
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the element list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1481,6 +2390,38 @@ def dos_element_spd(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the element projected density of states of the s, p, and d orbitals.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        elements (list): List of element symbols to project onto
+        order (list): Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_dict (dict[str][str]): This option allow the colors of each element
+            specified. Should be in the form of:
+            {'element index': <color>, 'element index': <color>, ...}
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1529,6 +2470,35 @@ def dos_element_orbitals(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the element projected density of states on specific orbitals.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        element_orbital_pairs (list[list]): List of element orbital pairs in the form of
+            [[element symbol, orbital index], [element symbol, orbital index], ..]
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the element_orbital_pairs list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos = Dos(folder=folder, spin=spin)
 
@@ -1572,6 +2542,29 @@ def dos_plain_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots the spin projected total density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        linewidth (float): Linewidth of lines
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color (str): Color of line
+        fontsize (float): Font size of the text in the figure.
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -1627,6 +2620,36 @@ def dos_spd_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots a spin projected s, p, d projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        order (list): Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -1688,6 +2711,34 @@ def dos_atom_orbitals_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots a spin projected orbital projected density of states on specific atoms.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        atom_orbital_pairs (list[list]): List of atoms orbitals pairs in the form of
+            [[atom index, orbital index], [atom index, orbital index], ..]
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the atom orbitals list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -1749,6 +2800,35 @@ def dos_orbitals_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots a spin projected orbital projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        orbitals (list): List of orbitals to project onto
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_dict (dict[str][str]): This option allow the colors of each orbital
+            specified. Should be in the form of:
+            {'orbital index': <color>, 'orbital index': <color>, ...}
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -1810,6 +2890,33 @@ def dos_atoms_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots a spin projected atom projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        atoms (list): Index of atoms to plot
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the atom list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -1871,6 +2978,33 @@ def dos_elements_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots a spin projected element projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        elements (list): List of element symbols to project onto
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the element list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -1933,6 +3067,37 @@ def dos_element_spd_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots a spin projected element projected density of states of the s, p, and d orbitals.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        elements (list): List of element symbols to project onto
+        order (list): Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_dict (dict[str][str]): This option allow the colors of each element
+            specified. Should be in the form of:
+            {'element index': <color>, 'element index': <color>, ...}
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -1996,6 +3161,34 @@ def dos_element_orbitals_spin_projected(
     fontsize=7,
     save=True,
 ):
+    """
+    This function plots a spin projected element projected density of states on specific orbitals.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        element_orbital_pairs (list[list]): List of element orbital pairs in the form of
+            [[element symbol, orbital index], [element symbol, orbital index], ..]
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the element_orbital_pairs list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     dos_up = Dos(folder=folder, spin='up')
     dos_down = Dos(folder=folder, spin='down')
@@ -2231,6 +3424,7 @@ def band_dos_atom_orbitals(
     alpha=0.3,
     sigma=0.05,
 ):
+
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,
@@ -2405,6 +3599,34 @@ def band_dos_atoms(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function plots a spin projected atom projected density of states.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        atoms (list): Index of atoms to plot
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_list (list): List of colors that is the same length as the atom list
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,

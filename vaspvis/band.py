@@ -566,7 +566,7 @@ class Band:
                 in the POSCAR file, the input would be [[0, 3], [1, 2]]
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
-            color_list (list): List of colors of the same length as the element_orbital_pairs
+            color_list (list): List of colors of the same length as the atom_orbital_pairs
             legend (bool): Determines if the legend should be included or not.
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
