@@ -50,6 +50,35 @@ def band_plain(
     fontsize=7,
     save=True,
 ):
+    """
+    This function generates a plain band structure
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        color (str): Color of the band structure lines
+        linewidth (float): Line width of the band structure lines
+        linestyle (str): Line style of the bands
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     band = Band(
         folder=folder,
@@ -93,6 +122,46 @@ def band_spd(
     fontsize=7,
     save=True,
 ):
+    """
+    This function generates a s, p, d projected band structure.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        order (list): This determines the order in which the points are plotted on the
+            graph. This is an option because sometimes certain orbitals can be hidden
+            under others because they have a larger weight. For example, if the
+            weights of the d orbitals are greater than that of the s orbitals, it
+            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
+            plotted over the d orbitals.
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     band = Band(
         folder=folder,
@@ -140,6 +209,39 @@ def band_atom_orbital(
     fontsize=7,
     save=True,
 ):
+    """
+    This function generates a projected band structure on specific [atom, orbital] pairs.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
+        color_list (list): List of colors of the same length as the element_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     band = Band(
         folder=folder,
@@ -187,6 +289,39 @@ def band_orbitals(
     fontsize=7,
     save=True,
 ):
+    """
+    This function generates a projected band structure on specific orbitals.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
+        color_list (list): List of colors of the same length as the element_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     band = Band(
         folder=folder,

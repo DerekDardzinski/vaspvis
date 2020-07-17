@@ -25,6 +25,14 @@ class Band:
             or not. Only make true if the band structure was calculated
             using a hybrid functional.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
     """
 
     def __init__(self, folder, projected=False, hse=False, spin='up', kpath=None, n=None):
@@ -625,22 +633,24 @@ class Band:
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot the data on
             orbitals (list): List of orbits to compare
-                0 = s
-                1 = py
-                2 = pz
-                3 = px
-                4 = dxy
-                5 = dyz
-                6 = dz2
-                7 = dxz
-                8 = dx2-y2
-                9 = fy3x2
-                10 = fxyz
-                11 = fyz2
-                12 = fz3
-                13 = fxz2
-                14 = fzx3
-                15 = fx3
+                .. csv-table::
+                    :header: "index", "orbital"
+                    0,s
+                    1,py
+                    2,pz
+                    3,px
+                    4,dxy
+                    5,dyz
+                    6,dz2
+                    7,dxz
+                    8,dx2-y2
+                    9,fy3x2
+                    10,fxyz
+                    11,fyz2
+                    12,fz3
+                    13,fxz2
+                    14,fzx3
+                    15,fx3
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
             color_dict (dict[str][str]): This option allow the colors of each orbital
