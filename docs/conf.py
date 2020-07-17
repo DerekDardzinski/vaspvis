@@ -55,3 +55,7 @@ html_static_path = ['_static']
 
 add_module_names = False
 autodoc_mock_imports = ['pymatgen', 'matplotlib', 'numpy', 'scipy', 'pandas']
+master_doc = 'index'
+
+
+
