@@ -3599,33 +3599,6 @@ def band_dos_atoms(
     alpha=0.3,
     sigma=0.05,
 ):
-    """
-    This function plots a spin projected atom projected density of states.
-
-    Parameters:
-        folder (str): This is the folder that contains the VASP files
-        output (str): File name of the resulting plot.
-        atoms (list): Index of atoms to plot
-        fill (bool): Determines wether or not to fill underneath the plot
-        alpha (float): Alpha value for the fill
-        linewidth (float): Linewidth of lines
-        sigma (float): Standard deviation for gaussian filter
-        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
-        color_list (list): List of colors that is the same length as the atom list
-        legend (bool): Determines whether to draw the legend or not
-        total (bool): Determines wheth to draw the total density of states or not
-        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
-        fontsize (float): Font size of the text in the figure.
-        save (bool): Determines whether to automatically save the figure or not. If not 
-            the figure and axis are return for further manipulation.
-
-    Returns:
-        If save == True, this function will return nothing and directly save the image as
-        the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
-    """
 
     fig, ax = plt.subplots(
         nrows=1,
