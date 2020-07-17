@@ -1,6 +1,9 @@
 # vaspvis
 A highly flexible and customizable library for visualizing electronic structure data from VASP calculations.
 
+[![Documentation Status](https://readthedocs.org/projects/vaspvis/badge/?version=latest)](https://vaspvis.readthedocs.io/en/latest/?badge=latest)
+      
+
 # Installation
 
 ```bash
