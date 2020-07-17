@@ -321,11 +321,13 @@ class Dos:
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to append the tick labels
+            linewidth (float): Linewidth of lines
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
-            linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color (str): Color of line
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         tdos_dict = self.tdos_dict
@@ -398,6 +400,9 @@ class Dos:
             color_dict (dict[str][str]): This option allow the colors of the s, p, and d
                 orbitals to be specified. Should be in the form of:
                 {'s': <s color>, 'p': <p color>, 'd': <d color>}
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         spd_df = self._sum_spd()
@@ -510,18 +515,21 @@ class Dos:
     def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
-        density of states for the total projections of the s, p, and d orbitals.
+        density of states for the projections or orbitals on individual atoms.
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot on
             atom_orbital_pairs (list[list]): List of atoms orbitals pairs in the form of
-                `[[atom index, orbital index], [atom index, orbital index], ..]`
+                [[atom index, orbital index], [atom index, orbital index], ..]
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
             color_list (list): List of colors that is the same length as the atom orbitals list
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         tdos_dict = self.tdos_dict
@@ -633,7 +641,7 @@ class Dos:
     def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
-        density of states for the total projections of the s, p, and d orbitals.
+        density of states for the projections onto given orbitals
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot on
@@ -646,6 +654,9 @@ class Dos:
             color_dict (dict[str][str]): This option allow the colors of each orbital
                 specified. Should be in the form of:
                 {'orbital index': <color>, 'orbital index': <color>, ...}
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         orbital_df = self._sum_orbitals()
@@ -749,8 +760,7 @@ class Dos:
 
     def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
-        This function plots the total density of states with the projected
-        density of states on the given atoms.
+        This function plots the total density of states with the projected density of states on the given atoms.
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot on
@@ -762,6 +772,9 @@ class Dos:
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
             color_list (list): List of colors that is the same length at the atoms list
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         atom_df = self._sum_atoms()
@@ -881,6 +894,9 @@ class Dos:
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
             color_list (list): List of colors that is the same length at the elements list
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         element_dict = self._sum_elements(
@@ -994,14 +1010,17 @@ class Dos:
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot on
-            elements (list): List of element symbols to project onto
-            orbitals (list): List of orbitals to project onto
+            element_orbital_pairs (list[list]): List of element orbital pairs in the form of
+                [[element symbol, orbital index], [element symbol, orbital index], ..]
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
             color_list (list): List of colors that is the same length as the element orbitals list
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         elements = [i[0] for i in element_orbital_pairs]
@@ -1132,6 +1151,9 @@ class Dos:
             color_dict (dict[str][str]): This option allow the colors of each element
                 specified. Should be in the form of:
                 {'element index': <color>, 'element index': <color>, ...}
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
         element_dict = self._sum_elements(
@@ -1244,7 +1266,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_layers(self, ax, ylim=[-6, 6], cmap='magma', sigma=5, energyaxis='y'):
+    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6]):
         """
         This function plots a layer by layer heat map of the density
         of states.
@@ -1263,7 +1285,7 @@ class Dos:
         zorder = np.argsort(zvals)
         energy = self.tdos_dict['energy']
 
-        ind = np.where((ylim[0] - 0.1 <= energy) & (energy <= ylim[-1] + 0.1))
+        ind = np.where((erange[0] - 0.1 <= energy) & (energy <= erange[-1] + 0.1))
         atom_index = range(len(zorder))
         energies = energy[ind]
         densities = self._sum_atoms().to_numpy()[ind]

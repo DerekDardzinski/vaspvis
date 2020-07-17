@@ -14,6 +14,17 @@ class Band:
     """
     This class contains all the methods for constructing band structures
     from the outputs of VASP band structure calculations.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        projected (bool): Determined wheter of not to parte the projected
+            eigenvalues from the vasprun.xml file. Making this true
+            increases the computational time, so only use if a projected
+            band structure is required.
+        hse (bool): Determines if the KPOINTS file is in the form of HSE
+            or not. Only make true if the band structure was calculated
+            using a hybrid functional.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
     """
 
     def __init__(self, folder, projected=False, hse=False, spin='up', kpath=None, n=None):
@@ -21,15 +32,15 @@ class Band:
         Initialize parameters upon the generation of this class
 
         Parameters:
-            folder: (str) This is the folder that contains the VASP files
-            projected: (bool) Determined wheter of not to parte the projected
+            folder (str): This is the folder that contains the VASP files
+            projected (bool): Determined wheter of not to parte the projected
                 eigenvalues from the vasprun.xml file. Making this true
                 increases the computational time, so only use if a projected
                 band structure is required.
-            hse: (bool) Determines if the KPOINTS file is in the form of HSE
+            hse (bool): Determines if the KPOINTS file is in the form of HSE
                 or not. Only make true if the band structure was calculated
                 using a hybrid functional.
-            spin: (str) Choose which spin direction to parse. ('up' or 'down')
+            spin (str): Choose which spin direction to parse. ('up' or 'down')
         """
 
         self.vasprun = BSVasprun(
@@ -93,7 +104,7 @@ class Band:
         band index --> eigenvalues
 
         Returns:
-            bands_dict: (dict[str][np.ndarray]) Dictionary which contains
+            bands_dict (dict[str][np.ndarray]): Dictionary which contains
                 the eigenvalues for each band
         """
 
@@ -128,7 +139,7 @@ class Band:
         band index --> atom index --> weights of orbitals
 
         Returns:
-            projected_dict: (dict([str][int][pd.DataFrame])) Dictionary containing the projected weights of all orbitals on each atom for each band.
+            projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
         """
 
         spin = self.spin
@@ -186,7 +197,7 @@ class Band:
         band index --> s,p,d orbital weights
 
         Returns:
-            spd_dict: (dict([str][pd.DataFrame])) Dictionary that contains the summed weights for the s, p, and d orbitals for each band
+            spd_dict (dict([str][pd.DataFrame])): Dictionary that contains the summed weights for the s, p, and d orbitals for each band
         """
 
         # spd_orbitals = {'s': [0], 'p': [1, 2, 3], 'd': [4, 5, 6, 7, 8]}
@@ -222,7 +233,7 @@ class Band:
             band index --> orbital index
 
         Parameters:
-            orbitals: (list) List of desired orbitals. 
+            orbitals (list): List of desired orbitals. 
                 0 = s
                 1 = py
                 2 = pz
@@ -241,7 +252,7 @@ class Band:
                 15 = fx3
 
         Returns:
-            orbital_dict: (dict[str][pd.DataFrame]) Dictionary that contains the projected weights of the selected orbitals.
+            orbital_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected weights of the selected orbitals.
         """
 
         orbital_dict = {band: np.nan for band in self.projected_dict}
@@ -268,11 +279,11 @@ class Band:
             band index --> atom index
 
         Parameters:
-            atoms: (list) List of desired atoms where atom 0 is the first atom in
+            atoms (list): List of desired atoms where atom 0 is the first atom in
                 the POSCAR file. 
 
         Returns:
-            atom_dict: (dict[str][pd.DataFrame]) Dictionary that contains the projected
+            atom_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected
                 weights of the selected atoms.
         """
 
@@ -296,14 +307,14 @@ class Band:
         not practical for large structures.
 
         Parameters:
-            elements: (list) List of element symbols to sum the weights of.
-            orbitals: (bool) Determines whether or not to inclue orbitals or not
+            elements (list): List of element symbols to sum the weights of.
+            orbitals (bool): Determines whether or not to inclue orbitals or not
                 (True = keep orbitals, False = sum orbitals together )
-            spd: (bool) Determines whether or not to sum the s, p, and d orbitals
+            spd (bool): Determines whether or not to sum the s, p, and d orbitals
 
 
         Returns:
-            element_dict: (dict([str][str][pd.DataFrame])) Dictionary that contains the summed weights for each orbital for a given element in the structure.
+            element_dict (dict([str][str][pd.DataFrame])): Dictionary that contains the summed weights for each orbital for a given element in the structure.
         """
 
         poscar = self.poscar
@@ -361,7 +372,7 @@ class Band:
         band structure calculation (non HSE).
 
         Parameters:
-            ax: (matplotlib.pyplot.axis) Axis to append the tick labels
+            ax (matplotlib.pyplot.axis): Axis to append the tick labels
         """
 
         high_sym_points = self.kpoints.kpts
@@ -413,14 +424,14 @@ class Band:
         """
         This function plots a plain band structure.
 
-        Args:
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot the data on
             color (str): Color of the band structure lines
             linewidth (float): Line width of the band structure lines
-            linestyle (str): Line style of lines
+            linestyle (str): Line style of the bands
         """
 
         wave_vector = range(len(self.bands_dict['band1']))
-            # ax (matplotlib.pyplot.axis): Axis to plot the data on
 
         for band in self.bands_dict:
             band_values = self.bands_dict[band]
@@ -442,9 +453,7 @@ class Band:
 
     def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
-        This function plots the s, p, d projected band structure given that the band
-        data has already been loaded with the _load_bands() and _load_projected_bands()
-        methods
+        This function plots the s, p, d projected band structure onto a given axis
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot the data on
@@ -452,8 +461,8 @@ class Band:
                 points in the scatter plot
             order (list): This determines the order in which the points are plotted on the
                 graph. This is an option because sometimes certain orbitals can be hidden
-                under other orbitals because they have a larger weight. For example, if the
-                signitures of the d orbitals are greater than that of the s orbitals, it
+                under others because they have a larger weight. For example, if the
+                weights of the d orbitals are greater than that of the s orbitals, it
                 might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
                 plotted over the d orbitals.
             color_dict (dict[str][str]): This option allow the colors of the s, p, and d
@@ -537,18 +546,16 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_atom_orbitals(self, atom_orbital_pairs, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_atom_orbitals(self, ax, atom_orbital_pairs, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
-        This function plots the projected band structure of individual orbitals on
-        individual atoms given that the band data has already been loaded with the
-        _load_bands() and _load_projected_bands() methods
+        This function plots the projected band structure of individual orbitals on a given axis.
 
         Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot the data on
             atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
                 This should take the form of [[atom index, orbital_index], ...]. 
                 To plot the px orbital of the 1st atom and the pz orbital of the 2nd atom
                 in the POSCAR file, the input would be [[0, 3], [1, 2]]
-            ax (matplotlib.pyplot.axis): Axis to plot the data on
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
             color_list (list): List of colors of the same length as the element_orbital_pairs
@@ -611,15 +618,29 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_orbitals(self, orbitals, ax, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_orbitals(self, ax, orbitals, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
-        This function plots the projected band structure of given orbitals summed
-        across all atoms given that the band data has already been loaded with the
-        _load_bands() and _load_projected_bands() methods.
+        This function plots the projected band structure of given orbitals summed across all atoms on a given axis.
 
         Parameters:
-            orbitals (list): List of orbits to compare
             ax (matplotlib.pyplot.axis): Axis to plot the data on
+            orbitals (list): List of orbits to compare
+                0 = s
+                1 = py
+                2 = pz
+                3 = px
+                4 = dxy
+                5 = dyz
+                6 = dz2
+                7 = dxz
+                8 = dx2-y2
+                9 = fy3x2
+                10 = fxyz
+                11 = fyz2
+                12 = fz3
+                13 = fxz2
+                14 = fzx3
+                15 = fx3
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
             color_dict (dict[str][str]): This option allow the colors of each orbital
@@ -694,18 +715,16 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_atoms(self, atoms, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_atoms(self, ax, atoms, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
-        This function plots the projected band structure of given orbitals summed
-        across all atoms given that the band data has already been loaded with the
-        _load_bands() and _load_projected_bands() methods.
+        This function plots the projected band structure of given atoms summed across all orbitals on a given axis.
 
         Parameters:
-            atoms (list): List of atoms to compare
             ax (matplotlib.pyplot.axis): Axis to plot the data on
+            atoms (list): List of atoms to project onto
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
-            color_list (list): List of colors of the same length as the element_orbital_pairs
+            color_list (list): List of colors of the same length as the atoms list
             legend (bool): Determines if the legend should be included or not.
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
@@ -777,19 +796,16 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_elements(self, elements, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_elements(self, ax, elements, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
-        This function plots the projected band structure on specified element in
-        the calculated structure. This is useful for supercells where there are
-        many atoms of the same element and it is inconvienient to manually
-        list each index in the POSCAR.
+        This function plots the projected band structure on specified elements in the calculated structure
 
         Parameters:
-            elements (list): List of element symbols to project onto
             ax (matplotlib.pyplot.axis): Axis to plot the data on
+            elements (list): List of element symbols to project onto
             scale_factor (float): Factor to scale weights. This changes the size of the
                 points in the scatter plot
-            color_list (list): List of colors of the same length as the element_orbital_pairs
+            color_list (list): List of colors of the same length as the elements list
             legend (bool): Determines if the legend should be included or not.
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
@@ -862,17 +878,14 @@ class Band:
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, element_orbital_pairs, ax, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_element_orbitals(self, ax, element_orbital_pairs, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
-        this function plots the projected band structure on chosen orbitals for each 
-        specified element in the calculated structure. this is useful for supercells 
-        where the are many atoms of the same element and it is inconvienient to manually
-        list each index in the poscar.
+        this function plots the projected band structure on chosen orbitals for each specified element in the calculated structure.
 
         Parameters:
-            elements (list): list of element symbols to project onto
-            orbitals (list): list of orbitals to plot for each element listed.
             ax (matplotlib.pyplot.axis): axis to plot the data on
+            element_orbital_pairs (list[list]): List of list in the form of 
+                [[element symbol, orbital index], [element symbol, orbital_index], ...]
             scale_factor (float): factor to scale weights. this changes the size of the
                 points in the scatter plot
             color_list (list): List of colors of the same length as the element_orbital_pairs
@@ -958,22 +971,19 @@ class Band:
 
     def plot_element_spd(self, elements, ax, order=['s', 'p', 'd'], scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
-        This function plots the projected band structure on the s, p, and d orbitals
-        for each specified element in the calculated structure. This is useful for 
-        supercells where the are many atoms of the same element and it is inconvienient 
-        to manually list each index in the POSCAR.
+        This function plots the projected band structure on the s, p, and d orbitals for each specified element in the calculated structure.
 
         Parameters:
-            elements (list): List of element symbols to project onto
             ax (matplotlib.pyplot.axis): Axis to plot the data on
-            scale_factor (float): Factor to scale weights. This changes the size of the
-                points in the scatter plot
+            elements (list): List of element symbols to project onto
             order (list): This determines the order in which the points are plotted on the
                 graph. This is an option because sometimes certain orbitals can be hidden
                 under other orbitals because they have a larger weight. For example, if the
                 signitures of the d orbitals are greater than that of the s orbitals, it
                 might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
                 plotted over the d orbitals.
+            scale_factor (float): Factor to scale weights. This changes the size of the
+                points in the scatter plot
             color_dict (dict[str][str]): This option allow the colors of the s, p, and d
                 orbitals to be specified. Should be in the form of:
                 {'s': <s color>, 'p': <p color>, 'd': <d color>}
