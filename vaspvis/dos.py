@@ -72,10 +72,9 @@ class Dos:
         """
         This function loads the total density of states into a dictionary
 
-        Outputs:
-        ----------
-        tdos_dict: (dict[str][np.ndarray]) Dictionary that consists or the
-            energies and densities of the system.
+        Returns:
+            tdos_dict (dict[str][np.ndarray]): Dictionary that consists or the
+                energies and densities of the system.
         """
 
         if self.spin == 'up':
@@ -97,10 +96,9 @@ class Dos:
         of the form:
         atom index --> orbital projections
 
-        Outputs:
-        ----------
-        pdos_dict: (dict[int][pd.DataFrame]) Dictionary that contains a data frame
-            with the orbital weights for each atom index.
+        Returns:
+            pdos_dict (dict[int][pd.DataFrame]): Dictionary that contains a data frame
+                with the orbital weights for each atom index.
         """
 
         if self.spin == 'up':
@@ -129,15 +127,13 @@ class Dos:
         """
         This function applied a 1D gaussian filter to the density of states
 
-        Inputs:
-        ----------
-        dos: (np.ndarray) Array of densities.
-        sigma: (float) Standard deviation used in the gaussian filter.
+        Parameters:
+            dos (np.ndarray): Array of densities.
+            sigma (float): Standard deviation used in the gaussian filter.
 
 
-        Outputs:
-        ----------
-        _smeared_dos: (np.ndarray) Array of _smeared densities.
+        Returns:
+            _smeared_dos (np.ndarray): Array of _smeared densities.
         """
 
         diff = np.diff(self.tdos_dict['energy'])
@@ -151,10 +147,9 @@ class Dos:
         This function sums the weights of all orbitals for each atom
         and creates a Dataframe containing the projected densities:
 
-        Outputs:
-        ----------
-        orbital_df: (pd.DataFrame) Dataframe that has the summed densities of
-            each orbital for all atoms
+        Returns:
+            orbital_df (pd.DataFrame): Dataframe that has the summed densities of
+                each orbital for all atoms
         """
 
         atom_list = [self.pdos_dict[atom] for atom in self.pdos_dict]
@@ -169,9 +164,9 @@ class Dos:
         This function sums all the orbitals for each atom and returns a Dataframe
         of atoms with their projected densities.
 
-        Outputs:
-        atom_df: (pd.DataFrame) Dataframe containing the projected densities for
-            each atom.
+        Returns:
+            atom_df (pd.DataFrame): Dataframe containing the projected densities for
+                each atom.
         """
 
         pdos_dict = self.pdos_dict
@@ -191,18 +186,16 @@ class Dos:
         This is useful for structures with many elements because manually entering indicies is
         not practical for large structures.
 
-        Inputs:
-        ----------
-        elements: (list) List of element symbols to sum the weights of.
-        orbitals: (bool) Determines whether or not to inclue orbitals or not
-            (True = keep orbitals, False = sum orbitals together )
-        spd: (bool) Determines whether or not to sum the s, p, and d orbitals
+        Parameters:
+            elements (list): List of element symbols to sum the weights of.
+            orbitals (bool): Determines whether or not to inclue orbitals or not
+                (True = keep orbitals, False = sum orbitals together )
+            spd (bool): Determines whether or not to sum the s, p, and d orbitals
 
 
-        Outputs:
-        ----------
-        element_dict: (dict([str][str][pd.DataFrame])) Dictionary that contains the summed
-            weights for each orbital for a given element in the structure.
+        Returns:
+            element_dict (dict([str][str][pd.DataFrame])): Dictionary that contains the summed
+                weights for each orbital for a given element in the structure.
         """
 
         poscar = self.poscar
@@ -255,10 +248,9 @@ class Dos:
         This function sums the weights of the s, p, and d orbitals for each atom
         and creates a Dataframe containing the projected densities:
 
-        Outputs:
-        ----------
-        spd_df: (pd.DataFrame) Dataframe that has the summed densities of the
-            s, p, and d orbitals across all atoms.
+        Returns:
+            spd_df (pd.DataFrame): Dataframe that has the summed densities of the
+                s, p, and d orbitals across all atoms.
         """
 
         spd_df = self._sum_orbitals()
@@ -327,14 +319,13 @@ class Dos:
         """
         This function plots the total density of states
 
-        Inputs:
-        -----------
-        ax: (matplotlib.pyplot.axis) Axis to append the tick labels
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to append the tick labels
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
         """
 
         tdos_dict = self.tdos_dict
@@ -395,19 +386,18 @@ class Dos:
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        order: (list) Order to plot the projected bands in. This feature helps to
-            avoid situations where one projection completely convers the other.
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
-        color_dict: (dict[str][str]) This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            order (list): Order to plot the projected bands in. This feature helps to
+                avoid situations where one projection completely convers the other.
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+                orbitals to be specified. Should be in the form of:
+                {'s': <s color>, 'p': <p color>, 'd': <d color>}
         """
 
         spd_df = self._sum_spd()
@@ -522,18 +512,16 @@ class Dos:
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        order: (list) Order to plot the projected bands in. This feature helps to
-            avoid situations where one projection completely convers the other.
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
-        color_dict: (dict[int][str]) Dictionary of colors for the atom-orbital pairs in       
-            the order that the atom-orbital pairs were given.
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            atom_orbital_pairs (list[list]): List of atoms orbitals pairs in the form of
+                `[[atom index, orbital index], [atom index, orbital index], ..]`
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_list (list): List of colors that is the same length as the atom orbitals list
         """
 
         tdos_dict = self.tdos_dict
@@ -647,18 +635,17 @@ class Dos:
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        orbitals: (list) List of orbitals to project onto
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
-        color_dict: (dict[str][str]) This option allow the colors of each orbital
-            specified. Should be in the form of:
-            {'orbital index': <color>, 'orbital index': <color>, ...}
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            orbitals (list): List of orbitals to project onto
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_dict (dict[str][str]): This option allow the colors of each orbital
+                specified. Should be in the form of:
+                {'orbital index': <color>, 'orbital index': <color>, ...}
         """
 
         orbital_df = self._sum_orbitals()
@@ -765,19 +752,16 @@ class Dos:
         This function plots the total density of states with the projected
         density of states on the given atoms.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        atoms: (list) Index of atoms atom plot
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        color_dict: (dict[int][str]) Optional dictionary of colors for each atom
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
-        color_dict: (dict[str][str]) This option allow the colors of each atom
-            specified. Should be in the form of:
-            {'atom index': <color>, 'atom index': <color>, ...}
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            atoms (list): Index of atoms atom plot
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            color_list (list): Optional list of colors for each atom
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_list (list): List of colors that is the same length at the atoms list
         """
 
         atom_df = self._sum_atoms()
@@ -888,18 +872,15 @@ class Dos:
         useful for supercells where there are many atoms of the same element and
         it is inconvienient to manually list each index in the POSCAR.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        elements: (list) List of element symbols to project onto
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
-        color_dict: (dict[str][str]) This option allow the colors of each element
-            specified. Should be in the form of:
-            {'element index': <color>, 'element index': <color>, ...}
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            elements (list): List of element symbols to project onto
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_list (list): List of colors that is the same length at the elements list
         """
 
         element_dict = self._sum_elements(
@@ -1011,19 +992,16 @@ class Dos:
         useful for supercells where there are many atoms of the same element and
         it is inconvienient to manually list each index in the POSCAR.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        elements: (list) List of element symbols to project onto
-        orbitals: (list) List of orbitals to project onto
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
-        color_dict: (dict[str][str]) This option allow the colors of each element
-            specified. Should be in the form of:
-            {'element index': <color>, 'element index': <color>, ...}
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            elements (list): List of element symbols to project onto
+            orbitals (list): List of orbitals to project onto
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_list (list): List of colors that is the same length as the element orbitals list
         """
 
         elements = [i[0] for i in element_orbital_pairs]
@@ -1141,20 +1119,19 @@ class Dos:
         This is useful for supercells where there are many atoms of the same 
         element and it is inconvienient to manually list each index in the POSCAR.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        elements: (list) List of element symbols to project onto
-        order: (list) Order to plot the projected bands in. This feature helps to
-            avoid situations where one projection completely convers the other.
-        fill: (bool) Determines wether or not to fill underneath the plot
-        alpha: (float) Alpha value for the fill
-        linewidth: (float) Linewidth of lines
-        sigma: (float) Standard deviation for gaussian filter
-        energyaxis: (str) Determines the axis to plot the energy on ('x' or 'y')
-        color_dict: (dict[str][str]) This option allow the colors of each element
-            specified. Should be in the form of:
-            {'element index': <color>, 'element index': <color>, ...}
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            elements (list): List of element symbols to project onto
+            order (list): Order to plot the projected bands in. This feature helps to
+                avoid situations where one projection completely convers the other.
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_dict (dict[str][str]): This option allow the colors of each element
+                specified. Should be in the form of:
+                {'element index': <color>, 'element index': <color>, ...}
         """
 
         element_dict = self._sum_elements(
@@ -1272,13 +1249,12 @@ class Dos:
         This function plots a layer by layer heat map of the density
         of states.
 
-        Inputs:
-        ----------
-        ax: (matplotlib.pyplot.axis) Axis to plot on
-        ylim: (list) Upper and lower energy bounds for the plot.
-        cmap: (str) Color map to use in the heat map
-        sigma: (float) Sigma parameter for the _smearing of the heat map.
-        energyaxis: (str) Axis to plot the energy on. ('x' or 'y')
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            ylim (list): Upper and lower energy bounds for the plot.
+            cmap (str): Color map to use in the heat map
+            sigma (float): Sigma parameter for the _smearing of the heat map.
+            energyaxis (str): Axis to plot the energy on. ('x' or 'y')
         """
 
         poscar = self.poscar
