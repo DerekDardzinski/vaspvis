@@ -519,7 +519,7 @@ class Dos:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=6,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
@@ -560,6 +560,7 @@ class Dos:
                 linewidth=linewidth,
                 fill=fill,
                 alpha=alpha,
+                alpha_line=alpha_line,
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
@@ -583,6 +584,7 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -600,6 +602,7 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -646,7 +649,7 @@ class Dos:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=6,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
@@ -687,6 +690,7 @@ class Dos:
                 linewidth=linewidth,
                 fill=fill,
                 alpha=alpha,
+                alpha_line=alpha_line,
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
@@ -707,6 +711,7 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -724,6 +729,7 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -767,7 +773,7 @@ class Dos:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=6,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
@@ -808,6 +814,7 @@ class Dos:
                 linewidth=linewidth,
                 fill=fill,
                 alpha=alpha,
+                alpha_line=alpha_line,
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
@@ -828,6 +835,7 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -845,6 +853,7 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -888,7 +897,7 @@ class Dos:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=6,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
@@ -932,6 +941,7 @@ class Dos:
                 linewidth=linewidth,
                 fill=fill,
                 alpha=alpha,
+                alpha_line=alpha_line,
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
@@ -952,6 +962,7 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -969,6 +980,7 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -1012,7 +1024,7 @@ class Dos:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=6,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
@@ -1059,6 +1071,7 @@ class Dos:
                 linewidth=linewidth,
                 fill=fill,
                 alpha=alpha,
+                alpha_line=alpha_line,
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
@@ -1081,6 +1094,7 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -1098,6 +1112,7 @@ class Dos:
                     pdensity,
                     color=color_dict[i],
                     linewidth=linewidth,
+                    alpha=alpha_line,
                 )
 
                 if fill:
@@ -1143,7 +1158,7 @@ class Dos:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=6,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
@@ -1282,7 +1297,7 @@ class Dos:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=6,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
