@@ -4006,7 +4006,7 @@ def band_dos_elements(
         band_color=band_color,
     )
 
-    dos.plot_atoms(
+    dos.plot_elements(
         ax=ax2,
         elements=elements,
         fill=fill,
