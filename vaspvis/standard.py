@@ -3257,6 +3257,40 @@ def band_dos_plain(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function plots a plain band structure and density of states next to eachother.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure calculation
+        dos_folder (str): This is the folder that contains the VASP files for the density of states calculation
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        color (str): Color of the band structure lines
+        linewidth (float): Line width of the band structure lines
+        linestyle (str): Line style of the bands
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,
@@ -3337,6 +3371,53 @@ def band_dos_spd(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function plots an s, p, d projected band structure next to and s, p, d projected
+    density of states.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        order (list): This determines the order in which the points are plotted on the
+            graph. This is an option because sometimes certain orbitals can be hidden
+            under others because they have a larger weight. For example, if the
+            weights of the d orbitals are greater than that of the s orbitals, it
+            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
+            plotted over the d orbitals.
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,
@@ -3424,6 +3505,46 @@ def band_dos_atom_orbitals(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function generates a projected band structure on specific [atom, orbital] pairs next to
+    a projected density of states of specific [atom, orbitals] pairs.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
+            This should take the form of [[atom index, orbital_index], ...]. 
+        color_list (list): List of colors of the same length as the element_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     fig, ax = plt.subplots(
         nrows=1,
@@ -3512,6 +3633,66 @@ def band_dos_orbitals(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function generates a projected band structure on specific orbitals next to a
+    projected density of states on the same orbitals
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        orbitals (list): List of orbits to compare
+
+            | 0 = s
+            | 1 = py
+            | 2 = pz
+            | 3 = px
+            | 4 = dxy
+            | 5 = dyz
+            | 6 = dz2
+            | 7 = dxz
+            | 8 = dx2-y2
+            | 9 = fy3x2
+            | 10 = fxyz
+            | 11 = fyz2
+            | 12 = fz3
+            | 13 = fxz2
+            | 14 = fzx3
+            | 15 = fx3
+
+        color_dict (dict[str][str]): This option allow the colors of each orbital
+            specified. Should be in the form of:
+            {'orbital index': <color>, 'orbital index': <color>, ...}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,
@@ -3599,6 +3780,45 @@ def band_dos_atoms(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function generates a projected band structure on specific atoms next to a 
+    projected density of states on the same atoms.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        atoms (list): List of atoms to project onto
+        color_list (list): List of colors of the same length as the element_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
 
     fig, ax = plt.subplots(
         nrows=1,
@@ -3687,6 +3907,46 @@ def band_dos_elements(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function generates a projected band structure on specific elements next to a projected
+    density of states on the same elements.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        elements (list): List of element symbols to project onto
+        color_list (list): List of colors of the same length as the element_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,
@@ -3775,6 +4035,54 @@ def band_dos_element_spd(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function generates a s, p, d projected band structure on specific elements next to a 
+    projected density of states on the s, p, d orbitals for the same elements.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        elements (list): List of element symbols to project onto
+        order (list): This determines the order in which the points are plotted on the
+            graph. This is an option because sometimes certain orbitals can be hidden
+            under others because they have a larger weight. For example, if the
+            weights of the d orbitals are greater than that of the s orbitals, it
+            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
+            plotted over the d orbitals.
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,
@@ -3864,6 +4172,47 @@ def band_dos_element_orbitals(
     alpha=0.3,
     sigma=0.05,
 ):
+    """
+    This function generates a projected band structure on orbitals of specific elements next to a
+    projected density of states on the same orbitals for the same elements.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        element_orbital_pairs (list[list]): List of list in the form of 
+            [[element symbol, orbital index], [element symbol, orbital_index], ...]
+        color_list (list): List of colors of the same length as the element_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
     fig, ax = plt.subplots(
         nrows=1,
         ncols=2,
