@@ -41,7 +41,7 @@ def _figure_setup_band_dos(ax, fontsize, ylim):
 
     return ax1, ax2
 
-def _figure_setup_band_dos_spin_projected(ax, fontsize, ylim):
+def _figure_setup_band_dos_spin_polarized(ax, fontsize, ylim):
     ax_band_up = ax[0,0]
     ax_dos_up = ax[0,1]
     ax_band_down = ax[1,0]
@@ -251,7 +251,7 @@ def band_atom_orbital(
             points in the scatter plot
         atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
             This should take the form of [[atom index, orbital_index], ...]. 
-        color_list (list): List of colors of the same length as the element_orbital_pairs
+        color_list (list): List of colors of the same length as the atom_orbital_pairs
         legend (bool): Determines if the legend should be included or not.
         linewidth (float): Line width of the plain band structure plotted in the background
         band_color (string): Color of the plain band structure
@@ -431,7 +431,7 @@ def band_atoms(
         scale_factor (float): Factor to scale weights. This changes the size of the
             points in the scatter plot
         atoms (list): List of atoms to project onto
-        color_list (list): List of colors of the same length as the element_orbital_pairs
+        color_list (list): List of colors of the same length as the atoms list
         legend (bool): Determines if the legend should be included or not.
         linewidth (float): Line width of the plain band structure plotted in the background
         band_color (string): Color of the plain band structure
@@ -511,7 +511,7 @@ def band_elements(
         scale_factor (float): Factor to scale weights. This changes the size of the
             points in the scatter plot
         elements (list): List of element symbols to project onto
-        color_list (list): List of colors of the same length as the element_orbital_pairs
+        color_list (list): List of colors of the same length as the elements list
         legend (bool): Determines if the legend should be included or not.
         linewidth (float): Line width of the plain band structure plotted in the background
         band_color (string): Color of the plain band structure
@@ -734,7 +734,7 @@ def band_element_spd(
         return fig, ax
 
 
-def band_plain_spin_projected(
+def band_plain_spin_polarized(
     folder,
     output='band_plain_sp.png',
     up_color='black',
@@ -751,7 +751,7 @@ def band_plain_spin_projected(
     save=True,
 ):
     """
-    This function generates a plain spin projected band structure
+    This function generates a plain spin polarized band structure.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -849,7 +849,7 @@ def band_plain_spin_projected(
         return fig, ax
 
 
-def band_spd_spin_projected(
+def band_spd_spin_polarized(
     folder,
     output='band_spd_sp.png',
     scale_factor=2,
@@ -872,7 +872,7 @@ def band_spd_spin_projected(
     save=True,
 ):
     """
-    This function generates a s, p, d spin projected band structure. This will plot two plots
+    This function generates a spin polarized s, p, d projected band structure. This will plot two plots
     stacked on top or eachother or next to eachother. The top or left plot will project on the 
     spin up bands and the bottom or right plot will project onto the spin down bands.
 
@@ -1009,7 +1009,7 @@ def band_spd_spin_projected(
         return fig, ax1, ax2
 
 
-def band_atom_orbital_spin_projected(
+def band_atom_orbital_spin_polarized(
     folder,
     atom_orbital_pairs,
     output='band_atom_orbital_sp.png',
@@ -1032,7 +1032,7 @@ def band_atom_orbital_spin_projected(
     save=True,
 ):
     """
-    This function generates an atom orbital spin projected band structure. This will plot two plots
+    This function generates an atom orbital spin polarized band structure. This will plot two plots
     stacked on top or eachother or next to eachother. The top or left plot will project on the 
     spin up bands and the bottom or right plot will project onto the spin down bands.
 
@@ -1164,7 +1164,7 @@ def band_atom_orbital_spin_projected(
         return fig, ax1, ax2
 
 
-def band_orbitals_spin_projected(
+def band_orbitals_spin_polarized(
     folder,
     orbitals,
     output='band_orbitals_sp.png',
@@ -1184,7 +1184,7 @@ def band_orbitals_spin_projected(
     save=True,
 ):
     """
-    This function generates an orbital spin projected band structure. This will plot two plots
+    This function generates an orbital spin polarized band structure. This will plot two plots
     stacked on top or eachother or next to eachother. The top or left plot will project on the 
     spin up bands and the bottom or right plot will project onto the spin down bands.
 
@@ -1332,7 +1332,7 @@ def band_orbitals_spin_projected(
         return fig, ax1, ax2
 
 
-def band_atoms_spin_projected(
+def band_atoms_spin_polarized(
     folder,
     atoms,
     output='band_atoms_sp.png',
@@ -1352,7 +1352,7 @@ def band_atoms_spin_projected(
     save=True,
 ):
     """
-    This function generates an atom spin projected band structure. This will plot two plots
+    This function generates an atom spin polarized band structure. This will plot two plots
     stacked on top or eachother or next to eachother. The top or left plot will project on the 
     spin up bands and the bottom or right plot will project onto the spin down bands.
 
@@ -1480,7 +1480,7 @@ def band_atoms_spin_projected(
         return fig, ax1, ax2
 
 
-def band_elements_spin_projected(
+def band_elements_spin_polarized(
     folder,
     elements,
     output='band_elements_sp.png',
@@ -1500,7 +1500,7 @@ def band_elements_spin_projected(
     save=True,
 ):
     """
-    This function generates an element spin projected band structure. This will plot two plots
+    This function generates an element spin polarized band structure. This will plot two plots
     stacked on top or eachother or next to eachother. The top or left plot will project on the 
     spin up bands and the bottom or right plot will project onto the spin down bands.
 
@@ -1628,7 +1628,7 @@ def band_elements_spin_projected(
         return fig, ax1, ax2
 
 
-def band_element_orbital_spin_projected(
+def band_element_orbital_spin_polarized(
     folder,
     element_orbital_pairs,
     output='band_element_orbital_sp.png',
@@ -1651,7 +1651,7 @@ def band_element_orbital_spin_projected(
     save=True,
 ):
     """
-    This function generates an element orbital spin projected band structure. This will plot two plots
+    This function generates an element orbital spin polarized band structure. This will plot two plots
     stacked on top or eachother or next to eachother. The top or left plot will project on the 
     spin up bands and the bottom or right plot will project onto the spin down bands.
 
@@ -1783,7 +1783,7 @@ def band_element_orbital_spin_projected(
         return fig, ax1, ax2
 
 
-def band_element_spd_spin_projected(
+def band_element_spd_spin_polarized(
     folder,
     elements,
     output='band_elements_spd_sp.png',
@@ -1807,7 +1807,7 @@ def band_element_spd_spin_projected(
     save=True,
 ):
     """
-    This function generates a s, p, d spin projected band structure on specific elements. This will plot two plots
+    This function generates a s, p, d spin polarized band structure on specific elements. This will plot two plots
     stacked on top or eachother or next to eachother. The top or left plot will project on the 
     spin up bands and the bottom or right plot will project onto the spin down bands.
 
@@ -2555,7 +2555,7 @@ def dos_element_orbitals(
         return fig, ax
 
 
-def dos_plain_spin_projected(
+def dos_plain_spin_polarized(
     folder,
     output='dos_plain_sp.png',
     linewidth=1.5,
@@ -2570,7 +2570,7 @@ def dos_plain_spin_projected(
     save=True,
 ):
     """
-    This function plots the spin projected total density of states.
+    This function plots the spin polarized total density of states.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -2630,7 +2630,7 @@ def dos_plain_spin_projected(
         return fig, ax
 
 
-def dos_spd_spin_projected(
+def dos_spd_spin_polarized(
     folder,
     output='dos_spd_sp.png',
     order=['s', 'p', 'd'],
@@ -2648,7 +2648,7 @@ def dos_spd_spin_projected(
     save=True,
 ):
     """
-    This function plots a spin projected s, p, d projected density of states.
+    This function plots a spin polarized s, p, d projected density of states.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -2721,7 +2721,7 @@ def dos_spd_spin_projected(
         return fig, ax
 
 
-def dos_atom_orbitals_spin_projected(
+def dos_atom_orbitals_spin_polarized(
     folder,
     atom_orbital_pairs,
     output='dos_atom_orbitals_sp.png',
@@ -2739,7 +2739,7 @@ def dos_atom_orbitals_spin_projected(
     save=True,
 ):
     """
-    This function plots a spin projected orbital projected density of states on specific atoms.
+    This function plots a spin polarized orbital projected density of states on specific atoms.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -2810,7 +2810,7 @@ def dos_atom_orbitals_spin_projected(
         return fig, ax
 
 
-def dos_orbitals_spin_projected(
+def dos_orbitals_spin_polarized(
     folder,
     orbitals,
     output='dos_orbitals_sp.png',
@@ -2828,7 +2828,7 @@ def dos_orbitals_spin_projected(
     save=True,
 ):
     """
-    This function plots a spin projected orbital projected density of states.
+    This function plots a spin polarized orbital projected density of states.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -2900,7 +2900,7 @@ def dos_orbitals_spin_projected(
         return fig, ax
 
 
-def dos_atoms_spin_projected(
+def dos_atoms_spin_polarized(
     folder,
     atoms,
     output='dos_atoms_sp.png',
@@ -2918,7 +2918,7 @@ def dos_atoms_spin_projected(
     save=True,
 ):
     """
-    This function plots a spin projected atom projected density of states.
+    This function plots a spin polarized atom projected density of states.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -2988,7 +2988,7 @@ def dos_atoms_spin_projected(
         return fig, ax
 
 
-def dos_elements_spin_projected(
+def dos_elements_spin_polarized(
     folder,
     elements,
     output='dos_elements_sp.png',
@@ -3006,7 +3006,7 @@ def dos_elements_spin_projected(
     save=True,
 ):
     """
-    This function plots a spin projected element projected density of states.
+    This function plots a spin polarized element projected density of states.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -3076,7 +3076,7 @@ def dos_elements_spin_projected(
         return fig, ax
 
 
-def dos_element_spd_spin_projected(
+def dos_element_spd_spin_polarized(
     folder,
     elements,
     order=['s', 'p', 'd'],
@@ -3095,7 +3095,7 @@ def dos_element_spd_spin_projected(
     save=True,
 ):
     """
-    This function plots a spin projected element projected density of states of the s, p, and d orbitals.
+    This function plots a spin polarized element projected density of states of the s, p, and d orbitals.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -3171,7 +3171,7 @@ def dos_element_spd_spin_projected(
         return fig, ax
 
 
-def dos_element_orbitals_spin_projected(
+def dos_element_orbitals_spin_polarized(
     folder,
     element_orbital_pairs,
     output='dos_element_orbitals_sp.png',
@@ -3189,7 +3189,7 @@ def dos_element_orbitals_spin_projected(
     save=True,
 ):
     """
-    This function plots a spin projected element projected density of states on specific orbitals.
+    This function plots a spin polarized element projected density of states on specific orbitals.
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
@@ -3399,8 +3399,8 @@ def band_dos_spd(
     sigma=0.05,
 ):
     """
-    This function plots an s, p, d projected band structure next to and s, p, d projected
-    density of states.
+    This function plots a s, p, d projected band structure next to and s, p, d projected
+    density of states. 
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -3532,8 +3532,8 @@ def band_dos_atom_orbitals(
     sigma=0.05,
 ):
     """
-    This function generates a projected band structure on specific [atom, orbital] pairs next to
-    a projected density of states of specific [atom, orbitals] pairs.
+    This function generates an [atom, orbital] projected band structure next to
+    a projected density of states of the same [atom, orbitals] pairs.
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -3659,8 +3659,8 @@ def band_dos_orbitals(
     sigma=0.05,
 ):
     """
-    This function generates a projected band structure on specific orbitals next to a
-    projected density of states on the same orbitals
+    This function generates a band structure projected on specific orbitals next to a
+    projected density of states on the same orbitals. 
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -4297,7 +4297,7 @@ def band_dos_element_orbitals(
         return fig, ax1, ax2
 
 
-def band_dos_plain_spin_projected(
+def band_dos_plain_spin_polarized(
     band_folder,
     dos_folder,
     output='band_dos_plain_sp.png',
@@ -4319,7 +4319,7 @@ def band_dos_plain_spin_projected(
     sigma=0.05,
 ):
     """
-    This function plots a plain band structure and density of states next to eachother.
+    This function plots a plain spin polarized band structure and density of states next to eachother.
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure calculation
@@ -4437,7 +4437,7 @@ def band_dos_plain_spin_projected(
         return fig, ax1, ax2
 
 
-def band_dos_spd_spin_projected(
+def band_dos_spd_spin_polarized(
     band_folder,
     dos_folder,
     output='band_dos_spd_sp.png',
@@ -4464,8 +4464,8 @@ def band_dos_spd_spin_projected(
     sigma=0.05,
 ):
     """
-    This function plots an s, p, d projected band structure next to and s, p, d projected
-    density of states.
+    This function plots a spin polarized s, p, d projected band structure next to a spin polarized s, p, d projected
+    density of states. The top figure highlights the spin up bands and the bottom figure highlights the spin down bands.
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -4523,7 +4523,7 @@ def band_dos_spd_spin_projected(
         gridspec_kw={'width_ratios': width_ratios}
     )
 
-    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_projected(
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_polarized(
         ax=ax,
         fontsize=fontsize,
         ylim=[erange[0], erange[1]]
@@ -4676,7 +4676,7 @@ def band_dos_spd_spin_projected(
         return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
 
-def band_dos_atom_orbitals_spin_projected(
+def band_dos_atom_orbitals_spin_polarized(
     band_folder,
     dos_folder,
     atom_orbital_pairs,
@@ -4703,8 +4703,9 @@ def band_dos_atom_orbitals_spin_projected(
     sigma=0.05,
 ):
     """
-    This function plots an s, p, d projected band structure next to and s, p, d projected
-    density of states.
+    This function plots a spin polarized band structure projected onto specified [atom, orbital] pairs next to a spin
+    polarized density of states projected onto the same [atom, orbital] pairs. The top figure highlights the spin up
+    bands and the bottom figure highlights the spin down bands.
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -4714,7 +4715,7 @@ def band_dos_atom_orbitals_spin_projected(
             points in the scatter plot
         atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
             This should take the form of [[atom index, orbital_index], ...]. 
-        color_list (list): List of colors of the same length as the element_orbital_pairs
+        color_list (list): List of colors of the same length as the atom_orbital_pairs
         legend (bool): Determines if the legend should be included or not.
         linewidth (float): Line width of the plain band structure plotted in the background
         band_color (string): Color of the plain band structure
@@ -4756,7 +4757,7 @@ def band_dos_atom_orbitals_spin_projected(
         gridspec_kw={'width_ratios': width_ratios}
     )
 
-    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_projected(
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_polarized(
         ax=ax,
         fontsize=fontsize,
         ylim=[erange[0], erange[1]]
@@ -4909,7 +4910,7 @@ def band_dos_atom_orbitals_spin_projected(
         return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
 
-def band_dos_orbitals_spin_projected(
+def band_dos_orbitals_spin_polarized(
     band_folder,
     dos_folder,
     orbitals,
@@ -4936,8 +4937,9 @@ def band_dos_orbitals_spin_projected(
     sigma=0.05,
 ):
     """
-    This function plots an s, p, d projected band structure next to and s, p, d projected
-    density of states.
+    This function plots a spin polarized bandstructure projected onto specified orbitals next to its
+    corresponding density of states projected onto the same orbitals. The top figure highlights the
+    spin up bands and the bottom figure highlight the spin down bands.
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -5008,7 +5010,7 @@ def band_dos_orbitals_spin_projected(
         gridspec_kw={'width_ratios': width_ratios}
     )
 
-    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_projected(
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_polarized(
         ax=ax,
         fontsize=fontsize,
         ylim=[erange[0], erange[1]]
@@ -5161,7 +5163,7 @@ def band_dos_orbitals_spin_projected(
         return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
 
-def band_dos_atoms_spin_projected(
+def band_dos_atoms_spin_polarized(
     band_folder,
     dos_folder,
     atoms,
@@ -5188,8 +5190,9 @@ def band_dos_atoms_spin_projected(
     sigma=0.05,
 ):
     """
-    This function plots an s, p, d projected band structure next to and s, p, d projected
-    density of states.
+    This function plots a spin polarized bandstructure projected onto specified atoms in the POSCAR next
+    to its corresponding density of states projected onto the same atoms. The top figure highlights the
+    spin up bands and the bottom figure highlight the spin down bands.
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -5198,7 +5201,7 @@ def band_dos_atoms_spin_projected(
         scale_factor (float): Factor to scale weights. This changes the size of the
             points in the scatter plot
         atoms (list): List of atoms to project onto
-        color_list (list): List of colors of the same length as the element_orbital_pairs
+        color_list (list): List of colors of the same length as the atoms list
         legend (bool): Determines if the legend should be included or not.
         linewidth (float): Line width of the plain band structure plotted in the background
         band_color (string): Color of the plain band structure
@@ -5240,7 +5243,7 @@ def band_dos_atoms_spin_projected(
         gridspec_kw={'width_ratios': width_ratios}
     )
 
-    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_projected(
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_polarized(
         ax=ax,
         fontsize=fontsize,
         ylim=[erange[0], erange[1]]
@@ -5393,7 +5396,7 @@ def band_dos_atoms_spin_projected(
         return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
 
-def band_dos_elements_spin_projected(
+def band_dos_elements_spin_polarized(
     band_folder,
     dos_folder,
     elements,
@@ -5420,8 +5423,9 @@ def band_dos_elements_spin_projected(
     sigma=0.05,
 ):
     """
-    This function plots an s, p, d projected band structure next to and s, p, d projected
-    density of states.
+    This function plots a spin polarized bandstructure projected onto specified elements in the structure next
+    to its corresponding density of states projected onto the same elements. The top figure highlights the
+    spin up bands and the bottom figure highlight the spin down bands.
 
     Parameters:
         band_folder (str): This is the folder that contains the VASP files for the band structure
@@ -5472,7 +5476,7 @@ def band_dos_elements_spin_projected(
         gridspec_kw={'width_ratios': width_ratios}
     )
 
-    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_projected(
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_polarized(
         ax=ax,
         fontsize=fontsize,
         ylim=[erange[0], erange[1]]
@@ -5625,12 +5629,486 @@ def band_dos_elements_spin_projected(
         return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
 
-def band_dos_element_spd_spin_projected():
-    pass
+def band_dos_element_orbitals_spin_polarized(
+    band_folder,
+    dos_folder,
+    element_orbital_pairs,
+    output='band_dos_element_orbitals_sp.png',
+    scale_factor=5,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    unprojected_linewidth=0.6,
+    figsize=(8, 6),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=8,
+    annotations=['$\\uparrow$ ', '$\\downarrow$ '],
+    annotation_xy=(0.0125, 0.98),
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    """
+    This function plots a spin polarized band structure projected onto specified [element, orbital] pairs next to a spin
+    polarized density of states projected onto the same [element, orbital] pairs. The top figure highlights the spin up
+    bands and the bottom figure highlights the spin down bands.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        element_orbital_pairs (list[list]): Selected orbitals on selected elements to plot.
+            This should take the form of [[element index, orbital_index], ...]. 
+        color_list (list): List of colors of the same length as the element_orbital_pairs
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
+    fig, ax = plt.subplots(
+        nrows=2,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=400,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_polarized(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band_up = Band(
+        folder=band_folder,
+        spin='up',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=band_folder,
+        spin='down',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos_up = Dos(folder=dos_folder, spin='up')
+    dos_down = Dos(folder=dos_folder, spin='down')
+
+    bbox = dict(boxstyle='round', fc='white',
+                edgecolor='gray', alpha=0.95, pad=0.3)
+
+    ax_band_up.annotate(
+        annotations[0],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize + 1,
+    )
+    ax_band_down.annotate(
+        annotations[1],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize + 1,
+    )
+
+    band_up.plot_element_orbitals(
+        ax=ax_band_up,
+        scale_factor=scale_factor,
+        element_orbital_pairs=element_orbital_pairs,
+        color_list=color_list,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    band_down.plot_plain(
+        ax=ax_band_up,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    dos_up.plot_element_orbitals(
+        ax=ax_dos_up,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    dos_down.plot_element_orbitals(
+        ax=ax_dos_up,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=0.25 * alpha,
+        alpha_line=0.25 * alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=False,
+        total=True,
+        erange=erange,
+    )
 
 
-def band_dos_element_orbitals_spin_projected():
-    pass
+    band_down.plot_element_orbitals(
+        ax=ax_band_down,
+        scale_factor=scale_factor,
+        element_orbital_pairs=element_orbital_pairs,
+        color_list=color_list,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    band_up.plot_plain(
+        ax=ax_band_down,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    dos_down.plot_element_orbitals(
+        ax=ax_dos_down,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    dos_up.plot_element_orbitals(
+        ax=ax_dos_down,
+        element_orbital_pairs=element_orbital_pairs,
+        fill=fill,
+        alpha=0.25 * alpha,
+        alpha_line=0.25 * alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_list=color_list,
+        legend=False,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    nbins = len(ax_dos_down.get_xticklabels())
+    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0, hspace=0.05)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
+
+
+def band_dos_element_spd_spin_polarized(
+    band_folder,
+    dos_folder,
+    elements,
+    output='band_dos_element_spd_sp.png',
+    scale_factor=5,
+    order=['s', 'p', 'd'],
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    unprojected_linewidth=0.6,
+    figsize=(8, 6),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=8,
+    annotations=['$\\uparrow$ ', '$\\downarrow$ '],
+    annotation_xy=(0.0125, 0.98),
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    """
+    This function plots a spin polarized s, p, d projected band structure on a given element next to a spin polarized
+    s, p, d projected density of states on the same element. The top figure highlights the spin up bands and the bottom
+    figure highlights the spin down bands.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        elements (list): List of elements to project onto
+        output (str): File name of the resulting plot.
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        order (list): This determines the order in which the points are plotted on the
+            graph. This is an option because sometimes certain orbitals can be hidden
+            under others because they have a larger weight. For example, if the
+            weights of the d orbitals are greater than that of the s orbitals, it
+            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
+            plotted over the d orbitals.
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
+    fig, ax = plt.subplots(
+        nrows=2,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=400,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_polarized(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band_up = Band(
+        folder=band_folder,
+        spin='up',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=band_folder,
+        spin='down',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos_up = Dos(folder=dos_folder, spin='up')
+    dos_down = Dos(folder=dos_folder, spin='down')
+
+    bbox = dict(boxstyle='round', fc='white',
+                edgecolor='gray', alpha=0.95, pad=0.3)
+
+    ax_band_up.annotate(
+        annotations[0],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize + 1,
+    )
+    ax_band_down.annotate(
+        annotations[1],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize + 1,
+    )
+
+    band_up.plot_element_spd(
+        ax=ax_band_up,
+        elements=elements,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    band_down.plot_plain(
+        ax=ax_band_up,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    dos_up.plot_element_spd(
+        ax=ax_dos_up,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    dos_down.plot_element_spd(
+        ax=ax_dos_up,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=0.25 * alpha,
+        alpha_line=0.25 * alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=False,
+        total=True,
+        erange=erange,
+    )
+
+
+    band_down.plot_element_spd(
+        ax=ax_band_down,
+        elements=elements,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    band_up.plot_plain(
+        ax=ax_band_down,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    dos_down.plot_element_spd(
+        ax=ax_dos_down,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    dos_up.plot_element_spd(
+        ax=ax_dos_down,
+        elements=elements,
+        order=order,
+        fill=fill,
+        alpha=0.25 * alpha,
+        alpha_line=0.25 * alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=False,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    nbins = len(ax_dos_down.get_xticklabels())
+    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0, hspace=0.05)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
 
 def _main():
@@ -5638,10 +6116,10 @@ def _main():
     dos_folder = '../../../../../../../for_James/band'
     # band_folder = '../../vaspvis_data/band'
     # dos_folder = '../../vaspvis_data/dos'
-    band_dos_elements_spin_projected(
+    band_dos_element_spd_spin_polarized(
         band_folder=band_folder,
         dos_folder=dos_folder,
-        elements=['Ti','Mn', 'In'],
+        elements=['Ti', 'Mn'],
     )
 
 

@@ -915,7 +915,7 @@ class Band:
         else:
             color_dict = {i: color for i, color in enumerate(color_list)}
 
-        plot_element = {element: pd.dataframe(
+        plot_element = {element: pd.DataFrame(
             columns=[range(9)]) for element in elements}
         plot_band = []
         plot_wave_vec = []
