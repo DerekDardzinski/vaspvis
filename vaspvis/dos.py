@@ -322,7 +322,7 @@ class Dos:
                     elif spin == 'down':
                         ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
 
-    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, sigma=0.05, energyaxis='y', color='black', erange=[-6, 6]):
+    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='y', color='black', erange=[-6, 6]):
         """
         This function plots the total density of states
 
@@ -331,6 +331,7 @@ class Dos:
             linewidth (float): Linewidth of lines
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
             color (str): Color of line
@@ -362,6 +363,7 @@ class Dos:
                 tdos_dict['energy'],
                 linewidth=linewidth,
                 color=color,
+                alpha=alpha_line
             )
 
             if fill:
@@ -379,6 +381,7 @@ class Dos:
                 tdensity,
                 linewidth=linewidth,
                 color=color,
+                alpha=alpha_line
             )
 
             if fill:
@@ -390,7 +393,7 @@ class Dos:
                     alpha=alpha,
                 )
 
-    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -401,6 +404,7 @@ class Dos:
                 avoid situations where one projection completely convers the other.
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
@@ -432,6 +436,7 @@ class Dos:
                 linewidth=linewidth,
                 fill=fill,
                 alpha=alpha,
+                alpha_line=alpha_line,
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
@@ -452,6 +457,7 @@ class Dos:
                     tdos_dict['energy'],
                     color=color_dict[orbital],
                     linewidth=linewidth,
+                    alpha=alpha_line
                 )
 
                 if fill:
@@ -469,6 +475,7 @@ class Dos:
                     pdensity,
                     color=color_dict[orbital],
                     linewidth=linewidth,
+                    alpha=alpha_line
                 )
 
                 if fill:
@@ -519,7 +526,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the projections or orbitals on individual atoms.
@@ -530,6 +537,7 @@ class Dos:
                 [[atom index, orbital index], [atom index, orbital index], ..]
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
@@ -645,7 +653,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the projections onto given orbitals
@@ -655,6 +663,7 @@ class Dos:
             orbitals (list): List of orbitals to project onto
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
@@ -765,7 +774,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected density of states on the given atoms.
 
@@ -774,6 +783,7 @@ class Dos:
             atoms (list): Index of atoms to plot
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             color_list (list): Optional list of colors for each atom
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
@@ -885,7 +895,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_elements(self, ax, elements, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_elements(self, ax, elements, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the projection onto specified elements. This is 
@@ -897,6 +907,7 @@ class Dos:
             elements (list): List of element symbols to project onto
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
@@ -1008,7 +1019,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states onto the chosen orbitals of specified elements. This is 
@@ -1021,6 +1032,7 @@ class Dos:
                 [[element symbol, orbital index], [element symbol, orbital index], ..]
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
@@ -1138,7 +1150,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states onto the s, p, and d orbitals of specified elements. 
@@ -1152,6 +1164,7 @@ class Dos:
                 avoid situations where one projection completely convers the other.
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
@@ -1184,6 +1197,7 @@ class Dos:
                 linewidth=linewidth,
                 fill=fill,
                 alpha=alpha,
+                alpha_line=alpha_line,
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
@@ -1205,6 +1219,7 @@ class Dos:
                         tdos_dict['energy'],
                         color=color_dict[orbital],
                         linewidth=linewidth,
+                        alpha=alpha_line
                     )
 
                     if fill:
@@ -1222,6 +1237,7 @@ class Dos:
                         pdensity,
                         color=color_dict[orbital],
                         linewidth=linewidth,
+                        alpha=alpha_line
                     )
 
                     if fill:

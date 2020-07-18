@@ -5,8 +5,8 @@ projected plots.
 """
 
 
-from .band import Band
-from .dos import Dos
+from band import Band
+from dos import Dos
 import matplotlib.pyplot as plt
 
 
@@ -40,6 +40,30 @@ def _figure_setup_band_dos(ax, fontsize, ylim):
     ax1.set_ylim(ylim[0], ylim[1])
 
     return ax1, ax2
+
+def _figure_setup_band_dos_spin_projected(ax, fontsize, ylim):
+    ax_band_up = ax[0,0]
+    ax_dos_up = ax[0,1]
+    ax_band_down = ax[1,0]
+    ax_dos_down = ax[1,1]
+
+    ax_dos_up.tick_params(axis='y', length=0)
+    ax_dos_up.tick_params(axis='x', length=0, labelsize=fontsize, labelbottom=False)
+    ax_band_up.tick_params(labelsize=fontsize)
+    ax_band_up.tick_params(axis='x', length=0, labelbottom=False)
+    ax_band_up.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
+    ax_band_up.set_ylim(ylim[0], ylim[1])
+
+    ax_dos_down.tick_params(axis='y', length=0)
+    ax_dos_down.tick_params(axis='x', length=0, labelsize=fontsize)
+    ax_dos_down.set_xlabel('Density of States', fontsize=fontsize)
+    ax_band_down.tick_params(labelsize=fontsize)
+    ax_band_down.tick_params(axis='x', length=0)
+    ax_band_down.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
+    ax_band_down.set_xlabel('Wave Vector', fontsize=fontsize)
+    ax_band_down.set_ylim(ylim[0], ylim[1])
+
+    return ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
 
 def band_plain(
@@ -732,7 +756,6 @@ def band_plain_spin_projected(
     Parameters:
         folder (str): This is the folder that contains the VASP files
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         up_color (str): Color of the spin-up lines
         down_color (str): Color of the spin-down lines
         linewidth (float): Line width of the band structure lines
@@ -856,7 +879,6 @@ def band_spd_spin_projected(
     Parameters:
         folder (str): This is the folder that contains the VASP files
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
             points in the scatter plot
         order (list): This determines the order in which the points are plotted on the
@@ -1309,6 +1331,7 @@ def band_orbitals_spin_projected(
     else:
         return fig, ax1, ax2
 
+
 def band_atoms_spin_projected(
     folder,
     atoms,
@@ -1456,6 +1479,7 @@ def band_atoms_spin_projected(
     else:
         return fig, ax1, ax2
 
+
 def band_elements_spin_projected(
     folder,
     elements,
@@ -1602,6 +1626,7 @@ def band_elements_spin_projected(
         plt.savefig(output)
     else:
         return fig, ax1, ax2
+
 
 def band_element_orbital_spin_projected(
     folder,
@@ -1756,6 +1781,7 @@ def band_element_orbital_spin_projected(
         plt.savefig(output)
     else:
         return fig, ax1, ax2
+
 
 def band_element_spd_spin_projected(
     folder,
@@ -1924,6 +1950,7 @@ def band_element_spd_spin_projected(
 # =============================================================
 # -------------------- Density of States ----------------------
 # =============================================================
+
 
 def dos_plain(
     folder,
@@ -4277,12 +4304,385 @@ def band_dos_element_orbitals(
         return fig, ax1, ax2
 
 
-def band_dos_plain_spin_projected():
-    pass
+def band_dos_plain_spin_projected(
+    band_folder,
+    dos_folder,
+    output='band_dos_plain_spin_projected.png',
+    up_color='black',
+    down_color='red',
+    linewidth=1.25,
+    up_linestyle='-',
+    down_linestyle='--',
+    figsize=(6, 3),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    """
+    This function plots a plain band structure and density of states next to eachother.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure calculation
+        dos_folder (str): This is the folder that contains the VASP files for the density of states calculation
+        output (str): File name of the resulting plot.
+        up_color (str): Color of the spin up band structure lines
+        down_color (str): Color of the spin down band structure lines
+        linewidth (float): Line width of the band structure lines
+        up_linestyle (str): Line style of the spin up bands
+        down_linestyle (str): Line style of the spin down bands
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+    fig, ax = plt.subplots(
+        nrows=1,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax1, ax2 = _figure_setup_band_dos(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band_up = Band(
+        folder=band_folder,
+        spin='up',
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=band_folder,
+        spin='down',
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos_up = Dos(folder=dos_folder, spin='up')
+    dos_down = Dos(folder=dos_folder, spin='down')
+
+    band_up.plot_plain(
+        ax=ax1,
+        color=up_color,
+        linewidth=linewidth,
+        linestyle=up_linestyle,
+    )
+
+    band_down.plot_plain(
+        ax=ax1,
+        color=down_color,
+        linewidth=linewidth,
+        linestyle=down_linestyle,
+    )
+
+    dos_up.plot_plain(
+        ax=ax2,
+        linewidth=linewidth,
+        fill=fill,
+        alpha=alpha,
+        sigma=sigma,
+        energyaxis='y',
+        color=up_color,
+        erange=erange,
+    )
+
+    dos_down.plot_plain(
+        ax=ax2,
+        linewidth=linewidth,
+        fill=fill,
+        alpha=alpha,
+        sigma=sigma,
+        energyaxis='y',
+        color=down_color,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax2.get_xticklabels()
+    labels[0] = ''
+    ax2.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax1, ax2
 
 
-def band_dos_spd_spin_projected():
-    pass
+def band_dos_spd_spin_projected(
+    band_folder,
+    dos_folder,
+    output='band_dos_spd_spin_projected.png',
+    scale_factor=5,
+    order=['s', 'p', 'd'],
+    color_dict=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    unprojected_band_color='gray',
+    unprojected_linewidth=0.6,
+    figsize=(8, 6),
+    width_ratios=[7, 3],
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=8,
+    annotations=['$\\uparrow$ ', '$\\downarrow$ '],
+    annotation_xy=(0.01, 0.98),
+    save=True,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+):
+    """
+    This function plots an s, p, d projected band structure next to and s, p, d projected
+    density of states.
+
+    Parameters:
+        band_folder (str): This is the folder that contains the VASP files for the band structure
+        dos_folder (str): This is the folder that contains the VASP files for the density of states
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        order (list): This determines the order in which the points are plotted on the
+            graph. This is an option because sometimes certain orbitals can be hidden
+            under others because they have a larger weight. For example, if the
+            weights of the d orbitals are greater than that of the s orbitals, it
+            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
+            plotted over the d orbitals.
+        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        sigma (float): Standard deviation for gaussian filter
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
+    fig, ax = plt.subplots(
+        nrows=2,
+        ncols=2,
+        sharey=True,
+        figsize=figsize,
+        dpi=300,
+        gridspec_kw={'width_ratios': width_ratios}
+    )
+
+    ax_band_up, ax_dos_up, ax_band_down, ax_dos_down = _figure_setup_band_dos_spin_projected(
+        ax=ax,
+        fontsize=fontsize,
+        ylim=[erange[0], erange[1]]
+    )
+
+    band_up = Band(
+        folder=band_folder,
+        spin='up',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    band_down = Band(
+        folder=band_folder,
+        spin='down',
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+
+    dos_up = Dos(folder=dos_folder, spin='up')
+    dos_down = Dos(folder=dos_folder, spin='down')
+
+    band_up.plot_spd(
+        ax=ax_band_up,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    bbox = dict(boxstyle='round', fc='white',
+                edgecolor='gray', alpha=0.95, pad=0.3)
+
+    ax_band_up.annotate(
+        annotations[0],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize + 1,
+    )
+    ax_band_down.annotate(
+        annotations[1],
+        xy=annotation_xy,
+        xycoords='axes fraction',
+        va='top',
+        ha='left',
+        bbox=bbox,
+        fontsize=fontsize + 1,
+    )
+
+    band_down.plot_plain(
+        ax=ax_band_up,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    dos_up.plot_spd(
+        ax=ax_dos_up,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    dos_down.plot_spd(
+        ax=ax_dos_up,
+        order=order,
+        fill=fill,
+        alpha=0.15 * alpha,
+        alpha_line=0.25 * alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=False,
+        total=True,
+        erange=erange,
+    )
+
+
+    band_down.plot_spd(
+        ax=ax_band_down,
+        scale_factor=scale_factor,
+        order=order,
+        color_dict=color_dict,
+        legend=False,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+
+    band_up.plot_plain(
+        ax=ax_band_down,
+        color=unprojected_band_color,
+        linewidth=unprojected_linewidth,
+    )
+
+    dos_down.plot_spd(
+        ax=ax_dos_down,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=legend,
+        total=True,
+        erange=erange,
+    )
+
+    dos_up.plot_spd(
+        ax=ax_dos_down,
+        order=order,
+        fill=fill,
+        alpha=0.15 * alpha,
+        alpha_line=0.25 * alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis='y',
+        color_dict=color_dict,
+        legend=False,
+        total=True,
+        erange=erange,
+    )
+
+    fig.canvas.draw()
+    labels = ax_dos_down.get_xticklabels()
+    labels[0] = ''
+    ax_dos_down.set_xticklabels(labels)
+
+    plt.tight_layout(pad=0.2)
+    plt.subplots_adjust(wspace=0, hspace=0.05)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax_band_up, ax_dos_up
 
 
 def band_dos_atom_orbitals_spin_projected():
@@ -4310,15 +4710,13 @@ def band_dos_element_orbitals_spin_projected():
 
 
 def _main():
-    band_folder = '../../vaspvis_data/band'
-    dos_folder = '../../vaspvis_data/dos'
-    band_dos_orbitals(
+    band_folder = '../../../../../../../for_James/band'
+    dos_folder = '~/for_James/band'
+    band_dos_spd_spin_projected(
         band_folder=band_folder,
-        dos_folder=dos_folder,
-        orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8]
+        dos_folder=band_folder,
     )
 
 
 if __name__ == "__main__":
     _main()
-
