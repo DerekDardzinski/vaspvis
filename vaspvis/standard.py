@@ -406,7 +406,7 @@ def band_orbitals(
 def band_atoms(
     folder,
     atoms,
-    output='band_orbital.png',
+    output='band_atoms.png',
     spin='up',
     scale_factor=5,
     color_list=None,
@@ -6112,14 +6112,14 @@ def band_dos_element_spd_spin_polarized(
 
 
 def _main():
-    band_folder = '../../../../../../../for_James/band'
-    dos_folder = '../../../../../../../for_James/band'
-    # band_folder = '../../vaspvis_data/band'
-    # dos_folder = '../../vaspvis_data/dos'
-    band_dos_element_spd_spin_polarized(
+    # band_folder = '../../../../../../../for_James/band'
+    # dos_folder = '../../../../../../../for_James/band'
+    band_folder = '../../vaspvis_data/Fe'
+    dos_folder = '../../vaspvis_data/Fe'
+    band_dos_orbitals_spin_polarized(
         band_folder=band_folder,
         dos_folder=dos_folder,
-        elements=['Ti', 'Mn'],
+        orbitals=[0,1,2,3,4,5,6,7,8]
     )
 
 

@@ -49,24 +49,100 @@ dos = Dos(folder='path to vasp output folder')
 
 # Examples
 
-## Plain Band Structure
-<img src="./img/band/plain_band.png"  width="600" height="450">
+## Band Structures
 
-## s, p, d Projected Band Structure
-<img src="./img/band/spd_band.png"  width="600" height="450">
+### Plain Band Structure
+```python
+from vaspvis import standard
 
-## Orbital Projected Band Structure
-<img src="./img/band/orbital_band.png"  width="600" height="450">
+standard.band_plain(
+    folder=band_folder
+)
+```
+<img src="./img/band_plain.png"  width="600" height="450">
 
-## Atom-Orbtial Projected Band Structure
-<img src="./img/band/atom_orbital_band.png"  width="600" height="450">
 
-## Atom Projected Band Structure
-<img src="./img/band/atom_band.png"  width="600" height="450">
+### s, p, d Projected Band Structure
+```python
+from vaspvis import standard
 
-<!--<img src="./img/band/element_band.png"  width="450" height="450">-->
+standard.band_spd(
+    folder=band_folder
+)
+```
+<img src="./img/band_spd.png"  width="600" height="450">
 
-<!--<img src="./img/band/element_orbital_band.png"  width="450" height="450">-->
+
+### Orbital Projected Band Structure
+```python
+from vaspvis import standard
+
+standard.band_orbitals(
+    folder=band_folder,
+    orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+)
+```
+<img src="./img/band_orbital.png"  width="600" height="450">
+
+### Atom-Orbtial Projected Band Structure
+```python
+from vaspvis import standard
+
+standard.band_atom_orbital(
+    folder=band_folder,
+    atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]]
+)
+```
+<img src="./img/band_dos_atom_orbitals.png"  width="600" height="450">
+
+
+### Atom Projected Band Structure
+```python
+from vaspvis import standard
+
+standard.band_atoms(
+    folder=band_folder,
+    atoms=[0, 1],
+)
+```
+<img src="./img/band_atoms.png"  width="600" height="450">
+
+
+### Element Projected Band Structure
+```python
+from vaspvis import standard
+
+standard.band_elements(
+    folder=band_folder,
+    elements=['In', 'As'],
+)
+```
+<img src="./img/band_elements.png"  width="600" height="450">
+
+
+### Element s, p, d Projected Band Structure
+```python
+from vaspvis import standard
+
+standard.band_element_spd(
+    folder=band_folder,
+    elements=['As'],
+)
+```
+<img src="./img/band_element_spd.png"  width="600" height="450">
+
+
+### Element Orbital Projected Band Structure
+```python
+from vaspvis import standard
+
+standard.band_element_orbitals(
+    folder=band_folder,
+    element_orbital_pairs=[['As', 2], ['In', 3]],
+)
+```
+<img src="./img/band_element_orbital.png"  width="600" height="450">
+
 
 
 ## Plain Density of States
