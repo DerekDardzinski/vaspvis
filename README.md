@@ -21,7 +21,7 @@ VASP output data and append the it to the axis.
 
 The `standard` module uses the `Band` and `Dos` modules internally and
 was designed for those people who are not familiar with matplotlib
-or don't need to completely customize their own figure. There are a total of 56 different
+or don't need to completely customize their own figure. There are a total of 62 different
 styles of plots to choose from in this module. It gives the user the capability to project
 onto any orbital, any atom, or any element in their structure, as well as individual orbitals
 on any atom or element. There are also options for spin polarized band structures and density
