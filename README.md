@@ -4,6 +4,30 @@ A highly flexible and customizable library for visualizing electronic structure 
 [![Documentation Status](https://readthedocs.org/projects/vaspvis/badge/?version=latest)](https://vaspvis.readthedocs.io/en/latest/?badge=latest)
       
 
+# Usage
+
+This package was designed to give VASP users a flexible and easy to understand method
+for generating a wide variaty of band structures and density of states plots. There are
+three main modules in this package:
+
+* `Band`
+* `Dos`
+* `standard`
+
+The `Band` and `Dos` modules allow for the highest level of flexibility because the user
+needs to pass in their own matplotlib axis, letting the user completely design the 
+external appearence of their plot. The `Band` and `Dos` modules will then parse the
+VASP output data and append the it to the axis.
+
+The `standard` module uses the `Band` and `Dos` modules internally and
+was designed for those people who are not familiar with matplotlib
+or don't need to completely customize their own figure. There are a total of 56 different
+styles of plots to choose from in this module. It gives the user the capability to project
+onto any orbital, any atom, or any element in their structure, as well as individual orbitals
+on any atom or element. There are also options for spin polarized band structures and density
+of states as well, letting the user make intricate plots with only a few lines of code.
+
+
 # Installation
 
 ```bash
@@ -43,9 +67,10 @@ bs_hse = Band(
 # Density of states (projected or non-projected)
 dos = Dos(folder='path to vasp output folder')
 ```
+**Important Note:** This package parses the vasprun.xml, KPOINTS, and POSCAR files, be sure that
+they are in the folder you load into vaspvis.
 
-**Important Note:** For spin projected orbitals you must load the spin up and spin down chanels separately using the `spin = 'up'` or `spin = 'down'` options with loading data. Default is `spin = 'up'`. An example of a spin projected band plot is coming soon.
-
+**Important Note:** For spin projected orbitals you must load the spin up and spin down chanels separately using the `spin = 'up'` or `spin = 'down'` options with loading data. Default is `spin = 'up'`.
 
 # Examples
 
@@ -60,6 +85,24 @@ standard.band_plain(
 )
 ```
 <img src="./img/band_plain.png"  width="600" height="450">
+
+
+### Plain Band Structure HSE
+
+> All other band structure can be plotted for HSE this is just an example on how to
+load the structure using the standard module.
+
+```python
+from vaspvis import standard
+
+standard.band_plain(
+    folder=band_folder_hse,
+    hse=True,
+    kpath='GXWLGK',
+    n=20,
+)
+```
+<img src="./img/band_plain_hse.png"  width="600" height="450">
 
 
 ### s, p, d Projected Band Structure
@@ -88,7 +131,7 @@ standard.band_orbitals(
 ```python
 from vaspvis import standard
 
-standard.band_atom_orbital(
+standard.band_atom_orbitals(
     folder=band_folder,
     atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]]
 )

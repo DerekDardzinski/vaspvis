@@ -4,12 +4,26 @@ from vaspvis import standard
 band_folder = '../vaspvis_data/band_InAs'
 dos_folder = '../vaspvis_data/dos_InAs'
 
+band_folder_hse = '../vaspvis_data/band_InAs_hse'
+
 # ==================================================
 # -------------- Plain Band Structure --------------
 # ==================================================
 
 standard.band_plain(
     folder=band_folder
+)
+
+
+# ==================================================
+# ----------- HSE Plain Band Structure -------------
+# ==================================================
+
+standard.band_plain(
+    folder=band_folder_hse,
+    hse=True,
+    kpath='GXWLGK',
+    n=20,
 )
 
 
@@ -46,7 +60,7 @@ standard.band_atoms(
 # ---------- Atom Orbital Band Structure -----------
 # ==================================================
 
-standard.band_atom_orbital(
+standard.band_atom_orbitals(
     folder=band_folder,
     atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]]
 )

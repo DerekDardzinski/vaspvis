@@ -222,10 +222,10 @@ def band_spd(
         return fig, ax
 
 
-def band_atom_orbital(
+def band_atom_orbitals(
     folder,
     atom_orbital_pairs,
-    output='band_atom_orbital.png',
+    output='band_atom_orbitals.png',
     spin='up',
     scale_factor=5,
     color_list=None,
@@ -1009,10 +1009,10 @@ def band_spd_spin_polarized(
         return fig, ax1, ax2
 
 
-def band_atom_orbital_spin_polarized(
+def band_atom_orbitals_spin_polarized(
     folder,
     atom_orbital_pairs,
-    output='band_atom_orbital_sp.png',
+    output='band_atom_orbitals_sp.png',
     scale_factor=5,
     color_list=None,
     legend=True,
