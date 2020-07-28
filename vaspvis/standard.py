@@ -5,7 +5,7 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from vaspvis.dos import Dos
+from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
@@ -41,14 +41,16 @@ def _figure_setup_band_dos(ax, fontsize, ylim):
 
     return ax1, ax2
 
+
 def _figure_setup_band_dos_spin_polarized(ax, fontsize, ylim):
-    ax_band_up = ax[0,0]
-    ax_dos_up = ax[0,1]
-    ax_band_down = ax[1,0]
-    ax_dos_down = ax[1,1]
+    ax_band_up = ax[0, 0]
+    ax_dos_up = ax[0, 1]
+    ax_band_down = ax[1, 0]
+    ax_dos_down = ax[1, 1]
 
     ax_dos_up.tick_params(axis='y', length=0)
-    ax_dos_up.tick_params(axis='x', length=0, labelsize=fontsize, labelbottom=False)
+    ax_dos_up.tick_params(axis='x', length=0,
+                          labelsize=fontsize, labelbottom=False)
     ax_band_up.tick_params(labelsize=fontsize)
     ax_band_up.tick_params(axis='x', length=0, labelbottom=False)
     ax_band_up.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
@@ -65,7 +67,9 @@ def _figure_setup_band_dos_spin_polarized(ax, fontsize, ylim):
 
     return ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
+
 def _figure_setup_layer_dos(ax, fontsize=6, energyaxis='y'):
+    ax.tick_params(labelsize=fontsize)
     if energyaxis == 'y':
         ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
         ax.set_xlabel('Layers', fontsize=fontsize)
@@ -4431,7 +4435,6 @@ def band_dos_plain_spin_polarized(
         erange=erange,
     )
 
-
     fig.canvas.draw()
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
@@ -4625,7 +4628,6 @@ def band_dos_spd_spin_polarized(
         erange=erange,
     )
 
-
     band_down.plot_spd(
         ax=ax_band_down,
         scale_factor=scale_factor,
@@ -4673,7 +4675,8 @@ def band_dos_spd_spin_polarized(
 
     fig.canvas.draw()
     nbins = len(ax_dos_down.get_xticklabels())
-    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+    ax_dos_down.xaxis.set_major_locator(
+        MaxNLocator(nbins=nbins - 1, prune='lower'))
 
     plt.tight_layout(pad=0.2)
     plt.subplots_adjust(wspace=0, hspace=0.05)
@@ -4859,7 +4862,6 @@ def band_dos_atom_orbitals_spin_polarized(
         erange=erange,
     )
 
-
     band_down.plot_atom_orbitals(
         ax=ax_band_down,
         scale_factor=scale_factor,
@@ -4907,7 +4909,8 @@ def band_dos_atom_orbitals_spin_polarized(
 
     fig.canvas.draw()
     nbins = len(ax_dos_down.get_xticklabels())
-    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+    ax_dos_down.xaxis.set_major_locator(
+        MaxNLocator(nbins=nbins - 1, prune='lower'))
 
     plt.tight_layout(pad=0.2)
     plt.subplots_adjust(wspace=0, hspace=0.05)
@@ -5112,7 +5115,6 @@ def band_dos_orbitals_spin_polarized(
         erange=erange,
     )
 
-
     band_down.plot_orbitals(
         ax=ax_band_down,
         scale_factor=scale_factor,
@@ -5160,7 +5162,8 @@ def band_dos_orbitals_spin_polarized(
 
     fig.canvas.draw()
     nbins = len(ax_dos_down.get_xticklabels())
-    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+    ax_dos_down.xaxis.set_major_locator(
+        MaxNLocator(nbins=nbins - 1, prune='lower'))
 
     plt.tight_layout(pad=0.2)
     plt.subplots_adjust(wspace=0, hspace=0.05)
@@ -5345,7 +5348,6 @@ def band_dos_atoms_spin_polarized(
         erange=erange,
     )
 
-
     band_down.plot_atoms(
         ax=ax_band_down,
         scale_factor=scale_factor,
@@ -5393,7 +5395,8 @@ def band_dos_atoms_spin_polarized(
 
     fig.canvas.draw()
     nbins = len(ax_dos_down.get_xticklabels())
-    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+    ax_dos_down.xaxis.set_major_locator(
+        MaxNLocator(nbins=nbins - 1, prune='lower'))
 
     plt.tight_layout(pad=0.2)
     plt.subplots_adjust(wspace=0, hspace=0.05)
@@ -5578,7 +5581,6 @@ def band_dos_elements_spin_polarized(
         erange=erange,
     )
 
-
     band_down.plot_elements(
         ax=ax_band_down,
         scale_factor=scale_factor,
@@ -5626,7 +5628,8 @@ def band_dos_elements_spin_polarized(
 
     fig.canvas.draw()
     nbins = len(ax_dos_down.get_xticklabels())
-    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+    ax_dos_down.xaxis.set_major_locator(
+        MaxNLocator(nbins=nbins - 1, prune='lower'))
 
     plt.tight_layout(pad=0.2)
     plt.subplots_adjust(wspace=0, hspace=0.05)
@@ -5812,7 +5815,6 @@ def band_dos_element_orbitals_spin_polarized(
         erange=erange,
     )
 
-
     band_down.plot_element_orbitals(
         ax=ax_band_down,
         scale_factor=scale_factor,
@@ -5860,7 +5862,8 @@ def band_dos_element_orbitals_spin_polarized(
 
     fig.canvas.draw()
     nbins = len(ax_dos_down.get_xticklabels())
-    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+    ax_dos_down.xaxis.set_major_locator(
+        MaxNLocator(nbins=nbins - 1, prune='lower'))
 
     plt.tight_layout(pad=0.2)
     plt.subplots_adjust(wspace=0, hspace=0.05)
@@ -6057,7 +6060,6 @@ def band_dos_element_spd_spin_polarized(
         erange=erange,
     )
 
-
     band_down.plot_element_spd(
         ax=ax_band_down,
         elements=elements,
@@ -6108,7 +6110,8 @@ def band_dos_element_spd_spin_polarized(
 
     fig.canvas.draw()
     nbins = len(ax_dos_down.get_xticklabels())
-    ax_dos_down.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
+    ax_dos_down.xaxis.set_major_locator(
+        MaxNLocator(nbins=nbins - 1, prune='lower'))
 
     plt.tight_layout(pad=0.2)
     plt.subplots_adjust(wspace=0, hspace=0.05)
@@ -6123,7 +6126,7 @@ def dos_layers(
     folder,
     output='dos_layers.png',
     energyaxis='y',
-    figsize=(3,4),
+    figsize=(4, 3),
     erange=[-3, 3],
     spin='up',
     fontsize=7,
@@ -6135,13 +6138,14 @@ def dos_layers(
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
     _figure_setup_layer_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+    ax.set_ylim(erange[0], erange[1])
 
     dos = Dos(folder=folder, spin=spin)
     dos.plot_layers(
         ax=ax,
         sigma=sigma,
         cmap=cmap,
-        ylim=erange,
+        erange=erange,
         vmax=vmax,
         fontsize=fontsize
     )
@@ -6153,16 +6157,20 @@ def dos_layers(
     else:
         return fig, ax
 
+
 def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
     band_folder = '../../vaspvis_data/Fe'
-    dos_folder = '../../vaspvis_data/Fe'
-    band_dos_orbitals_spin_polarized(
-        band_folder=band_folder,
-        dos_folder=dos_folder,
-        orbitals=[0,1,2,3,4,5,6,7,8]
+    dos_folder = '../../vaspvis_data/dosInterface'
+    dos_layers(
+        folder=dos_folder
     )
+    # band_dos_orbitals_spin_polarized(
+    # band_folder=band_folder,
+    # dos_folder=dos_folder,
+    # orbitals=[0,1,2,3,4,5,6,7,8]
+    # )
 
 
 if __name__ == "__main__":

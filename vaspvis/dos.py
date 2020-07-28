@@ -1323,7 +1323,7 @@ class Dos:
         zorder = np.argsort(zvals)
         energy = self.tdos_dict['energy']
 
-        ind = np.where((erange[0] - 0.1 <= energy) & (energy <= erange[-1] + 0.1))
+        ind = np.where((erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5))
         atom_index = range(len(zorder))
         energies = energy[ind]
         densities = self._sum_atoms().to_numpy()[ind]
