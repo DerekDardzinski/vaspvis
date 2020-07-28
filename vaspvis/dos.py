@@ -1304,7 +1304,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6]):
+    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], vmax=0.6, fontsize=6):
         """
         This function plots a layer by layer heat map of the density
         of states.
@@ -1338,7 +1338,7 @@ class Dos:
                 densities,
                 cmap=cmap,
                 shading='gouraud',
-                vmax=0.6,
+                vmax=vmax,
             )
 
         if energyaxis == 'x':
@@ -1348,12 +1348,12 @@ class Dos:
                 np.transpose(densities),
                 cmap=cmap,
                 shading='gouraud',
-                vmax=0.6,
+                vmax=vmax,
             )
 
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=ax)
-        cbar.ax.tick_params(labelsize=6)
-        cbar.set_label('Density of States', fontsize=6)
+        cbar.ax.tick_params(labelsize=fontsize)
+        cbar.set_label('Density of States', fontsize=fontsize)
 
 

@@ -65,6 +65,14 @@ def _figure_setup_band_dos_spin_polarized(ax, fontsize, ylim):
 
     return ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
+def _figure_setup_layer_dos(ax, fontsize=6, energyaxis='y'):
+    if energyaxis == 'y':
+        ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
+        ax.set_xlabel('Layers', fontsize=fontsize)
+    if energyaxis == 'x':
+        ax.set_xlabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
+        ax.set_ylabel('Layers', fontsize=fontsize)
+
 
 def band_plain(
     folder,
@@ -6110,6 +6118,40 @@ def band_dos_element_spd_spin_polarized(
     else:
         return fig, ax_band_up, ax_dos_up, ax_band_down, ax_dos_down
 
+
+def dos_layers(
+    folder,
+    output='dos_layers.png',
+    energyaxis='y',
+    figsize=(3,4),
+    erange=[-3, 3],
+    spin='up',
+    fontsize=7,
+    save=True,
+    cmap='magma',
+    sigma=1.5,
+    vmax=0.6,
+):
+    fig = plt.figure(figsize=figsize, dpi=400)
+    ax = fig.add_subplot(111)
+    _figure_setup_layer_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos = Dos(folder=folder, spin=spin)
+    dos.plot_layers(
+        ax=ax,
+        sigma=sigma,
+        cmap=cmap,
+        ylim=erange,
+        vmax=vmax,
+        fontsize=fontsize
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
 
 def _main():
     # band_folder = '../../../../../../../for_James/band'
