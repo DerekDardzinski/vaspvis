@@ -384,7 +384,7 @@ class Band:
         """
 
         high_sym_points = self.kpoints.kpts
-        kpts_labels = np.array([f'${k}$' for k in self.kpoints.labels])
+        kpts_labels = np.array([f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpoints.labels])
         all_kpoints = self.vasprun.actual_kpoints
 
         index = [0]
@@ -416,8 +416,7 @@ class Band:
         kpoints_index.append(n*(len(kpath) - 1)-1)
         kpoints_index.insert(0, 0)
 
-        kpath = [f'${k}$' if k !=
-                 'G' else '$\\Gamma$' for k in kpath.upper().strip()]
+        kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath.upper().strip()]
 
         for i in range(len(kpoints_index)):
             if 0 < i < len(kpoints_index) - 1:
