@@ -343,6 +343,7 @@ class Band:
             band_df = pd.DataFrame()
             for element in elements:
                 element_index = np.where(element_list == element)[0]
+                nb_atoms = len(element_index)
                 df = pd.concat(
                     [projected_dict[band][i] for i in element_index],
                     axis=1
@@ -352,7 +353,7 @@ class Band:
                     element_dict[band][element] = df.groupby(
                         by=df.columns,
                         axis=1
-                    ).sum()
+                    ).sum() / nb_atoms
                     if spd:
                         df = element_dict[band][element]
                         element_dict[band][element]['s'] = df[0]
@@ -370,7 +371,8 @@ class Band:
                             element_dict[band][element] = element_dict[band][element].drop(
                                 columns=range(9))
                 else:
-                    element_dict[band][element] = df.sum(axis=1).tolist()
+                    norm_df = df.sum(axis=1) / nb_atoms
+                    element_dict[band][element] = norm_df.tolist()
 
         return element_dict
 

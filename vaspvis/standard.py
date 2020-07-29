@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -6163,8 +6163,14 @@ def _main():
     # dos_folder = '../../../../../../../for_James/band'
     band_folder = '../../vaspvis_data/Fe'
     dos_folder = '../../vaspvis_data/dosInterface'
-    dos_layers(
-        folder=dos_folder
+    # dos_layers(
+    # folder=dos_folder
+    # )
+    band_element_spd_spin_polarized(
+        folder='../../../../../../../for_James/band',
+        elements=['Ti'],
+        order=['d', 'p'],
+        output='pd_only.png'
     )
     # band_dos_orbitals_spin_polarized(
     # band_folder=band_folder,
