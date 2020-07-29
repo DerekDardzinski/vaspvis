@@ -6161,16 +6161,17 @@ def dos_layers(
 def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
-    band_folder = '../../vaspvis_data/Fe'
+    band_folder = '../../vaspvis_data/band_InAs'
     dos_folder = '../../vaspvis_data/dosInterface'
+    james = '../../../../../../../for_James/element_plots/Ti2MnIn_PBE_soc'
     # dos_layers(
     # folder=dos_folder
     # )
-    band_element_spd_spin_polarized(
-        folder='../../../../../../../for_James/band',
-        elements=['Ti'],
-        order=['d', 'p'],
-        output='pd_only.png'
+    band_spd(
+        folder=band_folder,
+        # orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8]
+        order=['s', 'p', 'd'],
+        # scale_factor=5,
     )
     # band_dos_orbitals_spin_polarized(
     # band_folder=band_folder,

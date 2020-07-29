@@ -184,7 +184,7 @@ class Band:
             for j in range(nbands):
                 band = f'band{j+1}'
                 for atom in range(natoms):
-                    orbital_weights = projected_eigenvalues[i][j][atom]
+                    orbital_weights = projected_eigenvalues[i][j][atom] ** 2
                     projected_dict[band][atom] = np.vstack([
                         projected_dict[band][atom],
                         orbital_weights
