@@ -481,6 +481,7 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
+        scale_factor = scale_factor ** 1.5
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
@@ -572,6 +573,7 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
+        scale_factor = scale_factor ** 1.5
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
@@ -661,6 +663,7 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
+        scale_factor = scale_factor ** 1.5
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
@@ -740,6 +743,7 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
+        scale_factor = scale_factor ** 1.5
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
@@ -821,6 +825,7 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
+        scale_factor = scale_factor ** 1.5
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
@@ -904,6 +909,7 @@ class Band:
             linewidth (float): line width of the plain band structure plotted in the background
             band_color (string): color of the plain band structure
         """
+        scale_factor = scale_factor ** 1.5
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
@@ -1002,6 +1008,7 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
+        scale_factor = scale_factor ** 1.5
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
