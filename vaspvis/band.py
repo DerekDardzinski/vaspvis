@@ -353,7 +353,7 @@ class Band:
                     element_dict[band][element] = df.groupby(
                         by=df.columns,
                         axis=1
-                    ).sum() / nb_atoms
+                    ).sum()
                     if spd:
                         df = element_dict[band][element]
                         element_dict[band][element]['s'] = df[0]
@@ -371,7 +371,7 @@ class Band:
                             element_dict[band][element] = element_dict[band][element].drop(
                                 columns=range(9))
                 else:
-                    norm_df = df.sum(axis=1) / nb_atoms
+                    norm_df = df.sum(axis=1)
                     element_dict[band][element] = norm_df.tolist()
 
         return element_dict
