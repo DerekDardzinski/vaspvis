@@ -34,7 +34,6 @@ standard.band_plain(
 
 standard.band_spd(
     folder=band_folder,
-    scale_factor=20,
 )
 
 
@@ -45,7 +44,6 @@ standard.band_spd(
 standard.band_orbitals(
     folder=band_folder,
     orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8],
-    scale_factor=20,
 )
 
 
@@ -56,7 +54,6 @@ standard.band_orbitals(
 standard.band_atoms(
     folder=band_folder,
     atoms=[0, 1],
-    scale_factor=20,
 )
 
 
@@ -67,7 +64,6 @@ standard.band_atoms(
 standard.band_atom_orbitals(
     folder=band_folder,
     atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]],
-    scale_factor=20,
 )
 
 
@@ -78,7 +74,6 @@ standard.band_atom_orbitals(
 standard.band_elements(
     folder=band_folder,
     elements=['In', 'As'],
-    scale_factor=20,
 )
 
 
@@ -89,7 +84,6 @@ standard.band_elements(
 standard.band_element_spd(
     folder=band_folder,
     elements=['As'],
-    scale_factor=20,
 )
 
 
@@ -100,7 +94,6 @@ standard.band_element_spd(
 standard.band_element_orbitals(
     folder=band_folder,
     element_orbital_pairs=[['As', 2], ['In', 3]],
-    scale_factor=20,
 )
 
 
@@ -207,7 +200,6 @@ standard.band_dos_plain(
 standard.band_dos_spd(
     band_folder=band_folder,
     dos_folder=dos_folder,
-    scale_factor=20,
 )
 
 
@@ -219,7 +211,6 @@ standard.band_dos_orbitals(
     band_folder=band_folder,
     dos_folder=dos_folder,
     orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8],
-    scale_factor=20,
 )
 
 
@@ -231,7 +222,6 @@ standard.band_dos_atoms(
     band_folder=band_folder,
     dos_folder=dos_folder,
     atoms=[0, 1],
-    scale_factor=20,
 )
 
 
@@ -243,7 +233,6 @@ standard.band_dos_atom_orbitals(
     band_folder=band_folder,
     dos_folder=dos_folder,
     atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]],
-    scale_factor=20,
 )
 
 
@@ -255,7 +244,6 @@ standard.band_dos_elements(
     band_folder=band_folder,
     dos_folder=dos_folder,
     elements=['In', 'As'],
-    scale_factor=20,
 )
 
 
@@ -267,7 +255,6 @@ standard.band_dos_element_spd(
     band_folder=band_folder,
     dos_folder=dos_folder,
     elements=['As'],
-    scale_factor=20,
 )
 
 
@@ -279,7 +266,6 @@ standard.band_dos_element_orbitals(
     band_folder=band_folder,
     dos_folder=dos_folder,
     element_orbital_pairs=[['As', 2], ['In', 3]],
-    scale_factor=20,
 )
 
 
