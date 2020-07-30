@@ -136,7 +136,7 @@ standard.band_atom_orbitals(
     atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]]
 )
 ```
-<img src="./img/band_atom_orbital.png"  width="650" height="450">
+<img src="./img/band_atom_orbitals.png"  width="650" height="450">
 
 
 ### Atom Projected Band Structure
