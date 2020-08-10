@@ -6163,23 +6163,28 @@ def _main():
     # dos_folder = '../../../../../../../for_James/band'
     band_folder = '../../vaspvis_data/band_InAs'
     dos_folder = '../../vaspvis_data/dosInterface'
-    james = '../../../../../../../for_James/element_plots/Ti2MnIn_PBE_soc'
+    james = '../../../../../../../for_James/band'
     # dos_layers(
     # folder=dos_folder
     # )
-    band_elements(
-        folder='../../vaspvis_data/bandInterface/',
-        elements=['In', 'As', 'Eu', 'S'],
-        # orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8],
-        # order=['d', 'p', 's'],
-        scale_factor=36,
-        figsize=(3,3)
-    )
+    # band_elements(
+    # folder='../../vaspvis_data/bandInterface/',
+    # elements=['In', 'As', 'Eu', 'S'],
+    # # orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8],
+    # # order=['d', 'p', 's'],
+    # scale_factor=36,
+    # figsize=(3,3)
+    # )
     # band_dos_orbitals_spin_polarized(
     # band_folder=band_folder,
     # dos_folder=dos_folder,
     # orbitals=[0,1,2,3,4,5,6,7,8]
     # )
+    dos_spd(
+        folder=james,
+        spin='down',
+        output='test_down.png'
+    )
 
 
 if __name__ == "__main__":

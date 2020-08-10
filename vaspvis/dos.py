@@ -90,10 +90,17 @@ class Dos:
             spin_factor = -1
 
         tdos = self.vasprun.tdos
-        tdos_dict = {
-            'energy': np.array(tdos.energies - tdos.efermi),
-            'density': spin_factor * np.array(tdos.densities[self.spin_dict[self.spin]])
-        }
+        
+        if self.spin == 'up' or self.spin == 'down':
+            tdos_dict = {
+                'energy': np.array(tdos.energies - tdos.efermi),
+                'density': spin_factor * np.array(tdos.densities[self.spin_dict[self.spin]])
+            }
+        elif self.spin == 'both':
+            tdos_dict = {
+                'energy': np.array(tdos.energies - tdos.efermi),
+                'density': np.array(tdos.densities[Spin.up]) + np.array(tdos.densities[Spin.down])
+            }
 
         return tdos_dict
 
@@ -115,18 +122,32 @@ class Dos:
 
         pdos = self.vasprun.pdos
         pdos_dict = {i: [] for i in range(len(pdos))}
-        spin = self.spin_dict[self.spin]
 
-        for (i, atom) in enumerate(pdos):
-            new_dict = {
-                i: spin_factor * atom[orbital][spin] for (i, orbital) in enumerate(atom)
-            }
+        if self.spin == 'up' or self.spin == 'down':
+            spin = self.spin_dict[self.spin]
+            for (i, atom) in enumerate(pdos):
+                new_dict = {
+                    i: spin_factor * atom[orbital][spin] for (i, orbital) in enumerate(atom)
+                }
 
-            if len(list(new_dict.keys())) == 16:
-                self.forbitals = True
+                if len(list(new_dict.keys())) == 16:
+                    self.forbitals = True
 
-            df = pd.DataFrame.from_dict(new_dict)
-            pdos_dict[i] = df
+                df = pd.DataFrame.from_dict(new_dict)
+                pdos_dict[i] = df
+
+        elif self.spin == 'both':
+            for (i, atom) in enumerate(pdos):
+                new_dict = {
+                    i: np.array(atom[orbital][Spin.up]) + np.array(atom[orbital][Spin.down]) for (i, orbital) in enumerate(atom)
+                }
+
+                if len(list(new_dict.keys())) == 16:
+                    self.forbitals = True
+
+                df = pd.DataFrame.from_dict(new_dict)
+                pdos_dict[i] = df
+
 
         return pdos_dict
 
@@ -284,13 +305,13 @@ class Dos:
         if len(ax.lines) == 0:
             if energyaxis == 'y':
                 ax.set_ylim(erange)
-                if spin == 'up':
+                if spin == 'up' or spin == 'both':
                     ax.set_xlim(0, np.max(density_in_plot) * 1.1)
                 elif spin == 'down':
                     ax.set_xlim(np.min(density_in_plot) * 1.1, 0)
             elif energyaxis == 'x':
                 ax.set_xlim(erange)
-                if spin == 'up':
+                if spin == 'up' or spin == 'both':
                     ax.set_ylim(0, np.max(density_in_plot) * 1.1)
                 elif spin == 'down':
                     ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
@@ -299,12 +320,12 @@ class Dos:
                 ax.set_ylim(erange)
                 xlims = ax.get_xlim()
                 if xlims[0] == 0:
-                    if spin == 'up':
+                    if spin == 'up' or spin == 'both':
                         ax.set_xlim(0, np.max(density_in_plot) * 1.1)
                     elif spin == 'down':
                         ax.set_xlim(np.min(density_in_plot) * 1.1, xlims[1])
                 if xlims[1] == 0:
-                    if spin == 'up':
+                    if spin == 'up' or spin == 'both':
                         ax.set_xlim(xlims[0], np.max(density_in_plot) * 1.1)
                     elif spin == 'down':
                         ax.set_xlim(np.min(density_in_plot) * 1.1, 0)
@@ -312,12 +333,12 @@ class Dos:
                 ax.set_xlim(erange)
                 ylims = ax.get_ylim()
                 if ylims[0] == 0:
-                    if spin == 'up':
+                    if spin == 'up' or spin == 'both':
                         ax.set_ylim(0, np.max(density_in_plot) * 1.1)
                     elif spin == 'down':
                         ax.set_ylim(np.min(density_in_plot) * 1.1, ylims[1])
                 if ylims[1] == 0:
-                    if spin == 'up':
+                    if spin == 'up' or spin == 'both':
                         ax.set_ylim(ylims[0], np.max(density_in_plot) * 1.1)
                     elif spin == 'down':
                         ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
