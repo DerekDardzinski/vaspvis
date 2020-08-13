@@ -8,6 +8,7 @@ from scipy.ndimage import gaussian_filter
 from functools import reduce
 import numpy as np
 import pandas as pd
+import copy
 import time
 
 
@@ -90,7 +91,7 @@ class Dos:
             spin_factor = -1
 
         tdos = self.vasprun.tdos
-        
+
         if self.spin == 'up' or self.spin == 'down':
             tdos_dict = {
                 'energy': np.array(tdos.energies - tdos.efermi),
@@ -147,7 +148,6 @@ class Dos:
 
                 df = pd.DataFrame.from_dict(new_dict)
                 pdos_dict[i] = df
-
 
         return pdos_dict
 
@@ -342,6 +342,30 @@ class Dos:
                         ax.set_ylim(ylims[0], np.max(density_in_plot) * 1.1)
                     elif spin == 'down':
                         ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
+
+    def _group_layers(self):
+        poscar = self.poscar
+        sites = poscar.structure.sites
+        zvals = np.array([site.c for site in sites])
+        # zvals = np.sort(zvals)
+        unique_values = np.sort(np.unique(np.round(zvals, 3)))
+        diff = np.mean(np.diff(unique_values)) * 0.2
+
+        grouped = False
+        groups = []
+        zvals_copy = copy.deepcopy(zvals)
+        while not grouped:
+            if len(zvals_copy) > 0:
+                group_index = np.where(
+                    np.isclose(zvals, np.min(zvals_copy), atol=diff)
+                )[0]
+                zvals_copy = np.delete(zvals_copy, np.where(
+                    np.isin(zvals_copy, zvals[group_index]))[0])
+                groups.append(group_index)
+            else:
+                grouped = True
+
+        return groups
 
     def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='y', color='black', erange=[-6, 6]):
         """
@@ -1337,19 +1361,17 @@ class Dos:
             sigma (float): Sigma parameter for the _smearing of the heat map.
             energyaxis (str): Axis to plot the energy on. ('x' or 'y')
         """
-
-        poscar = self.poscar
-        sites = poscar.structure.sites
-        zvals = np.array([site.c for site in sites])
-        zorder = np.argsort(zvals)
         energy = self.tdos_dict['energy']
 
-        ind = np.where((erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5))
-        atom_index = range(len(zorder))
+        ind = np.where(
+                (erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5)
+        )
+        groups = self._group_layers()
+        atom_index = range(len(groups))
         energies = energy[ind]
-        densities = self._sum_atoms().to_numpy()[ind]
+        atom_densities = self._sum_atoms().to_numpy()[ind]
+        densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
         densities = np.transpose(densities)
-        densities = np.transpose(densities[zorder])
         densities = gaussian_filter(densities, sigma=sigma)
 
         if energyaxis == 'y':
@@ -1378,3 +1400,44 @@ class Dos:
         cbar.set_label('Density of States', fontsize=fontsize)
 
 
+def _main():
+    from itertools import groupby
+    import numpy as np
+    import copy
+    # poscar = self.poscar
+    poscar = Poscar.from_file(
+        '../../../../projects/Ogre/script/pas/POSCAR-20', check_for_POTCAR=False)
+    sites = poscar.structure.sites
+    zvals = np.array([site.c for site in sites])
+    # zvals = np.sort(zvals)
+    unique_values = np.sort(np.unique(np.round(zvals, 3)))
+    diff = np.mean(np.diff(unique_values)) * 0.2
+
+    grouped = False
+    groups = []
+    zvals_copy = copy.deepcopy(zvals)
+    while not grouped:
+        if len(zvals_copy) > 0:
+            group_index = np.where(
+                np.isclose(zvals, np.min(zvals_copy), atol=diff)
+            )[0]
+            zvals_copy = np.delete(zvals_copy, np.where(
+                np.isin(zvals_copy, zvals[group_index]))[0])
+            groups.append(group_index)
+        else:
+            grouped = True
+
+    [print(group) for group in groups]
+
+    # if to_delete is None:
+    # top_index = np.where(
+    # np.isclose(z_pos, np.max(z_pos), atol=tol)
+    # )[0]
+    # else:
+    # top_index = np.where(
+    # np.isclose(z_pos, np.max(np.delete(z_pos, to_delete)), atol=tol)
+    # )[0]
+
+
+if __name__ == '__main__':
+    _main()

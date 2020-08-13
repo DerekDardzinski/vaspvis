@@ -5,7 +5,7 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from vaspvis.dos import Dos
+from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
@@ -6161,12 +6161,12 @@ def dos_layers(
 def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
-    band_folder = '../../vaspvis_data/band_InAs'
+    # band_folder = '../../vaspvis_data/band_InAs'
     dos_folder = '../../vaspvis_data/dosInterface'
-    james = '../../../../../../../for_James/band'
-    # dos_layers(
-    # folder=dos_folder
-    # )
+    # james = '../../../../../../../for_James/band'
+    dos_layers(
+    folder=dos_folder
+    )
     # band_elements(
     # folder='../../vaspvis_data/bandInterface/',
     # elements=['In', 'As', 'Eu', 'S'],
@@ -6180,11 +6180,11 @@ def _main():
     # dos_folder=dos_folder,
     # orbitals=[0,1,2,3,4,5,6,7,8]
     # )
-    dos_spd(
-        folder=james,
-        spin='down',
-        output='test_down.png'
-    )
+    # dos_spd(
+        # folder=james,
+        # spin='down',
+        # output='test_down.png'
+    # )
 
 
 if __name__ == "__main__":
