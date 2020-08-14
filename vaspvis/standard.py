@@ -5,7 +5,7 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from vaspvis.dos import Dos
+from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
@@ -6142,7 +6142,8 @@ def dos_layers(
                 nrows=1,
                 ncols=2,
                 gridspec_kw={'width_ratios':[1,6]},
-                figsize=figsize
+                figsize=figsize,
+                dpi=400,
             )
             structure_ax = axs[0]
             dos_ax = axs[1]
@@ -6151,16 +6152,21 @@ def dos_layers(
             fig, axs = plt.subplots(
                 nrows=2,
                 ncols=1,
-                gridspec_kw={'height_ratios':[1,6], 'hspace': 0.05},
+                gridspec_kw={'height_ratios':[1,6], 'hspace': -0.05},
                 figsize=figsize,
+                dpi=400,
             )
             structure_ax = axs[0]
+            sm = plt.cm.ScalarMappable()
+            sm.set_array([])
+            fig.colorbar(sm, ax=structure_ax).ax.set_visible(False)
             dos_ax = axs[1]
 
         structure_ax.spines['left'].set_visible(False)
         structure_ax.spines['right'].set_visible(False)
         structure_ax.spines['top'].set_visible(False)
         structure_ax.spines['bottom'].set_visible(False)
+
         structure_ax.tick_params(
             left=False,
             bottom=False,
@@ -6198,10 +6204,10 @@ def dos_layers(
 
         structure_ax.margins(x=-0.4, y=-0.4)
 
-    fig.tight_layout(pad=0.2)
+    # fig.tight_layout(pad=0.2)
 
     if save:
-        plt.savefig(output)
+        plt.savefig(output, bbox_inches='tight')
     else:
         if show_structure:
             return fig, dos_ax, structure_ax
@@ -6213,12 +6219,12 @@ def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
     # band_folder = '../../vaspvis_data/band_InAs'
-    dos_folder = '../../vaspvis_data/slabdos'
+    dos_folder = '../../vaspvis_data/dosInterface'
     # james = '../../../../../../../for_James/band'
     dos_layers(
         folder=dos_folder,
-        energyaxis='x',
-        figsize=(6,8),
+        # energyaxis='y',
+        # figsize=(12,6),
     )
     # band_elements(
     # folder='../../vaspvis_data/bandInterface/',
