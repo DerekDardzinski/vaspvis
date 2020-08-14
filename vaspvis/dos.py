@@ -1390,14 +1390,14 @@ class Dos:
                 vmax=vmax,
             )
 
-            if len(group_heights) <= 8:
+            if len(group_heights) <= 12:
                 ax.set_xticks(group_heights)
                 ax.set_xticklabels(range(len(group_heights)))
             else:
-                idx = np.round(np.linspace(0, len(group_heights) - 1, 8)).astype(int)
+                idx = np.round(np.linspace(0, len(group_heights) - 1, 12)).astype(int)
                 group_heights = group_heights[idx] 
                 ax.set_xticks(group_heights)
-                ax.set_xticklabels(range(len(group_heights)))
+                ax.set_xticklabels(idx)
 
             # ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 

@@ -6152,7 +6152,7 @@ def dos_layers(
             fig, axs = plt.subplots(
                 nrows=2,
                 ncols=1,
-                gridspec_kw={'height_ratios':[1,6], 'hspace': -0.05},
+                gridspec_kw={'height_ratios':[1,6], 'hspace': -0.02},
                 figsize=figsize,
                 dpi=400,
             )
@@ -6201,10 +6201,8 @@ def dos_layers(
             dos.plot_structure(ax=structure_ax, rotation=[90,90,90])
         elif energyaxis == 'x':
             dos.plot_structure(ax=structure_ax, rotation=[0,90,90])
+            fig.tight_layout(pad=0.2)
 
-        structure_ax.margins(x=-0.4, y=-0.4)
-
-    # fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output, bbox_inches='tight')
@@ -6219,12 +6217,13 @@ def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
     # band_folder = '../../vaspvis_data/band_InAs'
-    dos_folder = '../../vaspvis_data/dosInterface'
+    dos_folder = '../../vaspvis_data/slabdos'
     # james = '../../../../../../../for_James/band'
     dos_layers(
         folder=dos_folder,
-        # energyaxis='y',
-        # figsize=(12,6),
+        # show_structure=False
+        # energyaxis='x',
+        # figsize=(4,6),
     )
     # band_elements(
     # folder='../../vaspvis_data/bandInterface/',
