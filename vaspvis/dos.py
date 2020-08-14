@@ -9,6 +9,8 @@ from scipy.ndimage import gaussian_filter
 from functools import reduce
 import numpy as np
 import pandas as pd
+from ase.visualize.plot import plot_atoms
+from pymatgen.io.ase import AseAtomsAdaptor
 import copy
 import time
 
@@ -348,25 +350,27 @@ class Dos:
         poscar = self.poscar
         sites = poscar.structure.sites
         zvals = np.array([site.c for site in sites])
-        # zvals = np.sort(zvals)
         unique_values = np.sort(np.unique(np.round(zvals, 3)))
         diff = np.mean(np.diff(unique_values)) * 0.2
 
         grouped = False
         groups = []
+        group_heights = []
         zvals_copy = copy.deepcopy(zvals)
         while not grouped:
             if len(zvals_copy) > 0:
                 group_index = np.where(
                     np.isclose(zvals, np.min(zvals_copy), atol=diff)
                 )[0]
+                group_heights.append(np.min(zvals_copy))
                 zvals_copy = np.delete(zvals_copy, np.where(
                     np.isin(zvals_copy, zvals[group_index]))[0])
                 groups.append(group_index)
             else:
                 grouped = True
 
-        return groups
+        return np.array(groups), np.array(group_heights)
+
 
     def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='y', color='black', erange=[-6, 6]):
         """
@@ -1367,8 +1371,9 @@ class Dos:
         ind = np.where(
                 (erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5)
         )
-        groups = self._group_layers()
-        atom_index = range(len(groups))
+        groups, group_heights = self._group_layers()
+        # atom_index = list(range(len(groups) - 4)) + [len(groups) - 2, len(groups), len(groups) + 4, len(groups) + 10]
+        atom_index = group_heights
         energies = energy[ind]
         atom_densities = self._sum_atoms().to_numpy()[ind]
         densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
@@ -1384,7 +1389,17 @@ class Dos:
                 shading='gouraud',
                 vmax=vmax,
             )
-            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+            if len(group_heights) <= 8:
+                ax.set_xticks(group_heights)
+                ax.set_xticklabels(range(len(group_heights)))
+            else:
+                idx = np.round(np.linspace(0, len(group_heights) - 1, 8)).astype(int)
+                group_heights = group_heights[idx] 
+                ax.set_xticks(group_heights)
+                ax.set_xticklabels(range(len(group_heights)))
+
+            # ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         if energyaxis == 'x':
             im = ax.pcolormesh(
@@ -1395,11 +1410,30 @@ class Dos:
                 shading='gouraud',
                 vmax=vmax,
             )
-            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+            if len(group_heights) <= 12:
+                ax.set_yticks(group_heights)
+                ax.set_yticklabels(range(len(group_heights)))
+            else:
+                idx = np.round(np.linspace(0, len(group_heights) - 1, 12)).astype(int)
+                group_heights = group_heights[idx] 
+                ax.set_yticks(group_heights)
+                ax.set_yticklabels(idx)
+            # ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=ax)
         cbar.ax.tick_params(labelsize=fontsize)
         cbar.set_label('Density of States', fontsize=fontsize)
+
+    def plot_structure(self, ax, rotation=[90,90,90]):
+        structure = self.poscar.structure
+        atoms = AseAtomsAdaptor().get_atoms(structure)
+        atoms = plot_atoms(
+            atoms,
+            ax,
+            radii=0.5,
+            rotation=(f'{rotation[0]}x,{rotation[1]}y,{rotation[2]}z'),
+            show_unit_cell=0
+        )
 
 

@@ -6126,7 +6126,7 @@ def dos_layers(
     folder,
     output='dos_layers.png',
     energyaxis='y',
-    figsize=(4, 3),
+    figsize=(5, 3),
     erange=[-3, 3],
     spin='up',
     fontsize=7,
@@ -6134,38 +6134,91 @@ def dos_layers(
     cmap='magma',
     sigma=1.5,
     vmax=0.6,
+    show_structure=True,
 ):
-    fig = plt.figure(figsize=figsize, dpi=400)
-    ax = fig.add_subplot(111)
-    _figure_setup_layer_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
-    ax.set_ylim(erange[0], erange[1])
+    if show_structure:
+        if energyaxis == 'x':
+            fig, axs = plt.subplots(
+                nrows=1,
+                ncols=2,
+                gridspec_kw={'width_ratios':[1,6]},
+                figsize=figsize
+            )
+            structure_ax = axs[0]
+            dos_ax = axs[1]
+            
+        elif energyaxis == 'y':
+            fig, axs = plt.subplots(
+                nrows=2,
+                ncols=1,
+                gridspec_kw={'height_ratios':[1,6], 'hspace': 0.05},
+                figsize=figsize,
+            )
+            structure_ax = axs[0]
+            dos_ax = axs[1]
+
+        structure_ax.spines['left'].set_visible(False)
+        structure_ax.spines['right'].set_visible(False)
+        structure_ax.spines['top'].set_visible(False)
+        structure_ax.spines['bottom'].set_visible(False)
+        structure_ax.tick_params(
+            left=False,
+            bottom=False,
+            labelleft=False,
+            labelbottom=False,
+        )
+
+    else:
+        fig = plt.figure(figsize=figsize, dpi=400)
+        dos_ax = fig.add_subplot(111)
+        
+    _figure_setup_layer_dos(ax=dos_ax, fontsize=fontsize, energyaxis=energyaxis)
 
     dos = Dos(folder=folder, spin=spin)
     dos.plot_layers(
-        ax=ax,
+        ax=dos_ax,
         sigma=sigma,
         cmap=cmap,
         erange=erange,
         vmax=vmax,
-        fontsize=fontsize
+        fontsize=fontsize,
+        energyaxis=energyaxis
     )
 
-    plt.tight_layout(pad=0.2)
+    if energyaxis == 'y':
+        dos_ax.set_ylim(erange[0], erange[1])
+    elif energyaxis == 'x':
+        dos_ax.set_xlim(erange[0], erange[1])
+
+    if show_structure:
+        if energyaxis == 'y':
+            dos.plot_structure(ax=structure_ax, rotation=[90,90,90])
+        elif energyaxis == 'x':
+            dos.plot_structure(ax=structure_ax, rotation=[0,90,90])
+
+        structure_ax.margins(x=-0.4, y=-0.4)
+
+    fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
     else:
-        return fig, ax
+        if show_structure:
+            return fig, dos_ax, structure_ax
+        else:
+            return fig, dos_ax
 
 
 def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
     # band_folder = '../../vaspvis_data/band_InAs'
-    dos_folder = '../../vaspvis_data/dosInterface'
+    dos_folder = '../../vaspvis_data/slabdos'
     # james = '../../../../../../../for_James/band'
     dos_layers(
-    folder=dos_folder
+        folder=dos_folder,
+        energyaxis='x',
+        figsize=(6,8),
     )
     # band_elements(
     # folder='../../vaspvis_data/bandInterface/',
