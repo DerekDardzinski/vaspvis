@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.electronic_structure.core import Spin, Orbital
@@ -1383,6 +1384,7 @@ class Dos:
                 shading='gouraud',
                 vmax=vmax,
             )
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         if energyaxis == 'x':
             im = ax.pcolormesh(
@@ -1393,6 +1395,7 @@ class Dos:
                 shading='gouraud',
                 vmax=vmax,
             )
+            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=ax)
@@ -1400,44 +1403,3 @@ class Dos:
         cbar.set_label('Density of States', fontsize=fontsize)
 
 
-def _main():
-    from itertools import groupby
-    import numpy as np
-    import copy
-    # poscar = self.poscar
-    poscar = Poscar.from_file(
-        '../../../../projects/Ogre/script/pas/POSCAR-20', check_for_POTCAR=False)
-    sites = poscar.structure.sites
-    zvals = np.array([site.c for site in sites])
-    # zvals = np.sort(zvals)
-    unique_values = np.sort(np.unique(np.round(zvals, 3)))
-    diff = np.mean(np.diff(unique_values)) * 0.2
-
-    grouped = False
-    groups = []
-    zvals_copy = copy.deepcopy(zvals)
-    while not grouped:
-        if len(zvals_copy) > 0:
-            group_index = np.where(
-                np.isclose(zvals, np.min(zvals_copy), atol=diff)
-            )[0]
-            zvals_copy = np.delete(zvals_copy, np.where(
-                np.isin(zvals_copy, zvals[group_index]))[0])
-            groups.append(group_index)
-        else:
-            grouped = True
-
-    [print(group) for group in groups]
-
-    # if to_delete is None:
-    # top_index = np.where(
-    # np.isclose(z_pos, np.max(z_pos), atol=tol)
-    # )[0]
-    # else:
-    # top_index = np.where(
-    # np.isclose(z_pos, np.max(np.delete(z_pos, to_delete)), atol=tol)
-    # )[0]
-
-
-if __name__ == '__main__':
-    _main()
