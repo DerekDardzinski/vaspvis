@@ -242,6 +242,7 @@ class Dos:
 
         for element in elements:
             element_index = np.where(element_list == element)[0]
+            # element_index = np.where(np.isin(element, element_list))[0]
             df = pd.concat(
                 [self.pdos_dict[i] for i in element_index],
                 axis=1
@@ -1354,7 +1355,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], vmax=0.6, fontsize=6):
+    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], vmax=0.6, fontsize=6, interface_layer=None, interface_line_color='white', interface_line_width=2, interface_line_style='--'):
         """
         This function plots a layer by layer heat map of the density
         of states.
@@ -1372,7 +1373,6 @@ class Dos:
                 (erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5)
         )
         groups, group_heights = self._group_layers()
-        # atom_index = list(range(len(groups) - 4)) + [len(groups) - 2, len(groups), len(groups) + 4, len(groups) + 10]
         atom_index = group_heights
         energies = energy[ind]
         atom_densities = self._sum_atoms().to_numpy()[ind]
@@ -1395,11 +1395,17 @@ class Dos:
                 ax.set_xticklabels(range(len(group_heights)))
             else:
                 idx = np.round(np.linspace(0, len(group_heights) - 1, 12)).astype(int)
-                group_heights = group_heights[idx] 
-                ax.set_xticks(group_heights)
+                group_heights_new = group_heights[idx] 
+                ax.set_xticks(group_heights_new)
                 ax.set_xticklabels(idx)
 
-            # ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+            if interface_layer is not None:
+                ax.axvline(
+                    x=group_heights[interface_layer],
+                    color=interface_line_color,
+                    linestyle=interface_line_style,
+                    linewidth=interface_line_width,
+                )
 
         if energyaxis == 'x':
             im = ax.pcolormesh(
@@ -1415,10 +1421,17 @@ class Dos:
                 ax.set_yticklabels(range(len(group_heights)))
             else:
                 idx = np.round(np.linspace(0, len(group_heights) - 1, 12)).astype(int)
-                group_heights = group_heights[idx] 
-                ax.set_yticks(group_heights)
+                group_heights_new = group_heights[idx] 
+                ax.set_yticks(group_heights_new)
                 ax.set_yticklabels(idx)
-            # ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+            if interface_layer is not None:
+                ax.axhline(
+                    y=group_heights[interface_layer],
+                    color=interface_line_color,
+                    linestyle=interface_line_style,
+                    linewidth=interface_line_width,
+                )
 
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=ax)

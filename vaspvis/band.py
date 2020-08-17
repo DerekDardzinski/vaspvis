@@ -343,6 +343,7 @@ class Band:
             band_df = pd.DataFrame()
             for element in elements:
                 element_index = np.where(element_list == element)[0]
+                # element_index = np.where(np.isin(element, element_list))[0]
                 nb_atoms = len(element_index)
                 df = pd.concat(
                     [projected_dict[band][i] for i in element_index],

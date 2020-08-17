@@ -1,8 +1,8 @@
 from vaspvis import standard
 
 
-band_folder = '../../vaspvis_data/band_InAs'
-dos_folder = '../../vaspvis_data/dos_InAs'
+band_folder = '../vaspvis_data/band_InAs'
+dos_folder = '../vaspvis_data/dos_InAs'
 
 band_folder_hse = '../../vaspvis_data/band_InAs_hse'
 

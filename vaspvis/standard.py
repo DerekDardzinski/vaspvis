@@ -6135,6 +6135,10 @@ def dos_layers(
     sigma=1.5,
     vmax=0.6,
     show_structure=True,
+    interface_layer=None,
+    interface_line_color='white',
+    interface_line_style='--',
+    interface_line_width=2,
 ):
     if show_structure:
         if energyaxis == 'x':
@@ -6188,7 +6192,11 @@ def dos_layers(
         erange=erange,
         vmax=vmax,
         fontsize=fontsize,
-        energyaxis=energyaxis
+        energyaxis=energyaxis,
+        interface_layer=interface_layer,
+        interface_line_color=interface_line_color,
+        interface_line_style=interface_line_style,
+        interface_line_width=interface_line_width,
     )
 
     if energyaxis == 'y':
@@ -6202,7 +6210,6 @@ def dos_layers(
         elif energyaxis == 'x':
             dos.plot_structure(ax=structure_ax, rotation=[0,90,90])
             fig.tight_layout(pad=0.2)
-
 
     if save:
         plt.savefig(output, bbox_inches='tight')
