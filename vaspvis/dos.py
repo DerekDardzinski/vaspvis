@@ -241,8 +241,9 @@ class Dos:
         element_dict = {element: [] for element in elements}
 
         for element in elements:
-            element_index = np.where(element_list == element)[0]
-            # element_index = np.where(np.isin(element, element_list))[0]
+            element_index = np.where(np.isin(element, element_list))[0]
+            print(element_list)
+            print(element_index)
             df = pd.concat(
                 [self.pdos_dict[i] for i in element_index],
                 axis=1
