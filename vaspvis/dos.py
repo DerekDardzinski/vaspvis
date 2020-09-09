@@ -299,14 +299,58 @@ class Dos:
 
         return spd_df
 
-    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False):
+    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False, is_dict=False, idx=None, multiple=False):
         energy_in_plot_index = np.where(
             (tenergy > erange[0]) & (tenergy < erange[1])
         )[0]
 
         if partial:
-            selected_densities = tdensity.iloc[energy_in_plot_index]
-            density_in_plot = selected_densities[selected_densities.max().idxmax()].__array__()
+            if is_dict:
+                if multiple:
+                    total = []
+                    for i in idx:
+                        first = i[0]
+                        second = i[1]
+                        total.append(tdensity[first][second][energy_in_plot_index])
+
+                    if spin == 'up' or spin == 'both':
+                        density_in_plot = total[np.argmax(np.max(total, axis=1))]
+                    elif spin == 'down':
+                        density_in_plot = total[np.argmin(np.min(total, axis=1))]
+                else:
+                    columns = []
+                    values = []
+                    dfs = []
+                    for i in idx:
+                        selected_densities = tdensity[i].iloc[energy_in_plot_index]
+                        dfs.append(selected_densities)
+                        if spin == 'up' or spin == 'both':
+                            max_value_column = selected_densities.max().idxmax() 
+                            max_value = selected_densities[max_value_column].max().max()
+                            columns.append(max_value_column)
+                            values.append(max_value)
+                        elif spin == 'down':
+                            min_value_column = selected_densities.min().idxmin() 
+                            min_value = selected_densities[min_value_column].min().min()
+                            columns.append(min_value_column)
+                            values.append(min_value)
+
+                    if spin=='up' or spin=='both':
+                        max_column = columns[np.argmax(values)]
+                        max_df = dfs[np.argmax(values)]
+                        density_in_plot = max_df[max_column].__array__()
+                    elif spin=='down':
+                        min_column = columns[np.argmin(values)]
+                        min_df = dfs[np.argmin(values)]
+                        density_in_plot = min_df[min_column].__array__()
+
+            else:
+                selected_densities = tdensity.iloc[energy_in_plot_index]
+                if spin=='up' or spin=='both':
+                    density_in_plot = selected_densities[selected_densities.max().idxmax()].__array__()
+                elif spin=='down':
+                    density_in_plot = selected_densities[selected_densities.min().idxmax()].__array__()
+
         else:
             density_in_plot = tdensity[energy_in_plot_index]
 
@@ -629,6 +673,19 @@ class Dos:
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
+            )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=self.pdos_dict,
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
+                is_dict=True,
+                idx=atom_orbital_pairs,
+                multiple=True,
             )
 
         for i, atom_orbital_pair in enumerate(atom_orbital_pairs):
@@ -1171,6 +1228,19 @@ class Dos:
                 energyaxis=energyaxis,
                 erange=erange,
             )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=element_dict,
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
+                is_dict=True,
+                idx=element_orbital_pairs,
+                multiple=True,
+            )
 
         for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
             element = element_orbital_pair[0]
@@ -1311,6 +1381,18 @@ class Dos:
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
+            )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=element_dict,
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
+                is_dict=True,
+                idx=elements,
             )
 
         for element in elements:

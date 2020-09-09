@@ -6226,9 +6226,9 @@ def _main():
     # band_folder = '../../vaspvis_data/band_InAs'
     dos_folder = '../../vaspvis_data/dos_InAs'
     # james = '../../../../../../../for_James/band'
-    dos_atoms(
+    dos_atom_orbitals(
         folder=dos_folder,
-        atoms=[0,1],
+        atom_orbital_pairs=[[0, 4], [1, 1]],
         total=False,
         erange=[-3,3],
         # show_structure=False
