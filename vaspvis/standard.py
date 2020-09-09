@@ -6224,12 +6224,15 @@ def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
     # band_folder = '../../vaspvis_data/band_InAs'
-    dos_folder = '../../vaspvis_data/slabdos'
+    dos_folder = '../../vaspvis_data/dos_InAs'
     # james = '../../../../../../../for_James/band'
-    dos_layers(
+    dos_atoms(
         folder=dos_folder,
+        atoms=[0,1],
+        total=False,
+        erange=[-3,3],
         # show_structure=False
-        # energyaxis='x',
+        energyaxis='x',
         # figsize=(4,6),
     )
     # band_elements(

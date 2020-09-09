@@ -299,11 +299,16 @@ class Dos:
 
         return spd_df
 
-    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin):
+    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False):
         energy_in_plot_index = np.where(
             (tenergy > erange[0]) & (tenergy < erange[1])
         )[0]
-        density_in_plot = tdensity[energy_in_plot_index]
+
+        if partial:
+            selected_densities = tdensity.iloc[energy_in_plot_index]
+            density_in_plot = selected_densities[selected_densities.max().idxmax()].__array__()
+        else:
+            density_in_plot = tdensity[energy_in_plot_index]
 
         if len(ax.lines) == 0:
             if energyaxis == 'y':
@@ -490,6 +495,16 @@ class Dos:
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
+            )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=spd_df,
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
             )
 
         for orbital in order:
@@ -745,6 +760,16 @@ class Dos:
                 energyaxis=energyaxis,
                 erange=erange,
             )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=orbital_df,
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
+            )
 
         for i, orbital in enumerate(orbitals):
             if sigma > 0:
@@ -868,6 +893,16 @@ class Dos:
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
+            )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=atom_df,
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
             )
 
         for i, atom in enumerate(atoms):
@@ -995,6 +1030,16 @@ class Dos:
                 sigma=sigma,
                 energyaxis=energyaxis,
                 erange=erange,
+            )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=pd.DataFrame(element_dict),
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
             )
 
         for i, element in enumerate(elements):
