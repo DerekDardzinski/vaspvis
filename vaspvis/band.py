@@ -376,6 +376,55 @@ class Band:
 
         return element_dict
 
+    @staticmethod
+    def _calculate_distance(point1, point2):
+        """
+        This function calculates the distance between two points
+
+        Parameters:
+            point1 (list): First point
+            point2 (list): Second point
+
+        Returns:
+            Absolute value of the distance
+        """
+        x_diff = (point2[0] - point1[0]) ** 2
+        y_diff = (point2[1] - point1[1]) ** 2
+        z_diff = (point2[2] - point1[2]) ** 2
+        dist = np.abs(np.sqrt(x_diff + y_diff + z_diff))
+
+        return dist
+
+    def _get_k_distance_fraction(self):
+        """
+        This function find the relative distances in reciprocal space between the high
+        symmetry k-points
+
+        Parameters:
+            high_sym_points (list): List of high symmetry kpoints
+
+        Returns:
+            Fractional distances of each kpath segment
+        """
+        if not self.hse:
+            raw_high_sym_points = self.kpoints.kpts
+            index = [0]
+            for i in range(len(raw_high_sym_points) - 2):
+                if raw_high_sym_points[i + 2] != raw_high_sym_points[i + 1]:
+                    index.append(i)
+            index.append(len(raw_high_sym_points) - 1)
+            high_sym_points = [raw_high_sym_points[i] for i in index]
+        else:
+            pass
+
+        distances = [
+            self._calculate_distance(high_sym_points[i], high_sym_points[i+1]) for i in range(len(high_sym_points)-1)
+        ]
+        fractions = [distance / np.sum(distances) for distance in distances]
+
+        return fractions
+
+
     def _get_kticks(self, ax):
         """
         This function extracts the kpoint labels and index locations for a regular
@@ -400,14 +449,15 @@ class Band:
 
         kpts_labels = kpts_labels[index]
         kpoints_index = list(kpoints_index[index])
+        kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
-        for i in range(len(kpoints_index)):
-            if 0 < i < len(kpoints_index) - 1:
-                kpoints_index[i] = kpoints_index[i] + 0.5
+        #  for i in range(len(kpoints_index)):
+            #  if 0 < i < len(kpoints_index) - 1:
+                #  kpoints_index[i] = kpoints_index[i] + 0.5
 
         for k in kpoints_index:
             ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
-
+        
         ax.set_xticks(kpoints_index)
         ax.set_xticklabels(kpts_labels)
 
@@ -440,7 +490,18 @@ class Band:
             linestyle (str): Line style of the bands
         """
 
-        wave_vector = range(len(self.bands_dict['band1']))
+        #  wave_vector = range(len(self.bands_dict['band1']))
+        nb_kpoints = len(self.bands_dict['band1'])
+        fractions = self._get_k_distance_fraction()
+        spacing = int(nb_kpoints / len(fractions))
+
+        wave_vector = np.array([])
+        for i in range(len(fractions)):
+            segment = np.linspace(np.sum(fractions[:i]) * nb_kpoints, np.sum(fractions[:i+1]) * nb_kpoints, spacing)
+            wave_vector = np.append(wave_vector, segment)
+        
+        self.wave_vector = wave_vector
+
 
         for band in self.bands_dict:
             band_values = self.bands_dict[band]
@@ -458,7 +519,7 @@ class Band:
         else:
             self._get_kticks(ax=ax)
 
-        ax.set_xlim(0, len(wave_vector)-1)
+        ax.set_xlim(0, np.max(wave_vector))
 
     def plot_spd(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True, linewidth=0.75, band_color='black'):
         """
@@ -506,7 +567,7 @@ class Band:
         for band in spd_dict:
             plot_df = plot_df.append(spd_dict[band])
             plot_band.extend(self.bands_dict[band])
-            plot_wave_vec.extend(range(len(spd_dict[band])))
+            plot_wave_vec.extend(self.wave_vector)
 
         for col in order:
             ax.scatter(
@@ -578,7 +639,7 @@ class Band:
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
 
         projected_dict = self.projected_dict
-        wave_vector = range(len(self.bands_dict['band1']))
+        wave_vector = self.wave_vector
 
         if color_list is None:
             color_dict = self.color_dict
@@ -679,7 +740,7 @@ class Band:
         for band in orbital_dict:
             plot_df = plot_df.append(orbital_dict[band])
             plot_band.extend(self.bands_dict[band])
-            plot_wave_vec.extend(range(len(orbital_dict[band])))
+            plot_wave_vec.extend(self.wave_vector)
 
         for orbital in orbitals:
             ax.scatter(
@@ -761,7 +822,7 @@ class Band:
         for band in atom_dict:
             plot_df = plot_df.append(atom_dict[band], ignore_index=True)
             plot_band.extend(self.bands_dict[band])
-            plot_wave_vec.extend(range(len(atom_dict[band])))
+            plot_wave_vec.extend(self.wave_vector)
 
         for (i, atom) in enumerate(atoms):
             ax.scatter(
@@ -842,7 +903,7 @@ class Band:
 
         for band in element_dict:
             plot_band.extend(self.bands_dict[band])
-            plot_wave_vec.extend(range(len(self.bands_dict[band])))
+            plot_wave_vec.extend(self.wave_vector)
             for element in elements:
                 plot_element[element].extend(element_dict[band][element])
 
@@ -929,7 +990,7 @@ class Band:
 
         for band in element_dict:
             plot_band.extend(self.bands_dict[band])
-            plot_wave_vec.extend(range(len(self.bands_dict[band])))
+            plot_wave_vec.extend(self.wave_vector)
             for element in elements:
                 plot_element[element] = plot_element[element].append(
                     element_dict[band][element])
@@ -1033,7 +1094,7 @@ class Band:
 
         for band in element_dict:
             plot_band.extend(self.bands_dict[band])
-            plot_wave_vec.extend(range(len(self.bands_dict[band])))
+            plot_wave_vec.extend(self.wave_vector)
             for element in elements:
                 plot_element[element] = plot_element[element].append(
                     element_dict[band][element])

@@ -6223,18 +6223,18 @@ def dos_layers(
 def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
-    # band_folder = '../../vaspvis_data/band_InAs'
-    dos_folder = '../../vaspvis_data/dos_InAs'
+    band_folder = '../../vaspvis_data/band_InAs'
+    #  dos_folder = '../../vaspvis_data/dos_InAs'
     # james = '../../../../../../../for_James/band'
-    dos_atom_orbitals(
-        folder=dos_folder,
-        atom_orbital_pairs=[[0, 4], [1, 1]],
-        total=False,
-        erange=[-3,3],
-        # show_structure=False
-        energyaxis='x',
-        # figsize=(4,6),
-    )
+    #  dos_atom_orbitals(
+        #  folder=dos_folder,
+        #  atom_orbital_pairs=[[0, 4], [1, 1]],
+        #  total=False,
+        #  erange=[-3,3],
+        #  # show_structure=False
+        #  energyaxis='x',
+        #  # figsize=(4,6),
+    #  )
     # band_elements(
     # folder='../../vaspvis_data/bandInterface/',
     # elements=['In', 'As', 'Eu', 'S'],
@@ -6253,6 +6253,7 @@ def _main():
         # spin='down',
         # output='test_down.png'
     # )
+    band_spd(folder=band_folder)
 
 
 if __name__ == "__main__":
