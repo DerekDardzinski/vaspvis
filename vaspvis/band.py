@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import time
 from copy import deepcopy
+import os
 
 
 class Band:
@@ -52,11 +53,11 @@ class Band:
         """
 
         self.vasprun = BSVasprun(
-            f'{folder}/vasprun.xml',
+            os.path.join(folder, 'vasprun.xml'),
             parse_projected_eigen=projected
         )
         self.poscar = Poscar.from_file(
-            f'{folder}/POSCAR',
+            os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,
             read_velocities=False
         )
@@ -103,7 +104,7 @@ class Band:
             self.projected_dict = self._load_projected_bands()
 
         if not hse:
-            self.kpoints = Kpoints.from_file(f'{folder}/KPOINTS')
+            self.kpoints = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
 
     def _load_bands(self):
         """
@@ -415,7 +416,19 @@ class Band:
             index.append(len(raw_high_sym_points) - 1)
             high_sym_points = [raw_high_sym_points[i] for i in index]
         else:
-            pass
+            with open(os.path.join(self.folder, 'KPOINTS')) as kpoints_file:
+                kpoints = kpoints_file.read()
+                kpoints_split = kpoints.split('\n')
+                kpoints_split = kpoints_split[::-1]
+
+            kpoints_split = [list(np.array(k.split()[:3], dtype=float)) for k in kpoints_split[1:int((len(self.kpath) -1) * self.n)+1]]
+            kpoints_split = kpoints_split[::-1]
+
+            kpoints_index = [(i*self.n) - 1 for i in range(len(self.kpath)) if 0 < i < len(self.kpath)-1]
+            kpoints_index.append(self.n*(len(self.kpath) - 1)-1)
+            kpoints_index.insert(0, 0)
+            high_sym_points = np.array(kpoints_split)[kpoints_index]
+            
 
         distances = [
             self._calculate_distance(high_sym_points[i], high_sym_points[i+1]) for i in range(len(high_sym_points)-1)
@@ -451,10 +464,6 @@ class Band:
         kpoints_index = list(kpoints_index[index])
         kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
-        #  for i in range(len(kpoints_index)):
-            #  if 0 < i < len(kpoints_index) - 1:
-                #  kpoints_index[i] = kpoints_index[i] + 0.5
-
         for k in kpoints_index:
             ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
         
@@ -467,12 +476,9 @@ class Band:
                          if 0 < i < len(kpath)-1]
         kpoints_index.append(n*(len(kpath) - 1)-1)
         kpoints_index.insert(0, 0)
+        kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
         kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath.upper().strip()]
-
-        for i in range(len(kpoints_index)):
-            if 0 < i < len(kpoints_index) - 1:
-                kpoints_index[i] = kpoints_index[i] + 0.5
 
         for k in kpoints_index:
             ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)

@@ -13,6 +13,7 @@ from ase.visualize.plot import plot_atoms
 from pymatgen.io.ase import AseAtomsAdaptor
 import copy
 import time
+import os
 
 
 class Dos:
@@ -29,13 +30,13 @@ class Dos:
         self.spin = spin
         self.forbitals = False
         self.vasprun = Vasprun(
-            f'{folder}/vasprun.xml',
+            os.path.join(folder, 'vasprun.xml'),
             parse_dos=True,
             parse_eigen=False,
             parse_potcar_file=False
         )
         self.poscar = Poscar.from_file(
-            f'{folder}/POSCAR',
+            os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,
             read_velocities=False
         )

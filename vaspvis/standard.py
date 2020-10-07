@@ -6253,7 +6253,14 @@ def _main():
         # spin='down',
         # output='test_down.png'
     # )
-    band_spd(folder=band_folder)
+    band_plain(folder=band_folder)
+    band_spd(
+        folder='../../vaspvis_data/band_InAs_hse',
+        output='band_plain_hse.png',
+        hse=True,
+        kpath='GXWLGK',
+        n=20,
+    )
 
 
 if __name__ == "__main__":
