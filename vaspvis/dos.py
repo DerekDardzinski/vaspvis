@@ -23,11 +23,14 @@ class Dos:
     Parameters:
         folder (str): This is the folder that contains the VASP files.
         spin (str): Which spin direction to parse ('up' or 'down')
+        combination_method (str): If the spin option is 'both', the combination method can either be additive or substractive
+            by passing 'add' or 'sub'. It spin is passed as 'up' or 'down' this option is ignored.
     """
 
-    def __init__(self, folder, spin='up'):
+    def __init__(self, folder, spin='up', combination_method="add"):
         self.folder = folder
         self.spin = spin
+        self.combination_method = combination_method
         self.forbitals = False
         self.vasprun = Vasprun(
             os.path.join(folder, 'vasprun.xml'),
@@ -102,10 +105,16 @@ class Dos:
                 'density': spin_factor * np.array(tdos.densities[self.spin_dict[self.spin]])
             }
         elif self.spin == 'both':
-            tdos_dict = {
-                'energy': np.array(tdos.energies - tdos.efermi),
-                'density': np.array(tdos.densities[Spin.up]) + np.array(tdos.densities[Spin.down])
-            }
+            if self.combination_method == "add":
+                tdos_dict = {
+                    'energy': np.array(tdos.energies - tdos.efermi),
+                    'density': np.array(tdos.densities[Spin.up]) + np.array(tdos.densities[Spin.down])
+                }
+            if self.combination_method == "sub":
+                tdos_dict = {
+                    'energy': np.array(tdos.energies - tdos.efermi),
+                    'density': np.array(tdos.densities[Spin.up]) - np.array(tdos.densities[Spin.down])
+                }
 
         return tdos_dict
 
