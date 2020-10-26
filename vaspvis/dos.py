@@ -152,9 +152,15 @@ class Dos:
 
         elif self.spin == 'both':
             for (i, atom) in enumerate(pdos):
-                new_dict = {
-                    i: np.array(atom[orbital][Spin.up]) + np.array(atom[orbital][Spin.down]) for (i, orbital) in enumerate(atom)
-                }
+                if self.combination_method == 'add':
+                    new_dict = {
+                        i: np.array(atom[orbital][Spin.up]) + np.array(atom[orbital][Spin.down]) for (i, orbital) in enumerate(atom)
+                    }
+                elif self.combination_method == 'sub':
+                    new_dict = {
+                        i: np.array(atom[orbital][Spin.up]) - np.array(atom[orbital][Spin.down]) for (i, orbital) in enumerate(atom)
+                    }
+
 
                 if len(list(new_dict.keys())) == 16:
                     self.forbitals = True
