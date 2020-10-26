@@ -1976,6 +1976,7 @@ def dos_plain(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2004,7 +2005,7 @@ def dos_plain(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -2044,6 +2045,7 @@ def dos_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2079,7 +2081,7 @@ def dos_spd(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -2122,6 +2124,7 @@ def dos_atom_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2155,7 +2158,7 @@ def dos_atom_orbitals(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -2198,6 +2201,7 @@ def dos_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2232,7 +2236,7 @@ def dos_orbitals(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -2275,6 +2279,7 @@ def dos_atoms(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2307,7 +2312,7 @@ def dos_atoms(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -2322,6 +2327,87 @@ def dos_atoms(
         sigma=sigma,
         energyaxis=energyaxis,
         color_list=color_list,
+        legend=legend,
+        total=total,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+def dos_atom_spd(
+    folder,
+    atoms,
+    order=['s', 'p', 'd'],
+    output='dos_atom_spd.png',
+    fill=True,
+    alpha=0.3,
+    linewidth=1.5,
+    sigma=0.05,
+    energyaxis='y',
+    color_dict=None,
+    legend=True,
+    total=True,
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    combination_method='add',
+    fontsize=7,
+    save=True,
+):
+    """
+    This function plots the atom projected density of states of the s, p, and d orbitals.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        atoms (list): List of atom symbols to project onto
+        order (list): Order to plot the projected bands in. This feature helps to
+            avoid situations where one projection completely convers the other.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color_dict (dict[str][str]): This option allow the colors of each atom
+            specified. Should be in the form of:
+            {'atom index': <color>, 'atom index': <color>, ...}
+        legend (bool): Determines whether to draw the legend or not
+        total (bool): Determines wheth to draw the total density of states or not
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+
+    fig = plt.figure(figsize=figsize, dpi=400)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_atom_spd(
+        ax=ax,
+        atoms=atoms,
+        order=order,
+        fill=fill,
+        alpha=alpha,
+        linewidth=linewidth,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color_dict=color_dict,
         legend=legend,
         total=total,
         erange=erange,
@@ -2350,6 +2436,7 @@ def dos_elements(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2382,7 +2469,7 @@ def dos_elements(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -2426,6 +2513,7 @@ def dos_element_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2462,7 +2550,7 @@ def dos_element_spd(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -2506,6 +2594,7 @@ def dos_element_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
 ):
@@ -2539,7 +2628,7 @@ def dos_element_orbitals(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -6129,11 +6218,14 @@ def dos_layers(
     figsize=(5, 3),
     erange=[-3, 3],
     spin='up',
+    combination_method='add',
     fontsize=7,
     save=True,
     cmap='magma',
     sigma=1.5,
     vmax=0.6,
+    vmin=0.0,
+    antialiased=False,
     show_structure=True,
     interface_layer=None,
     interface_line_color='white',
@@ -6184,13 +6276,15 @@ def dos_layers(
         
     _figure_setup_layer_dos(ax=dos_ax, fontsize=fontsize, energyaxis=energyaxis)
 
-    dos = Dos(folder=folder, spin=spin)
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
     dos.plot_layers(
         ax=dos_ax,
         sigma=sigma,
         cmap=cmap,
         erange=erange,
         vmax=vmax,
+        vmin=vmin,
+        antialiased=antialiased,
         fontsize=fontsize,
         energyaxis=energyaxis,
         interface_layer=interface_layer,
@@ -6223,8 +6317,8 @@ def dos_layers(
 def _main():
     # band_folder = '../../../../../../../for_James/band'
     # dos_folder = '../../../../../../../for_James/band'
-    band_folder = '../../vaspvis_data/band_InAs'
-    #  dos_folder = '../../vaspvis_data/dos_InAs'
+    #  band_folder = '../../vaspvis_data/band_InAs'
+    dos_folder = '../../vaspvis_data/slabdos'
     # james = '../../../../../../../for_James/band'
     #  dos_atom_orbitals(
         #  folder=dos_folder,
@@ -6253,13 +6347,10 @@ def _main():
         # spin='down',
         # output='test_down.png'
     # )
-    band_plain(folder=band_folder)
-    band_spd(
-        folder='../../vaspvis_data/band_InAs_hse',
-        output='band_plain_hse.png',
-        hse=True,
-        kpath='GXWLGK',
-        n=20,
+    dos_atom_spd(
+        folder=dos_folder,
+        atoms=[0],
+        total=False
     )
 
 

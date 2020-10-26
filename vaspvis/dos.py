@@ -200,7 +200,7 @@ class Dos:
 
         return orbital_df
 
-    def _sum_atoms(self):
+    def _sum_atoms(self, spd=False):
         """
         This function sums all the orbitals for each atom and returns a Dataframe
         of atoms with their projected densities.
@@ -211,10 +211,30 @@ class Dos:
         """
 
         pdos_dict = self.pdos_dict
-        atom_df = pd.concat(
-            [pdos_dict[atom].sum(axis=1) for atom in pdos_dict],
-            axis=1
-        )
+        if not spd:
+            atom_df = pd.concat(
+                [pdos_dict[atom].sum(axis=1) for atom in pdos_dict],
+                axis=1
+            )
+        else:
+            atom_df = {atom: pd.DataFrame() for atom in pdos_dict}
+            for atom in atom_df:
+                df = copy.deepcopy(pdos_dict[atom])
+                atom_df[atom]['s'] = df[0]
+                atom_df[atom]['p'] = df[1] + \
+                    df[2] + df[3]
+                atom_df[atom]['d'] = df[4] + \
+                    df[5] + df[6] + df[7] + df[8]
+
+                if self.forbitals:
+                    atom_df[atom]['f'] = df[9] + df[10] + \
+                        df[11] + df[12] + df[13] + df[14] + df[15]
+                    #  atom_df[atom] = atom_df[atom].drop(
+                        #  columns=range(16))
+                else:
+                    pass
+                    #  atom_df[atom] = atom_df[atom].drop(
+                        #  columns=range(9))
 
         return atom_df
 
@@ -1056,6 +1076,156 @@ class Dos:
                 handletextpad=0.1,
             )
 
+    def plot_atom_spd(self, ax, atoms, order=['s', 'p', 'd'], fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+        """
+        This function plots the total density of states with the projected
+        density of states onto the s, p, and d orbitals of specified atoms. 
+        This is useful for supercells where there are many atoms of the same 
+        atom and it is inconvienient to manually list each index in the POSCAR.
+
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to plot on
+            atoms (list): List of atom symbols to project onto
+            order (list): Order to plot the projected bands in. This feature helps to
+                avoid situations where one projection completely convers the other.
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
+            linewidth (float): Linewidth of lines
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color_dict (dict[str][str]): This option allow the colors of each atom
+                specified. Should be in the form of:
+                {'atom index': <color>, 'atom index': <color>, ...}
+            legend (bool): Determines whether to draw the legend or not
+            total (bool): Determines wheth to draw the total density of states or not
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        """
+
+        atoms_dict = self._sum_atoms(spd=True)
+        tdos_dict = self.tdos_dict
+
+        if color_dict is None:
+            color_dict = {
+                's': self.color_dict[0],
+                'p': self.color_dict[1],
+                'd': self.color_dict[2],
+                'f': self.color_dict[4],
+            }
+
+        if self.forbitals and 'f' not in order:
+            order.append('f')
+
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                alpha_line=alpha_line,
+                sigma=sigma,
+                energyaxis=energyaxis,
+                erange=erange,
+            )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=atoms_dict,
+                tenergy=tdos_dict['energy'],
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
+                is_dict=True,
+                idx=atoms,
+            )
+
+        for atom in atoms:
+            for i, orbital in enumerate(order):
+                if sigma > 0:
+                    pdensity = self._smear(
+                        atoms_dict[atom][orbital],
+                        sigma=sigma
+                    )
+                else:
+                    pdensity = atoms_dict[atom][orbital]
+
+                if energyaxis == 'y':
+                    ax.plot(
+                        pdensity,
+                        tdos_dict['energy'],
+                        color=color_dict[orbital],
+                        linewidth=linewidth,
+                        alpha=alpha_line
+                    )
+
+                    if fill:
+                        ax.fill_betweenx(
+                            tdos_dict['energy'],
+                            pdensity,
+                            0,
+                            color=color_dict[orbital],
+                            alpha=alpha,
+                        )
+
+                if energyaxis == 'x':
+                    ax.plot(
+                        tdos_dict['energy'],
+                        pdensity,
+                        color=color_dict[orbital],
+                        linewidth=linewidth,
+                        alpha=alpha_line
+                    )
+
+                    if fill:
+                        ax.fill_between(
+                            tdos_dict['energy'],
+                            pdensity,
+                            0,
+                            color=color_dict[orbital],
+                            alpha=alpha,
+                        )
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for atom in atoms:
+                for orbital in order:
+                    legend_lines.append(plt.Line2D(
+                        [0],
+                        [0],
+                        marker='o',
+                        markersize=2,
+                        linestyle='',
+                        color=color_dict[orbital])
+                    )
+                    legend_labels.append(
+                        f'{atom}(${orbital}$)'
+                    )
+
+            leg = ax.get_legend()
+
+            if leg is None:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
+            ax.legend(
+                handles,
+                labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=6,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
     def plot_elements(self, ax, elements, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
@@ -1491,7 +1661,7 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], vmax=0.6, fontsize=6, interface_layer=None, interface_line_color='white', interface_line_width=2, interface_line_style='--'):
+    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], vmax=0.6, vmin=0.0, antialiased=False, fontsize=6, interface_layer=None, interface_line_color='white', interface_line_width=2, interface_line_style='--'):
         """
         This function plots a layer by layer heat map of the density
         of states.
@@ -1524,6 +1694,8 @@ class Dos:
                 cmap=cmap,
                 shading='gouraud',
                 vmax=vmax,
+                vmin=vmin,
+                antialiased=antialiased,
             )
 
             if len(group_heights) <= 12:
@@ -1551,6 +1723,8 @@ class Dos:
                 cmap=cmap,
                 shading='gouraud',
                 vmax=vmax,
+                vmin=vmin,
+                antialiased=antialiased,
             )
             if len(group_heights) <= 12:
                 ax.set_yticks(group_heights)

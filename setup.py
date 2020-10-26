@@ -5,12 +5,12 @@ with open('./README.md', 'r') as fh:
 
 setup(
     name='vaspvis',
-    version='0.1.22',
+    version='0.1.24',
     description='A highly flexible and customizable library for visualizing electronic structure data from VASP calculations',
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=['vaspvis'],
-    install_requires = ['pymatgen', 'matplotlib', 'numpy', 'pandas', 'scipy'],
+    install_requires = ['pymatgen', 'matplotlib', 'numpy', 'pandas', 'scipy', 'ase'],
     url='https://github.com/DerekDardzinski/vaspvis',
     authour='Derek Dardzinski',
     authour_email='dardzinski.derek@gmail.com',
