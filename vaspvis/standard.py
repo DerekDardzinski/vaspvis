@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -88,6 +88,7 @@ def band_plain(
     figsize=(4, 3),
     erange=[-6, 6],
     hse=False,
+    unfold=False,
     kpath=None,
     n=None,
     fontsize=7,
@@ -127,6 +128,7 @@ def band_plain(
         folder=folder,
         spin=spin,
         hse=hse,
+        unfold=unfold,
         kpath=kpath,
         n=n,
     )
@@ -6315,42 +6317,12 @@ def dos_layers(
 
 
 def _main():
-    # band_folder = '../../../../../../../for_James/band'
-    # dos_folder = '../../../../../../../for_James/band'
-    #  band_folder = '../../vaspvis_data/band_InAs'
-    dos_folder = '../../vaspvis_data/slabdos'
-    # james = '../../../../../../../for_James/band'
-    #  dos_atom_orbitals(
-        #  folder=dos_folder,
-        #  atom_orbital_pairs=[[0, 4], [1, 1]],
-        #  total=False,
-        #  erange=[-3,3],
-        #  # show_structure=False
-        #  energyaxis='x',
-        #  # figsize=(4,6),
-    #  )
-    # band_elements(
-    # folder='../../vaspvis_data/bandInterface/',
-    # elements=['In', 'As', 'Eu', 'S'],
-    # # orbitals=[0, 1, 2, 3, 4, 5, 6, 7, 8],
-    # # order=['d', 'p', 's'],
-    # scale_factor=36,
-    # figsize=(3,3)
-    # )
-    # band_dos_orbitals_spin_polarized(
-    # band_folder=band_folder,
-    # dos_folder=dos_folder,
-    # orbitals=[0,1,2,3,4,5,6,7,8]
-    # )
-    # dos_spd(
-        # folder=james,
-        # spin='down',
-        # output='test_down.png'
-    # )
-    dos_atom_spd(
-        folder=dos_folder,
-        atoms=[0],
-        total=False
+    band_folder = '../../vaspvis_data/band_unfolding2'
+    band_plain(
+        folder=band_folder,
+        hse=True,
+        kpath='XGX',
+        n=30,
     )
 
 

@@ -36,7 +36,7 @@ class Band:
             known by the user, as it was used to generate the KPOINTS file.
     """
 
-    def __init__(self, folder, projected=False, hse=False, spin='up', kpath=None, n=None):
+    def __init__(self, folder, projected=False, hse=False, unfold=False, spin='up', kpath=None, n=None):
         """
         Initialize parameters upon the generation of this class
 
@@ -49,6 +49,8 @@ class Band:
             hse (bool): Determines if the KPOINTS file is in the form of HSE
                 or not. Only make true if the band structure was calculated
                 using a hybrid functional.
+            unfold (bool): Determined if the band structure is unfolded or
+                    not. This requires a specific KPOINTS file.
             spin (str): Choose which spin direction to parse. ('up' or 'down')
         """
 
@@ -64,6 +66,7 @@ class Band:
         self.projected = projected
         self.forbitals = False
         self.hse = hse
+        self.unfold = unfold
         self.kpath = kpath
         self.n = n
         self.folder = folder
@@ -103,7 +106,7 @@ class Band:
         if projected:
             self.projected_dict = self._load_projected_bands()
 
-        if not hse:
+        if not hse and not unfold:
             self.kpoints = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
 
     def _load_bands(self):
@@ -119,7 +122,7 @@ class Band:
 
         spin = self.spin
 
-        if self.hse:
+        if self.hse or self.unfold:
             kpoints_band = self.n * (len(self.kpath) - 1)
             eigenvalues = self.vasprun.eigenvalues[
                 self.spin_dict[spin]
@@ -153,7 +156,7 @@ class Band:
 
         spin = self.spin
 
-        if self.hse:
+        if self.hse or self.unfold:
             kpoints_band = self.n * (len(self.kpath) - 1)
             projected_eigenvalues = self.vasprun.projected_eigenvalues[
                 self.spin_dict[spin]
@@ -407,7 +410,7 @@ class Band:
         Returns:
             Fractional distances of each kpath segment
         """
-        if not self.hse:
+        if not self.hse and not self.unfold:
             raw_high_sym_points = self.kpoints.kpts
             index = [0]
             for i in range(len(raw_high_sym_points) - 2):
@@ -423,6 +426,7 @@ class Band:
 
             kpoints_split = [list(np.array(k.split()[:3], dtype=float)) for k in kpoints_split[1:int((len(self.kpath) -1) * self.n)+1]]
             kpoints_split = kpoints_split[::-1]
+            print(kpoints_split)
 
             kpoints_index = [(i*self.n) - 1 for i in range(len(self.kpath)) if 0 < i < len(self.kpath)-1]
             kpoints_index.append(self.n*(len(self.kpath) - 1)-1)
@@ -471,9 +475,23 @@ class Band:
         ax.set_xticklabels(kpts_labels)
 
     def _get_kticks_hse(self, ax, kpath, n):
-
         kpoints_index = [(i*n) - 1 for i in range(len(kpath))
                          if 0 < i < len(kpath)-1]
+        kpoints_index.append(n*(len(kpath) - 1)-1)
+        kpoints_index.insert(0, 0)
+        kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
+
+        kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath.upper().strip()]
+
+        for k in kpoints_index:
+            ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
+
+        plt.xticks(kpoints_index, kpath)
+
+    def _get_kticks_unfold(self, ax, kpath, n):
+        kpoints_index = [
+            (i*n) for i in range(len(kpath)) if 0 < i < len(kpath)-1
+        ]
         kpoints_index.append(n*(len(kpath) - 1)-1)
         kpoints_index.insert(0, 0)
         kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
@@ -499,14 +517,19 @@ class Band:
         #  wave_vector = range(len(self.bands_dict['band1']))
         nb_kpoints = len(self.bands_dict['band1'])
         fractions = self._get_k_distance_fraction()
-        spacing = int(nb_kpoints / len(fractions))
+        spacing = int(nb_kpoints / len(fractions)) 
 
         wave_vector = np.array([])
         for i in range(len(fractions)):
-            segment = np.linspace(np.sum(fractions[:i]) * nb_kpoints, np.sum(fractions[:i+1]) * nb_kpoints, spacing)
-            wave_vector = np.append(wave_vector, segment)
+            if self.unfold and i > 0:
+                segment = np.linspace(np.sum(fractions[:i]) * nb_kpoints, np.sum(fractions[:i+1]) * nb_kpoints, spacing+1)
+                wave_vector = np.append(wave_vector, segment[1:])
+            else:
+                segment = np.linspace(np.sum(fractions[:i]) * nb_kpoints, np.sum(fractions[:i+1]) * nb_kpoints, spacing)
+                wave_vector = np.append(wave_vector, segment)
         
         self.wave_vector = wave_vector
+        print(wave_vector)
 
 
         for band in self.bands_dict:
@@ -522,6 +545,8 @@ class Band:
 
         if self.hse:
             self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
+        elif self.unfold:
+            self._get_kticks_unfold(ax=ax, kpath=self.kpath, n=self.n)
         else:
             self._get_kticks(ax=ax)
 
