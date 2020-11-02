@@ -419,8 +419,6 @@ class unfold():
 
                 # energy
                 E_Km[nb] = self.bands[whichspin-1,ikpt-1,nb]
-                #  if nb == 0:
-                    #  print(ikpt-1)
                 for Ispinor in range(2):
                     # band = band_spinor_coeff[Ispinor]
                     # band /= np.linalg.norm(band)
@@ -452,7 +450,7 @@ class unfold():
                         )**2
 
 
-        return np.array((E_Km, P_Km), dtype=float).T
+        return np.array((E_Km, P_Km, ikpt-1 * np.ones(len(E_Km))), dtype=float).T
 
     # def spectral_weight(self, kpoints, nproc=None):
     #     '''

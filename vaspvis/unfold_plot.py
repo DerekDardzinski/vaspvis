@@ -1,4 +1,5 @@
 from unfold import unfold, make_kpath, removeDuplicateKpoints, EBS_scatter
+from piescatter import draw_pie 
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -22,38 +23,44 @@ kpath = make_kpath(kpts, nseg=30)
 sw = WaveSuper.spectral_weight(kpath)
 bands = []
 probs = []
+Ks = []
 for i in range(len(sw[0][0])):
     bands.append(sw[0,:,i,0])
     probs.append(sw[0,:,i,1])
+    Ks.append(sw[0,:,i,2])
+
 #  print(sw[0][0][:,0])
 #  [print(i) for i in sw[0]]
 # show the effective band structure with scatter
 
 fig, ax = plt.subplots(figsize=(3,4), dpi=300)
-colors=['red', 'green', 'blue', 'orange', 'purple', 'grey', 'yellow', 'black']
+colors=['red', 'green']
 sizes=[100,75,50,25,5]
 
 #  for (band, prob) in zip(bands, probs):
 for i in range(len(bands)):
-    ax.scatter(
-        range(len(bands[i])),
-        np.array(bands[i]) - float(fermi),
-        c="red",
-        s=probs[i] * 10,
-        #  s=5,
-        #  c=colors[i],
+    draw_pie(
+        xs=range(len(bands[i])),
+        ys=bands[i],
+        colors=colors,
+        dist=[[0.5,0.5] for _ in range(len(bands[i]))],
+        size=probs[i] * 5,
+        ax=ax,
     )
-    ax.plot(
-        range(len(bands[i])),
-        np.array(bands[i]) - float(fermi),
-        color="black",
+    #  ax.scatter(
+        #  range(len(bands[i])),
+        #  np.array(bands[i]) - float(fermi),
+        #  #  c=colors[i],
         #  s=probs[i],
-        #  s=5,
-        #  c=colors[i],
-    )
+    #  )
+    #  ax.plot(
+        #  range(len(bands[i])),
+        #  np.array(bands[i]) - float(fermi),
+        #  color="black",
+    #  )
 
 
-ax.set_ylim(-6,6)
+#  ax.set_ylim(-6,6)
 #  ax.set_xlim(15,45)
 plt.show()
 
