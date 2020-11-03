@@ -1,7 +1,9 @@
 from pymatgen.electronic_structure.core import Spin, Orbital
-from pymatgen.io.vasp.outputs import BSVasprun
+from pymatgen.io.vasp.outputs import BSVasprun, Eigenval
 from pymatgen.io.vasp.inputs import Kpoints, Poscar
 from pymatgen.core.periodic_table import Element
+from pyprocar.utilsprocar import UtilsProcar
+from pyprocar.procarparser import ProcarParser
 from functools import reduce
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,7 +38,7 @@ class Band:
             known by the user, as it was used to generate the KPOINTS file.
     """
 
-    def __init__(self, folder, projected=False, hse=False, unfold=False, spin='up', kpath=None, n=None):
+    def __init__(self, folder, projected=False, hse=False, spin='up', kpath=None, n=None):
         """
         Initialize parameters upon the generation of this class
 
@@ -49,8 +51,6 @@ class Band:
             hse (bool): Determines if the KPOINTS file is in the form of HSE
                 or not. Only make true if the band structure was calculated
                 using a hybrid functional.
-            unfold (bool): Determined if the band structure is unfolded or
-                    not. This requires a specific KPOINTS file.
             spin (str): Choose which spin direction to parse. ('up' or 'down')
         """
 
@@ -58,6 +58,8 @@ class Band:
             os.path.join(folder, 'vasprun.xml'),
             parse_projected_eigen=projected
         )
+        self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
+        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
         self.poscar = Poscar.from_file(
             os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,
@@ -66,7 +68,6 @@ class Band:
         self.projected = projected
         self.forbitals = False
         self.hse = hse
-        self.unfold = unfold
         self.kpath = kpath
         self.n = n
         self.folder = folder
@@ -83,6 +84,13 @@ class Band:
             6: '#778392',
             7: '#07C589',
             8: '#40BAF2',
+            9: '#FF0000',
+            10: '#0000FF',
+            11: '#008000',
+            12: '#800080',
+            13: '#E09200',
+            14: '#FF5C77',
+            15: '#778392',
         }
         self.orbital_labels = {
             0: '$s$',
@@ -104,9 +112,10 @@ class Band:
         }
 
         if projected:
+            self.pre_loaded_projections = os.path.isfile(os.path.join(folder, 'projected_eigenvalues.npy'))
             self.projected_dict = self._load_projected_bands()
 
-        if not hse and not unfold:
+        if not hse:
             self.kpoints = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
 
     def _load_bands(self):
@@ -120,9 +129,32 @@ class Band:
                 the eigenvalues for each band
         """
 
+        spin = self.spin_dict[self.spin]
+
+        eigenvalues = np.transpose(self.eigenval.eigenvalues[spin][:,:,0]) - self.efermi
+
+        if self.hse:
+            kpoints_band = self.n * (len(self.kpath) - 1)
+            eigenvalues = eigenvalues[-kpoints_band:]
+        
+        bands_dict = {f'band{i+1}': eigenvalues[i] for i in range(eigenvalues.shape[0])}
+
+        return bands_dict
+
+    def _load_bands_old(self):
+        """
+        This function is used to load eigenvalues from the vasprun.xml
+        file and into a dictionary which is in the form of
+        band index --> eigenvalues
+
+        Returns:
+            bands_dict (dict[str][np.ndarray]): Dictionary which contains
+                the eigenvalues for each band
+        """
+
         spin = self.spin
 
-        if self.hse or self.unfold:
+        if self.hse:
             kpoints_band = self.n * (len(self.kpath) - 1)
             eigenvalues = self.vasprun.eigenvalues[
                 self.spin_dict[spin]
@@ -154,9 +186,70 @@ class Band:
             projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
         """
 
+        spin = self.spin_dict[self.spin]
+
+        if not os.path.isfile(os.path.join(self.folder, 'PROCAR_repaired')):
+            UtilsProcar().ProcarRepair(
+                os.path.join(self.folder, 'PROCAR'),
+                os.path.join(self.folder, 'PROCAR_repaired'),
+            )
+
+        if self.pre_loaded_projections:
+            with open(os.path.join(self.folder, 'projected_eigenvalues.npy'), 'rb') as projected_eigenvals:
+                projected_eigenvalues = np.load(projected_eigenvals)
+        else:
+            parser = ProcarParser()
+            parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
+            projected_eigenvalues = np.transpose(parser.spd[:,:,0,:-1, 1:-1], axes=(1,0,2,3))
+            np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
+
+        if self.hse:
+            kpoints_band = self.n * (len(self.kpath) - 1)
+            projected_eigenvalues = projected_eigenvalues[-kpoints_band:]
+
+        spin = self.spin
+        nbands, nkpoints, natoms, norbitals = projected_eigenvalues.shape
+
+        if norbitals == 16:
+            self.forbitals = True
+
+        projected_dict = {
+            f'band{i+1}': {
+                atom: np.zeros(norbitals) for atom in range(natoms)
+            } for i in range(nbands)
+        }
+
+        for i in range(nbands):
+            band = f'band{i+1}'
+            for j in range(nkpoints):
+                for atom in range(natoms):
+                    orbital_weights = projected_eigenvalues[i][j][atom] ** 2
+                    projected_dict[band][atom] = np.vstack([
+                        projected_dict[band][atom],
+                        orbital_weights
+                    ])
+
+        for band in projected_dict:
+            for atom in projected_dict[band]:
+                projected_dict[band][atom] = pd.DataFrame(
+                    projected_dict[band][atom][1:]
+                )
+
+        return projected_dict
+
+    def _load_projected_bands_old(self):
+        """
+        This function loads the project weights of the orbitals in each band
+        from vasprun.xml into a dictionary of the form:
+        band index --> atom index --> weights of orbitals
+
+        Returns:
+            projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
+        """
+
         spin = self.spin
 
-        if self.hse or self.unfold:
+        if self.hse:
             kpoints_band = self.n * (len(self.kpath) - 1)
             projected_eigenvalues = self.vasprun.projected_eigenvalues[
                 self.spin_dict[spin]
@@ -410,7 +503,7 @@ class Band:
         Returns:
             Fractional distances of each kpath segment
         """
-        if not self.hse and not self.unfold:
+        if not self.hse:
             raw_high_sym_points = self.kpoints.kpts
             index = [0]
             for i in range(len(raw_high_sym_points) - 2):
@@ -426,7 +519,6 @@ class Band:
 
             kpoints_split = [list(np.array(k.split()[:3], dtype=float)) for k in kpoints_split[1:int((len(self.kpath) -1) * self.n)+1]]
             kpoints_split = kpoints_split[::-1]
-            print(kpoints_split)
 
             kpoints_index = [(i*self.n) - 1 for i in range(len(self.kpath)) if 0 < i < len(self.kpath)-1]
             kpoints_index.append(self.n*(len(self.kpath) - 1)-1)
@@ -488,20 +580,20 @@ class Band:
 
         plt.xticks(kpoints_index, kpath)
 
-    def _get_kticks_unfold(self, ax, kpath, n):
-        kpoints_index = [
-            (i*n) for i in range(len(kpath)) if 0 < i < len(kpath)-1
-        ]
-        kpoints_index.append(n*(len(kpath) - 1)-1)
-        kpoints_index.insert(0, 0)
-        kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
-
-        kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath.upper().strip()]
-
-        for k in kpoints_index:
-            ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
-
-        plt.xticks(kpoints_index, kpath)
+    #  def _get_kticks_unfold(self, ax, kpath, n):
+        #  kpoints_index = [
+            #  (i*n) for i in range(len(kpath)) if 0 < i < len(kpath)-1
+        #  ]
+        #  kpoints_index.append(n*(len(kpath) - 1)-1)
+        #  kpoints_index.insert(0, 0)
+        #  kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
+#
+        #  kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath.upper().strip()]
+#
+        #  for k in kpoints_index:
+            #  ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
+#
+        #  plt.xticks(kpoints_index, kpath)
 
     def plot_plain(self, ax, color='black', linewidth=1.25, linestyle='-'):
         """
@@ -521,15 +613,10 @@ class Band:
 
         wave_vector = np.array([])
         for i in range(len(fractions)):
-            if self.unfold and i > 0:
-                segment = np.linspace(np.sum(fractions[:i]) * nb_kpoints, np.sum(fractions[:i+1]) * nb_kpoints, spacing+1)
-                wave_vector = np.append(wave_vector, segment[1:])
-            else:
-                segment = np.linspace(np.sum(fractions[:i]) * nb_kpoints, np.sum(fractions[:i+1]) * nb_kpoints, spacing)
-                wave_vector = np.append(wave_vector, segment)
+            segment = np.linspace(np.sum(fractions[:i]) * nb_kpoints, np.sum(fractions[:i+1]) * nb_kpoints, spacing)
+            wave_vector = np.append(wave_vector, segment)
         
         self.wave_vector = wave_vector
-        print(wave_vector)
 
 
         for band in self.bands_dict:
@@ -545,8 +632,8 @@ class Band:
 
         if self.hse:
             self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
-        elif self.unfold:
-            self._get_kticks_unfold(ax=ax, kpath=self.kpath, n=self.n)
+        #  elif self.unfold:
+            #  self._get_kticks_unfold(ax=ax, kpath=self.kpath, n=self.n)
         else:
             self._get_kticks(ax=ax)
 

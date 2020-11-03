@@ -39,7 +39,7 @@ class Unfold:
         self.folder = folder
         self.spin = spin
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
-        self.bands_dict = self._load_bands()
+        self.bands_data = self._load_bands()
         self.color_dict = {
             0: '#FF0000',
             1: '#0000FF',
@@ -116,6 +116,8 @@ class Unfold:
             self.spin_dict[spin]
         ]
         projected_eigenvalues = np.transpose(projected_eigenvalues, axes=(1,0,2,3))
+        projected_eigenvalues = projected_eigenvalues / np.sum(np.sum(projected_eigenvalues, axis=3),axis=2)[:,:,np.newaxis,np.newaxis]
+
 
         return projected_eigenvalues
 
@@ -148,7 +150,9 @@ class Unfold:
             orbital_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected weights of the selected orbitals.
         """
 
-        orbital_contributions = self.projected_array.sum(axis=2) / np.sum(self.projected_array.sum(axis=2), axis=2)[:,:,np.newaxis]
+        orbital_contributions = self.projected_array.sum(axis=2)
+
+        orbital_contributions = orbital_contributions[:,:,orbitals]
 
         return orbital_contributions
 
@@ -174,11 +178,11 @@ class Unfold:
             spd_indices[2][4:9] = True
             spd_indices[2][9:] = True
 
-        orbital_contributions = self.projected_array.sum(axis=2) / np.sum(self.projected_array.sum(axis=2), axis=2)[:,:,np.newaxis]
+        orbital_contributions = self.projected_array.sum(axis=2)
 
         spd_contributions = np.transpose(
             np.array([
-                np.sum(orbital_contributions[:,:,:], axis=2, where=ind) for ind in spd_indices
+                np.sum(orbital_contributions, axis=2, where=ind) for ind in spd_indices
             ]), axes=[1,2,0]
         )
 
@@ -200,7 +204,7 @@ class Unfold:
                 weights of the selected atoms.
         """
 
-        atom_contributions = self.projected_array.sum(axis=3) / np.sum(self.projected_array.sum(axis=3), axis=2)[:,:,np.newaxis]
+        atom_contributions = self.projected_array.sum(axis=3)
 
         atom_contributions = atom_contributions[:,:,atoms]
 
@@ -229,25 +233,45 @@ class Unfold:
         poscar = self.poscar
         natoms = poscar.natoms
         symbols = poscar.site_symbols
-        projected_dict = self.projected_dict
+        projected_array = self.projected_array
 
         element_list = np.hstack(
-            [[symbols[i] for j in range(natoms[i])]
-             for i in range(len(symbols))]
+            [[symbols[i] for j in range(natoms[i])] for i in range(len(symbols))]
         )
 
-        element_indices = [np.where(np.isin(element_list, symbol))[0] for symbol in symbols]
+        element_indices = [np.where(np.isin(element_list, element))[0] for element in elements]
+
+        element_orbitals = np.transpose(
+            np.array([
+                np.sum(projected_array[:,:,ind,:], axis=2) for ind in element_indices
+            ]), axes=(1,2,0,3)
+        )
+
+        if orbitals:
+            return element_orbitals
+        elif spd:
+            if not self.forbitals:
+                spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+                spd_indices[0][0] = True
+                spd_indices[1][1:4] = True
+                spd_indices[2][4:] = True
+            else:
+                spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+                spd_indices[0][0] = True
+                spd_indices[1][1:4] = True
+                spd_indices[2][4:9] = True
+                spd_indices[2][9:] = True
+
+            element_spd = np.transpose(np.array([
+                np.sum(element_orbitals[:,:,:,ind], axis=3) for ind in spd_indices
+            ]), axes=(1,2,3,0))
+
+            return element_spd
+        else:
+            element_array = np.sum(element_orbitals, axis=3)
+            return element_array
 
         
-        if not orbitals and not spd:
-            atom_contributions = self.projected_array.sum(axis=3) / np.sum(self.projected_array.sum(axis=3), axis=2)[:,:,np.newaxis]
-            element_contributions = np.transpose(
-                np.array([
-                    np.sum(atom_contributions[:,:,:], axis=2, where=ind) for ind in element_indices
-                ]), axes=[1,2,0]
-            )
-
-        return element_contributions
 
     def _get_kticks(self, kpath):
         cell = self.poscar.structure.lattice.matrix
@@ -258,26 +282,33 @@ class Unfold:
 
     def _set_ktick_labels(self, kpoints):
 
-        print(self.kpath)
-
         kpath = [
             f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpath.upper().strip()
         ]
 
         kpoints_index = [0] + [(self.n * i) for i in range(1, len(self.kpath))]
-        print(kpoints_index)
 
         for k in kpoints_index:
             ax.axvline(x=kpoints[k], color='black', alpha=0.7, linewidth=0.5)
 
         plt.xticks(np.array(kpoints)[kpoints_index], kpath)
 
-    def plot_plain(self, ax, scale=1, color='black'):
-        [band_energies, spectral_weights, K_indices, kpath] = self._load_bands()
+    def _filter_bands(self, erange):
+        [band_energies, spectral_weights, K_indices, kpath] = self.bands_data
+        where = (band_energies >= np.min(erange)) & (band_energies <= np.max(erange))
+        is_true = np.sum(np.isin(where, True), axis=1)
+        bands_in_plot = is_true > 0
+
+        return bands_in_plot
+
+
+    def plot_plain(self, ax, erange=[-5,0], scale=1, color='black'):
+        [band_energies, spectral_weights, K_indices, kpath] = self.bands_data
+        bands_in_plot = self._filter_bands(erange=erange)
         kticks = self._get_kticks(kpath)
-        kticks = np.ravel(np.array([kticks for _ in range(len(band_energies))]))
-        band_energies = np.ravel(band_energies)
-        spectral_weights = np.ravel(spectral_weights)
+        kticks = np.ravel(np.array([kticks for _ in range(len(band_energies[bands_in_plot]))]))
+        band_energies = np.ravel(band_energies[bands_in_plot])
+        spectral_weights = np.ravel(spectral_weights[bands_in_plot])
 
         ax.scatter(
             kticks,
@@ -294,7 +325,7 @@ class Unfold:
             indv_color = colors
             if not np.isclose(np.sum(indv_dist), 1, atol=0.01):
                 indv_dist = np.append(indv_dist, 1 - np.sum(indv_dist))
-                indv_color.append('black')
+                indv_color.append('lightgray')
 
             cumsum = np.cumsum(indv_dist)
             cumsum = cumsum/ cumsum[-1]
@@ -307,24 +338,29 @@ class Unfold:
 
                 xy = np.column_stack([x, y])
 
-                ax.plot(
+                ax.add_line(plt.Line2D(
                     [xs[i]],
                     [ys[i]],
                     marker=xy,
                     color=colors[j],
                     markersize=np.sqrt(size[i])
-                )
+                ))
+
+            ax.autoscale_view()
 
         return ax
 
-    def plot_spd(self, ax, scale_factor=1, colors=None, legend=True):
-        [band_energies, spectral_weights, K_indices, kpath] = self._load_bands()
+    def plot_spd(self, ax, erange=[-5,0], scale_factor=10, colors=None, legend=True):
+        [band_energies, spectral_weights, K_indices, kpath] = self.bands_data
+        bands_in_plot = self._filter_bands(erange=erange)
+        band_energies = band_energies[bands_in_plot]
+        spectral_weights = spectral_weights[bands_in_plot]
         new_shape = int(band_energies.shape[0] * band_energies.shape[1])
         kticks = self._get_kticks(kpath)
         kticks = np.reshape(np.array([kticks for _ in range(len(band_energies))]), newshape=(new_shape))
         band_energies = np.reshape(band_energies, newshape=(new_shape))
         spectral_weights = np.reshape(spectral_weights, newshape=(new_shape))
-        projections = self._sum_spd()
+        projections = self._sum_spd()[bands_in_plot]
         projections = projections[:,np.array(K_indices[0], dtype=int),:]
         projections = np.reshape(projections, newshape=(new_shape, projections.shape[2]))
 
@@ -349,7 +385,7 @@ class Unfold:
                     [0],
                     [0],
                     marker='o',
-                    markersize=2,
+                    markersize=6,
                     linestyle='',
                     color=colors[orbital]
                 ))
@@ -373,7 +409,7 @@ class Unfold:
                 labels,
                 ncol=1,
                 loc='upper left',
-                fontsize=5,
+                fontsize=12,
                 bbox_to_anchor=(1, 1),
                 borderaxespad=0,
                 frameon=False,
@@ -382,8 +418,11 @@ class Unfold:
 
         return ax
     
-    def plot_atoms(self, ax, atoms, scale_factor=1, color_list=None, legend=True):
-        [band_energies, spectral_weights, K_indices, kpath] = self._load_bands()
+    def plot_atoms(self, ax, atoms, erange=[-5,0], scale_factor=10, color_list=None, legend=True):
+        [band_energies, spectral_weights, K_indices, kpath] = self.bands_data
+        bands_in_plot = self._filter_bands(erange=erange)
+        band_energies = band_energies[bands_in_plot]
+        spectral_weights = spectral_weights[bands_in_plot]
         new_shape = int(band_energies.shape[0] * band_energies.shape[1])
         kticks = self._get_kticks(kpath)
         kticks = np.reshape(np.array([kticks for _ in range(len(band_energies))]), newshape=(new_shape))
@@ -391,7 +430,7 @@ class Unfold:
         spectral_weights = np.reshape(spectral_weights, newshape=(new_shape))
         projections = self._sum_atoms(atoms=atoms)
         projections = projections[:,np.array(K_indices[0], dtype=int),:]
-        projections = np.reshape(projections, newshape=(new_shape, projections.shape[2]))
+        projections = np.reshape(projections, newshape=(new_shape, projections.shape[-1]))
 
         if color_list is None:
             color_dict = self.color_dict
@@ -419,12 +458,283 @@ class Unfold:
                     [0],
                     [0],
                     marker='o',
-                    markersize=2,
+                    markersize=6,
                     linestyle='',
                     color=color_dict[atom]
                 ))
                 legend_labels.append(
                     f'${atom}$'
+                )
+
+            leg = ax.get_legend()
+
+            if leg is None:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
+            ax.legend(
+                handles,
+                labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=12,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+        return ax
+
+    def plot_elements(self, ax, elements, erange=[-5,0], scale_factor=10, color_list=None, legend=True):
+        [band_energies, spectral_weights, K_indices, kpath] = self.bands_data
+        bands_in_plot = self._filter_bands(erange=erange)
+        band_energies = band_energies[bands_in_plot]
+        spectral_weights = spectral_weights[bands_in_plot]
+        new_shape = int(band_energies.shape[0] * band_energies.shape[1])
+        kticks = self._get_kticks(kpath)
+        kticks = np.reshape(np.array([kticks for _ in range(len(band_energies))]), newshape=(new_shape))
+        band_energies = np.reshape(band_energies, newshape=(new_shape))
+        spectral_weights = np.reshape(spectral_weights, newshape=(new_shape))
+        projections = self._sum_elements(elements=elements)
+        projections = projections[bands_in_plot,np.array(K_indices[0], dtype=int),:]
+        projections = np.reshape(projections, newshape=(new_shape, projections.shape[2]))
+
+        if color_list is None:
+            color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
+
+        self._draw_pie(
+            xs=kticks,
+            ys=band_energies,
+            dist=projections,
+            size=scale_factor * spectral_weights,
+            colors=[color_dict[i] for i in range(len(elements))],
+            ax=ax
+        )
+
+        ax.set_xlim(np.min(kticks), np.max(kticks))
+
+        self._set_ktick_labels(kpoints=kticks)
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for i in range(len(elements)):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i]
+                ))
+                legend_labels.append(
+                    f'${elements[i]}$'
+                )
+
+            leg = ax.get_legend()
+
+            if leg is None:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
+            ax.legend(
+                handles,
+                labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+        return ax
+
+    def plot_element_orbitals(self, ax, element_orbital_dict, erange=[-5,0], scale_factor=10, color_list=None, legend=True):
+        [band_energies, spectral_weights, K_indices, kpath] = self.bands_data
+        bands_in_plot = self._filter_bands(erange=erange)
+        band_energies = band_energies[bands_in_plot]
+        spectral_weights = spectral_weights[bands_in_plot]
+        new_shape = int(band_energies.shape[0] * band_energies.shape[1])
+        kticks = self._get_kticks(kpath)
+        kticks = np.reshape(np.array([kticks for _ in range(len(band_energies))]), newshape=(new_shape))
+        band_energies = np.reshape(band_energies, newshape=(new_shape))
+        spectral_weights = np.reshape(spectral_weights, newshape=(new_shape))
+
+        element_symbols = list(element_orbital_dict.keys())
+        orbital_symbols = list(element_orbital_dict.values())
+        number_orbitals = [len(i) for i in orbital_symbols]
+        element_symbols_long = np.hstack([
+            [element_symbols[j] for _ in range(number_orbitals[j])] for j in range(len(number_orbitals))
+        ])
+        element_indices = np.hstack([
+            [j for _ in range(number_orbitals[j])] for j in range(len(number_orbitals))
+        ])
+        orbital_symbols_long = np.hstack([
+            [self.orbital_labels[int(o)] for o in  orb] for orb in orbital_symbols
+        ])
+        orbital_indices = np.hstack([[int(o) for o in  orb] for orb in orbital_symbols])
+        indices = np.vstack([element_indices, orbital_indices]).T
+
+        projections = self._sum_elements(elements=element_symbols, orbitals=True)[bands_in_plot]
+        projections = np.transpose(np.array([
+            projections[:,:,ind[0],ind[1]] for ind in indices
+        ]), axes=(1,2,0))
+        projections = projections[:, np.array(K_indices[0], dtype=int),:]
+        projections = np.reshape(projections, newshape=(new_shape, projections.shape[-1]))
+
+
+        if color_list is None:
+            color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
+
+        self._draw_pie(
+            xs=kticks,
+            ys=band_energies,
+            dist=projections,
+            size=scale_factor * spectral_weights,
+            colors=[color_dict[i] for i in range(len(element_indices))],
+            ax=ax
+        )
+
+        ax.set_xlim(np.min(kticks), np.max(kticks))
+
+        self._set_ktick_labels(kpoints=kticks)
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for i in range(len(element_symbols_long)):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i]
+                ))
+                legend_labels.append(
+                    f'${element_symbols_long[i]}$, {orbital_symbols_long[i]}'
+                )
+
+            leg = ax.get_legend()
+
+            if leg is None:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
+            ax.legend(
+                handles,
+                labels,
+                ncol=1,
+                loc='upper left',
+                fontsize=5,
+                bbox_to_anchor=(1, 1),
+                borderaxespad=0,
+                frameon=False,
+                handletextpad=0.1,
+            )
+
+        return ax
+
+    def plot_elements_spd(self, ax, elements, erange=[-5,0], scale_factor=10, color_list=None, legend=True):
+        [band_energies, spectral_weights, K_indices, kpath] = self.bands_data
+        bands_in_plot = self._filter_bands(erange=erange)
+        band_energies = band_energies[bands_in_plot]
+        spectral_weights = spectral_weights[bands_in_plot]
+        new_shape = int(band_energies.shape[0] * band_energies.shape[1])
+        kticks = self._get_kticks(kpath)
+        kticks = np.reshape(np.array([kticks for _ in range(len(band_energies))]), newshape=(new_shape))
+        band_energies = np.reshape(band_energies, newshape=(new_shape))
+        spectral_weights = np.reshape(spectral_weights, newshape=(new_shape))
+
+        if type(elements) == list:
+            assert len(elements) == 1, "If more than one element is desired please use dictionary format"
+            element_symbols_long = [elements[0] for _ in range(3)]
+            orbital_symbols_long = ['s', 'p', 'd']
+            projections = self._sum_elements(elements=elements, spd=True)[bands_in_plot]
+            projections = projections[:, np.array(K_indices[0], dtype=int),:]
+            projections = np.reshape(projections, newshape=(new_shape, projections.shape[-1]))
+        elif type(elements) == dict:
+            spd_index_dict = {
+                's': 0,
+                'p': 1,
+                'd': 2,
+                'f': 3,
+            }
+            element_symbols = list(elements.keys())
+            orbital_symbols = list(elements.values())
+            number_orbitals = [len(i) for i in orbital_symbols]
+            element_symbols_long = np.hstack([
+                [element_symbols[j] for _ in range(number_orbitals[j])] for j in range(len(number_orbitals))
+            ])
+            element_indices = np.hstack([
+                [j for _ in range(number_orbitals[j])] for j in range(len(number_orbitals))
+            ])
+            orbital_symbols_long = np.hstack([[o for o in  orb] for orb in orbital_symbols])
+            orbital_indices = np.hstack([[spd_index_dict[o] for o in  orb] for orb in orbital_symbols])
+            indices = np.vstack([element_indices, orbital_indices]).T
+
+            projections = self._sum_elements(elements=element_symbols, spd=True)[bands_in_plot]
+            projections = np.transpose(np.array([
+                projections[:,:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,2,0))
+            projections = projections[:, np.array(K_indices[0], dtype=int),:]
+            projections = np.reshape(projections, newshape=(new_shape, projections.shape[-1]))
+
+
+        if color_list is None:
+            color_dict = self.color_dict
+        else:
+            color_dict = {i: color for i, color in enumerate(color_list)}
+
+        self._draw_pie(
+            xs=kticks,
+            ys=band_energies,
+            dist=projections,
+            size=scale_factor * spectral_weights,
+            colors=[color_dict[i] for i in range(len(element_indices))],
+            ax=ax
+        )
+
+        ax.set_xlim(np.min(kticks), np.max(kticks))
+
+        self._set_ktick_labels(kpoints=kticks)
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for i in range(len(element_symbols_long)):
+                legend_lines.append(plt.Line2D(
+                    [0],
+                    [0],
+                    marker='o',
+                    markersize=2,
+                    linestyle='',
+                    color=color_dict[i]
+                ))
+                legend_labels.append(
+                    f'${element_symbols_long[i]}, {orbital_symbols_long[i]}$'
                 )
 
             leg = ax.get_legend()
@@ -463,26 +773,28 @@ if __name__ == "__main__":
     uf = Unfold(
         folder="../../vaspvis_data/band-unfold",
         projected=True,
-        kpath='XGX',
+        kpath='SGX',
         high_symm_points=high_symm_points, 
         n=30,
         M=M,
     )
-    fig, ax = plt.subplots(figsize=(3,4), dpi=300)
+    fig, ax = plt.subplots(figsize=(6,8), dpi=300)
     start = time.time()
-    uf.plot_atoms(
-        ax=ax,
-        scale_factor=10,
-        atoms=[0,1,2,3],
-    )
+    #  uf.plot_plain(ax=ax)
+    uf.plot_spd(ax=ax, scale_factor=50, colors={'s':'red', 'p':'blue', 'd':'green'})
+    #  uf.plot_element_orbitals(
+        #  ax=ax,
+        #  scale_factor=6,
+        #  element_orbital_dict={"In": '012345678'}
+    #  )
     end = time.time()
     print(end-start)
-    ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=8)
-    ax.tick_params(labelsize=8, length=2.5)
+    ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=12)
+    ax.tick_params(labelsize=12, length=2.5)
     ax.tick_params(axis='x', length=0)
     ax.set_ylim(-5,0)
     plt.tight_layout()
-    plt.savefig('test_atoms.png')
+    plt.savefig('test_spd.png')
     #  plt.show()
         
         

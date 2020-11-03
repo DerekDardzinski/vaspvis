@@ -5,7 +5,7 @@ projected plots.
 """
 
 from band import Band
-from vaspvis.dos import Dos
+from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
@@ -6317,12 +6317,10 @@ def dos_layers(
 
 
 def _main():
-    band_folder = '../../vaspvis_data/band_unfolding2'
-    band_plain(
+    band_folder = '../../vaspvis_data/dos'
+    dos_spd(
         folder=band_folder,
-        hse=True,
-        kpath='XGX',
-        n=30,
+        energyaxis='x'
     )
 
 

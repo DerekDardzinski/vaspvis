@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from pymatgen.io.vasp.outputs import Vasprun
-from pymatgen.io.vasp.inputs import Poscar
+from pymatgen.io.vasp.inputs import Poscar, Incar
 from pymatgen.electronic_structure.core import Spin, Orbital
-from pymatgen.electronic_structure.dos import Dos
+#  from pymatgen.electronic_structure.dos import Dos
+from pychemia.code.vasp.doscar import VaspDoscar
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage import gaussian_filter
 from functools import reduce
@@ -32,16 +33,21 @@ class Dos:
         self.spin = spin
         self.combination_method = combination_method
         self.forbitals = False
-        self.vasprun = Vasprun(
-            os.path.join(folder, 'vasprun.xml'),
-            parse_dos=True,
-            parse_eigen=False,
-            parse_potcar_file=False
-        )
+        self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
+        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
+        #  self.vasprun = Vasprun(
+            #  os.path.join(folder, 'vasprun.xml'),
+            #  parse_dos=True,
+            #  parse_eigen=False,
+            #  parse_potcar_file=False
+        #  )
         self.poscar = Poscar.from_file(
             os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,
             read_velocities=False
+        )
+        self.incar = Incar.from_file(
+            os.path.join(folder, 'INCAR')
         )
         self.color_dict = {
             0: '#FF0000',
@@ -79,11 +85,63 @@ class Dos:
             14: '$f_{zx^{3}}$',
             15: '$f_{x^{3}}$',
         }
+
+        if 'LORBIT' in self.incar:
+            if self.incar['LORBIT']:
+                self.lorbit = True
+            else:
+                self.lorbit = False
+        else:
+            self.lorbit = False
+
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
         self.tdos_dict = self._load_tdos()
         self.pdos_dict = self._load_pdos()
 
+
+        
+
     def _load_tdos(self):
+        """
+        This function loads the total density of states into a dictionary
+
+        Returns:
+            tdos_dict (dict[str][np.ndarray]): Dictionary that consists or the
+                energies and densities of the system.
+        """
+
+        if self.spin == 'up':
+            spin_factor = 1
+        elif self.spin == 'down':
+            spin_factor = -1
+
+        tdos = self.doscar['total']
+
+        if self.spin == 'up' or self.spin == 'down':
+            tdos_dict = {
+                'energy': tdos[:,0] - self.efermi,
+                'density': tdos[:,1],
+            }
+        elif self.spin == 'down':
+            tdos_dict = {
+                'energy': tdos[:,0] - self.efermi,
+                'density': -1 * tdos[:,2],
+            }
+        elif self.spin == 'both':
+            if self.combination_method == "add":
+                tdos_dict = {
+                    'energy': tdos[:,0] - self.efermi,
+                    'density': tdos[:,1] - tdos[:,2],
+                }
+            if self.combination_method == "sub":
+                tdos_dict = {
+                    'energy': tdos[:,0] - self.efermi,
+                    'density': tdos[:,1] + tdos[:,2],
+                }
+
+        return tdos_dict
+
+    def _load_tdos_old(self):
         """
         This function loads the total density of states into a dictionary
 
@@ -119,6 +177,69 @@ class Dos:
         return tdos_dict
 
     def _load_pdos(self):
+        """
+        This function loads the projected density of states into a dictionary
+        of the form:
+        atom index --> orbital projections
+
+        Returns:
+            pdos_dict (dict[int][pd.DataFrame]): Dictionary that contains a data frame
+                with the orbital weights for each atom index.
+        """
+
+        pdos = self.doscar['projected']
+
+        if self.spin == 'up':
+            if not self.forbitals:
+                if self.lorbit:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,[(j*4) + 1 for j in range(9)]].T, columns=range(9)) for i in range(pdos.shape[0])
+                    }
+                else:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,1:10], columns=range(9)) for i in range(pdos.shape[0])
+                    }
+            else:
+                if self.lorbit:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,[(j*4) + 1 for j in range(16)]].T, columns=range(16)) for i in range(pdos.shape[0])
+                    }
+                else:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,1:17], columns=range(16)) for i in range(pdos.shape[0])
+                    }
+        elif self.spin == 'down':
+            if not self.forbitals:
+                pdos_dict = {
+                    i: pd.DataFrame(data=(-1 * pdos[i,:,10:19]), columns=range(9)) for i in range(pdos.shape[0])
+                }
+            else:
+                pdos_dict = {
+                    i: pd.DataFrame(data=(-1 * pdos[i,:,17:33]), columns=range(16)) for i in range(pdos.shape[0])
+                }
+        elif self.spin == 'both':
+            if self.combination_method == 'add':
+                if not self.forbitals:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,1:10] + pdos[i,:,10:19], columns=range(9)) for i in range(pdos.shape[0])
+                    }
+                else:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,1:17] + pdos[i,:,17:33], columns=range(16)) for i in range(pdos.shape[0])
+                    }
+            elif self.combination_method == 'sub':
+                if not self.forbitals:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,1:10] - pdos[i,:,10:19], columns=range(9)) for i in range(pdos.shape[0])
+                    }
+                else:
+                    pdos_dict = {
+                        i: pd.DataFrame(data=pdos[i,:,1:17] - pdos[i,:,17:33], columns=range(16)) for i in range(pdos.shape[0])
+                    }
+
+        return pdos_dict
+
+    def _load_pdos_old(self):
         """
         This function loads the projected density of states into a dictionary
         of the form:
