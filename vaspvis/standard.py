@@ -8,6 +8,7 @@ from band import Band
 from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import time
 
 
 def _figure_setup(ax, fontsize=6, ylim=[-6, 6]):
@@ -155,7 +156,7 @@ def band_spd(
     spin='up',
     scale_factor=6,
     orbitals='spd',
-    show_dominant=False,
+    display_order=None,
     color_dict=None,
     legend=True,
     linewidth=0.75,
@@ -209,8 +210,6 @@ def band_spd(
         and axis for further editing. 
     """
 
-    import time
-    start = time.time()
     band = Band(
         folder=folder,
         spin=spin,
@@ -219,8 +218,6 @@ def band_spd(
         kpath=kpath,
         n=n,
     )
-    end = time.time()
-    print(end - start)
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
@@ -230,7 +227,7 @@ def band_spd(
         scale_factor=scale_factor,
         orbitals=orbitals,
         erange=erange,
-        show_dominant=False,
+        display_order=display_order,
         color_dict=color_dict,
         legend=legend,
         linewidth=linewidth,
@@ -248,9 +245,10 @@ def band_spd(
 
 def band_atom_orbitals(
     folder,
-    atom_orbital_pairs,
+    atom_orbital_dict,
     output='band_atom_orbitals.png',
     spin='up',
+    display_order=None,
     scale_factor=6,
     color_list=None,
     legend=True,
@@ -312,7 +310,8 @@ def band_atom_orbitals(
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_atom_orbitals(
         ax=ax,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
+        display_order=display_order,
         scale_factor=scale_factor,
         color_list=color_list,
         legend=legend,
@@ -333,8 +332,8 @@ def band_orbitals(
     output='band_orbital.png',
     spin='up',
     scale_factor=6,
-    show_dominant=False,
-    color_dict=None,
+    display_order=None,
+    color_list=None,
     legend=True,
     linewidth=0.75,
     band_color='black',
@@ -374,7 +373,7 @@ def band_orbitals(
             | 14 = fzx3
             | 15 = fx3
 
-        color_dict (dict[str][str]): This option allow the colors of each orbital
+        color_list (dict[str][str]): This option allow the colors of each orbital
             specified. Should be in the form of:
             {'orbital index': <color>, 'orbital index': <color>, ...}
         legend (bool): Determines if the legend should be included or not.
@@ -416,8 +415,8 @@ def band_orbitals(
         orbitals=orbitals,
         scale_factor=scale_factor,
         erange=erange,
-        show_dominant=show_dominant,
-        color_dict=color_dict,
+        display_order=display_order,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
@@ -435,6 +434,7 @@ def band_atoms(
     atoms,
     output='band_atoms.png',
     spin='up',
+    display_order=None,
     scale_factor=6,
     color_list=None,
     legend=True,
@@ -498,6 +498,96 @@ def band_atoms(
         atoms=atoms,
         scale_factor=scale_factor,
         color_list=color_list,
+        display_order=display_order,
+        legend=legend,
+        linewidth=linewidth,
+        band_color=band_color,
+    )
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+def band_atom_spd(
+    folder,
+    atom_spd_dict,
+    output='band_atom_spd.png',
+    spin='up',
+    display_order=None,
+    scale_factor=6,
+    color_list=None,
+    legend=True,
+    linewidth=0.75,
+    band_color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    hse=False,
+    kpath=None,
+    n=None,
+    fontsize=7,
+    save=True,
+):
+    """
+    This function generates a s, p, d projected band structure on specific atoms.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot
+        atoms (list): List of atom symbols to project onto
+        order (list): This determines the order in which the points are plotted on the
+            graph. This is an option because sometimes certain orbitals can be hidden
+            under others because they have a larger weight. For example, if the
+            weights of the d orbitals are greater than that of the s orbitals, it
+            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
+            plotted over the d orbitals.
+        color_list (dict[str][str]): This option allow the colors of the s, p, and d
+            orbitals to be specified. Should be in the form of:
+            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+        legend (bool): Determines if the legend should be included or not.
+        linewidth (float): Line width of the plain band structure plotted in the background
+        band_color (string): Color of the plain band structure
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list / tuple): Range of energy to show in the plot [low, high]
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
+    band = Band(
+        folder=folder,
+        spin=spin,
+        projected=True,
+        hse=hse,
+        kpath=kpath,
+        n=n,
+    )
+    fig = plt.figure(figsize=(figsize), dpi=400)
+    ax = fig.add_subplot(111)
+    _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
+    band.plot_atom_spd(
+        ax=ax,
+        atom_spd_dict=atom_spd_dict,
+        display_order=display_order,
+        scale_factor=scale_factor,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
@@ -516,6 +606,7 @@ def band_elements(
     output='band_elements.png',
     spin='up',
     scale_factor=6,
+    display_order=None,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -577,6 +668,7 @@ def band_elements(
         ax=ax,
         elements=elements,
         scale_factor=scale_factor,
+        display_order=display_order,
         color_list=color_list,
         legend=legend,
         linewidth=linewidth,
@@ -592,9 +684,10 @@ def band_elements(
 
 def band_element_orbitals(
     folder,
-    element_orbital_pairs,
+    element_orbital_dict,
     output='band_element_orbital.png',
     spin='up',
+    display_order=None,
     scale_factor=6,
     color_list=None,
     legend=True,
@@ -656,8 +749,9 @@ def band_element_orbitals(
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_orbitals(
         ax=ax,
-        element_orbital_pairs=element_orbital_pairs,
+        element_orbital_dict=element_orbital_dict,
         scale_factor=scale_factor,
+        display_order=display_order,
         color_list=color_list,
         legend=legend,
         linewidth=linewidth,
@@ -673,12 +767,12 @@ def band_element_orbitals(
 
 def band_element_spd(
     folder,
-    elements,
-    order=['s', 'p', 'd'],
+    element_spd_dict,
     output='band_element_spd.png',
     spin='up',
+    display_order=None,
     scale_factor=6,
-    color_dict=None,
+    color_list=None,
     legend=True,
     linewidth=0.75,
     band_color='black',
@@ -706,7 +800,7 @@ def band_element_spd(
             weights of the d orbitals are greater than that of the s orbitals, it
             might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
             plotted over the d orbitals.
-        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
+        color_list (dict[str][str]): This option allow the colors of the s, p, and d
             orbitals to be specified. Should be in the form of:
             {'s': <s color>, 'p': <p color>, 'd': <d color>}
         legend (bool): Determines if the legend should be included or not.
@@ -745,10 +839,10 @@ def band_element_spd(
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_spd(
         ax=ax,
-        elements=elements,
-        order=order,
+        element_spd_dict=element_spd_dict,
+        display_order=display_order,
         scale_factor=scale_factor,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
@@ -6344,13 +6438,53 @@ def dos_layers(
 
 
 def _main():
+    import time
     band_folder = '../../vaspvis_data/band'
+    start = time.time()
+    band_plain(
+        folder=band_folder,
+    )
     band_spd(
         folder=band_folder,
-        #  orbitals=list(range(9)),
-        #  show_dominant=True,
-        #  scale_factor=10,
+        display_order='dominant',
     )
+    band_orbitals(
+        folder=band_folder,
+        orbitals=[0,1,2,3,4,5,6,7,8],
+        display_order='dominant',
+    )
+    band_atoms(
+        folder=band_folder,
+        atoms=[0,1],
+        display_order='dominant',
+    )
+    band_atom_orbitals(
+        folder=band_folder,
+        atom_orbital_dict={0:[0,1,2,3,4,5,6,7,8]},
+        display_order='dominant',
+    )
+    band_atom_spd(
+        folder=band_folder,
+        atom_spd_dict={1:'spd'},
+        display_order='dominant',
+    )
+    band_elements(
+        folder=band_folder,
+        elements=['In', 'Sb'],
+        display_order='dominant',
+    )
+    band_element_orbitals(
+        folder=band_folder,
+        element_orbital_dict={'In':[0,1,2,3,4,5,6,7,8]},
+        display_order='dominant',
+    )
+    band_element_spd(
+        folder=band_folder,
+        element_spd_dict={'Sb':'spd'},
+        display_order='dominant',
+    )
+    end = time.time()
+    print('Total', end - start)
 
 
 if __name__ == "__main__":
