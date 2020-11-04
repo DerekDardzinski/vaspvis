@@ -3,7 +3,6 @@ from matplotlib.ticker import MaxNLocator
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Poscar, Incar
 from pymatgen.electronic_structure.core import Spin, Orbital
-#  from pymatgen.electronic_structure.dos import Dos
 from pychemia.code.vasp.doscar import VaspDoscar
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage import gaussian_filter
@@ -16,6 +15,8 @@ import copy
 import time
 import os
 
+import matplotlib as mpl
+mpl.rcParams.update(mpl.rcParamsDefault)
 
 class Dos:
     """
@@ -35,12 +36,6 @@ class Dos:
         self.forbitals = False
         self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
         self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
-        #  self.vasprun = Vasprun(
-            #  os.path.join(folder, 'vasprun.xml'),
-            #  parse_dos=True,
-            #  parse_eigen=False,
-            #  parse_potcar_file=False
-        #  )
         self.poscar = Poscar.from_file(
             os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,

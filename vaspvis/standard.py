@@ -128,7 +128,6 @@ def band_plain(
         folder=folder,
         spin=spin,
         hse=hse,
-        unfold=unfold,
         kpath=kpath,
         n=n,
     )
@@ -140,6 +139,7 @@ def band_plain(
         color=color,
         linewidth=linewidth,
         linestyle=linestyle,
+        erange=erange,
     )
     plt.tight_layout(pad=0.2)
 
@@ -154,7 +154,8 @@ def band_spd(
     output='band_spd.png',
     spin='up',
     scale_factor=6,
-    order=['s', 'p', 'd'],
+    orbitals='spd',
+    show_dominant=False,
     color_dict=None,
     legend=True,
     linewidth=0.75,
@@ -208,6 +209,8 @@ def band_spd(
         and axis for further editing. 
     """
 
+    import time
+    start = time.time()
     band = Band(
         folder=folder,
         spin=spin,
@@ -216,18 +219,25 @@ def band_spd(
         kpath=kpath,
         n=n,
     )
+    end = time.time()
+    print(end - start)
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
+    start = time.time()
     band.plot_spd(
         ax=ax,
         scale_factor=scale_factor,
-        order=order,
+        orbitals=orbitals,
+        erange=erange,
+        show_dominant=False,
         color_dict=color_dict,
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
     )
+    end = time.time()
+    print(end - start)
     plt.tight_layout(pad=0.2)
 
     if save:
@@ -323,6 +333,7 @@ def band_orbitals(
     output='band_orbital.png',
     spin='up',
     scale_factor=6,
+    show_dominant=False,
     color_dict=None,
     legend=True,
     linewidth=0.75,
@@ -404,6 +415,8 @@ def band_orbitals(
         ax=ax,
         orbitals=orbitals,
         scale_factor=scale_factor,
+        erange=erange,
+        show_dominant=show_dominant,
         color_dict=color_dict,
         legend=legend,
         linewidth=linewidth,
@@ -817,6 +830,7 @@ def band_plain_spin_polarized(
         color=up_color,
         linewidth=linewidth,
         linestyle=up_linestyle,
+        erange=erange,
     )
 
     band_down.plot_plain(
@@ -824,6 +838,7 @@ def band_plain_spin_polarized(
         color=down_color,
         linewidth=linewidth,
         linestyle=down_linestyle,
+        erange=erange,
     )
 
     legend_lines = [
@@ -993,11 +1008,13 @@ def band_spd_spin_polarized(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        erange=erange,
     )
     band_down.plot_plain(
         ax=ax1,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     band_down.plot_spd(
@@ -1008,11 +1025,13 @@ def band_spd_spin_polarized(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        erange=erange,
     )
     band_up.plot_plain(
         ax=ax2,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     plt.tight_layout(pad=0.2)
@@ -1148,11 +1167,13 @@ def band_atom_orbitals_spin_polarized(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        erange=erange,
     )
     band_down.plot_plain(
         ax=ax1,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     band_down.plot_atom_orbitals(
@@ -1163,11 +1184,13 @@ def band_atom_orbitals_spin_polarized(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        erange=erange,
     )
     band_up.plot_plain(
         ax=ax2,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     plt.tight_layout(pad=0.2)
@@ -1316,11 +1339,13 @@ def band_orbitals_spin_polarized(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        erange=erange,
     )
     band_up.plot_plain(
         ax=ax1,
         color=unprojected_band_color,
         linewidth=0.5,
+        erange=erange,
     )
 
     band_down.plot_orbitals(
@@ -1331,11 +1356,13 @@ def band_orbitals_spin_polarized(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        erange=erange,
     )
     band_down.plot_plain(
         ax=ax1,
         color=unprojected_band_color,
         linewidth=0.5,
+        erange=erange,
     )
 
     plt.tight_layout(pad=0.2)
@@ -6317,10 +6344,12 @@ def dos_layers(
 
 
 def _main():
-    band_folder = '../../vaspvis_data/dos'
-    dos_spd(
+    band_folder = '../../vaspvis_data/band'
+    band_spd(
         folder=band_folder,
-        energyaxis='x'
+        #  orbitals=list(range(9)),
+        #  show_dominant=True,
+        #  scale_factor=10,
     )
 
 
