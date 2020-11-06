@@ -1,11 +1,15 @@
 from pymatgen.electronic_structure.core import Spin, Orbital
 from pymatgen.io.vasp.outputs import BSVasprun, Eigenval
 from pymatgen.io.vasp.inputs import Kpoints, Poscar, Incar
+from unfold import unfold, make_kpath, removeDuplicateKpoints
 from pymatgen.core.periodic_table import Element
 from pyprocar.utilsprocar import UtilsProcar
 from pyprocar.procarparser import ProcarParser
 from functools import reduce
 import matplotlib.pyplot as plt
+from matplotlib.patches import Wedge
+from matplotlib.collections import PatchCollection
+import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
 import time
@@ -41,7 +45,7 @@ class Band:
             known by the user, as it was used to generate the KPOINTS file.
     """
 
-    def __init__(self, folder, projected=False, hse=False, spin='up', kpath=None, n=None):
+    def __init__(self, folder, projected=False, hse=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None):
         """
         Initialize parameters upon the generation of this class
 
@@ -67,15 +71,22 @@ class Band:
         self.incar = Incar.from_file(
             os.path.join(folder, 'INCAR')
         )
+        self.wavecar = os.path.join(folder, 'WAVECAR')
         self.projected = projected
         self.forbitals = False
         self.hse = hse
+        self.unfold = unfold
         self.kpath = kpath
         self.n = n
+        self.M = M
+        self.high_symm_points = high_symm_points
         self.folder = folder
         self.spin = spin
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
-        self.eigenvalues, self.kpoints = self._load_bands()
+        if not self.unfold:
+            self.eigenvalues, self.kpoints = self._load_bands()
+        else:
+            self.eigenvalues, self.spectral_weights, self.K_indices, self.kpoints = self._load_bands_unfold()
         self.color_dict = {
             0: '#FF0000',
             1: '#0000FF',
@@ -157,6 +168,29 @@ class Band:
 
         return eigenvalues, kpoints
 
+    
+    def _load_bands_unfold(self):
+        
+        if self.spin == 'up':
+            spin = 0
+        if self.spin == 'down':
+            spin = 1
+
+        efermi = self.efermi
+        wavecar_data = unfold(
+            M=self.M,
+            wavecar=self.wavecar,
+            lsorbit=True,
+        )
+        kpath = make_kpath(self.high_symm_points, nseg=self.n)
+        band_data = wavecar_data.spectral_weight(kpath)
+        band_data = np.transpose(band_data[spin], axes=(2,1,0))
+        eigenvalues, spectral_weights, K_indices = band_data
+        eigenvalues = eigenvalues - efermi
+        kpath = np.array(kpath)
+
+        return eigenvalues, spectral_weights, K_indices, kpath
+
 
     def _load_projected_bands(self):
         """
@@ -184,11 +218,15 @@ class Band:
         if self.pre_loaded_projections:
             with open(os.path.join(self.folder, 'projected_eigenvalues.npy'), 'rb') as projected_eigenvals:
                 projected_eigenvalues = np.load(projected_eigenvals) 
+            print(projected_eigenvalues[0][0])
+            print(np.sum(projected_eigenvalues[0][0][:,0]))
         else:
             parser = ProcarParser()
             parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
             projected_eigenvalues = np.transpose(parser.spd[:,:,spin,:-1, 1:-1], axes=(1,0,2,3))
-            projected_eigenvalues = projected_eigenvalues / np.sum(np.sum(projected_eigenvalues, axis=3),axis=2)[:,:,np.newaxis,np.newaxis]
+            projected_eigenvalues = projected_eigenvalues 
+            #  / np.sum(np.sum(projected_eigenvalues, axis=3),axis=2)[:,:,np.newaxis,np.newaxis]
+            print(np.sum(projected_eigenvalues[0][0]), axis=0)
             np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
 
         if self.hse:
@@ -198,10 +236,11 @@ class Band:
         if projected_eigenvalues.shape[-1] == 16:
             self.forbitals = True
 
-        projected_eigenvalues = np.square(projected_eigenvalues)
+        #  projected_eigenvalues = np.square(projected_eigenvalues)
 
         return projected_eigenvalues
 
+    
 
     def _sum_spd(self, spd):
         """
@@ -225,7 +264,7 @@ class Band:
             spd_indices[2][4:9] = True
             spd_indices[3][9:] = True
 
-        orbital_contributions = self.projected_eigenvalues.sum(axis=2)
+        orbital_contributions = np.sum(self.projected_eigenvalues, axis=2)
 
         spd_contributions = np.transpose(
             np.array([
@@ -233,9 +272,10 @@ class Band:
             ]), axes=[1,2,0]
         )
 
-        spd_contributions = spd_contributions[:,:,[self.spd_relations[orb] for orb in spd]]
+        norm_term = np.sum(spd_contributions, axis=2)[:,:,np.newaxis]
+        spd_contributions = np.divide(spd_contributions, norm_term, out=np.zeros_like(spd_contributions), where=norm_term!=0)
 
-        print(spd_contributions.shape)
+        spd_contributions = spd_contributions[:,:,[self.spd_relations[orb] for orb in spd]]
 
         return spd_contributions
 
@@ -269,7 +309,10 @@ class Band:
         Returns:
             orbital_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected weights of the selected orbitals.
         """
-        orbital_contributions = self.projected_eigenvalues.sum(axis=2)[:,:,[orbitals]]
+        orbital_contributions = self.projected_eigenvalues.sum(axis=2)
+        norm_term = np.sum(orbital_contributions, axis=2)[:,:,np.newaxis]
+        orbital_contributions = np.divide(orbital_contributions, norm_term, out=np.zeros_like(orbital_contributions), where=norm_term!=0)
+        orbital_contributions = orbital_contributions[:,:,[orbitals]]
 
         return orbital_contributions
 
@@ -305,9 +348,15 @@ class Band:
                 np.sum(self.projected_eigenvalues[:,:,:,ind], axis=3) for ind in spd_indices
             ]), axes=(1,2,3,0))
 
+            norm_term = np.sum(atoms_spd, axis=2)[:,:,np.newaxis]
+            atoms_spd = np.divide(atoms_spd, norm_term, out=np.zeros_like(atoms_spd), where=norm_term!=0)
+
             return atoms_spd
         else:
-            atoms_array = self.projected_eigenvalues.sum(axis=3)[:,:,[atoms]]
+            atoms_array = self.projected_eigenvalues.sum(axis=3)
+            norm_term = np.sum(atoms_array, axis=2)[:,:,np.newaxis]
+            atoms_array = np.divide(atoms_array, norm_term, out=np.zeros_like(atoms_array), where=norm_term!=0)
+            atoms_array = atoms_array[:,:,[atoms]]
 
             return atoms_array
 
@@ -430,6 +479,20 @@ class Band:
 
         plt.xticks(kpoints_index, kpath)
 
+    def _get_kticks_unfold(self, ax, wave_vectors):
+        kpath = [
+            f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpath.upper().strip()
+        ]
+
+        kpoints_index = [0] + [(self.n * i) for i in range(1, len(self.kpath))]
+
+        for k in kpoints_index:
+            ax.axvline(x=wave_vectors[k], color='black', alpha=0.7, linewidth=0.5)
+
+        ax.set_xticks(wave_vectors[kpoints_index])
+        ax.set_xticklabels(kpath)
+        #  plt.xticks(np.array(kpoints)[kpoints_index], kpath)
+
     def _filter_bands(self, erange):
         eigenvalues = self.eigenvalues
         where = (eigenvalues >= np.min(erange)) & (eigenvalues <= np.max(erange))
@@ -477,7 +540,7 @@ class Band:
             handletextpad=0.1,
         )
 
-    def plot_plain(self, ax, color='black', erange=[-6,6], linewidth=1.25, linestyle='-'):
+    def plot_plain(self, ax, color='black', erange=[-6,6], linewidth=1.25, scale_factor=20, linestyle='-'):
         """
         This function plots a plain band structure.
 
@@ -491,20 +554,35 @@ class Band:
         bands_in_plot = self._filter_bands(erange=erange)
         eigenvalues = self.eigenvalues[bands_in_plot]
         wave_vectors = self._get_k_distance()
+        if self.unfold:
+            wave_vectors = (wave_vectors / np.max(wave_vectors)) * 5
         eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
         wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
 
-        ax.plot(
-            wave_vectors_tile,
-            eigenvalues_ravel,
-            color=color,
-            linewidth=linewidth,
-            linestyle=linestyle,
-            zorder=0,
-        )
+        if self.unfold:
+            spectral_weights = self.spectral_weights[bands_in_plot]
+            spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
+            ax.scatter(
+                wave_vectors_tile,
+                eigenvalues_ravel,
+                c=color,
+                s=scale_factor * spectral_weights_ravel,
+                zorder=0,
+            )
+        else:
+            ax.plot(
+                wave_vectors_tile,
+                eigenvalues_ravel,
+                color=color,
+                linewidth=linewidth,
+                linestyle=linestyle,
+                zorder=0,
+            )
 
         if self.hse:
             self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
+        elif self.unfold:
+            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
         else:
             self._get_kticks(ax=ax)
 
@@ -525,7 +603,7 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
-        scale_factor = scale_factor ** 1.5
+        #  scale_factor = scale_factor ** 1.5
         
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color, erange=erange)
 
@@ -561,6 +639,97 @@ class Band:
             s=scale_factor * projected_data_ravel,
             zorder=100,
         )
+
+    def _pie_scatter(self, ax, x, y, s, fractions, colors):
+        #  patches = []
+        fractions = np.c_[np.zeros(fractions.shape[0]), fractions]
+        for i in range(len(x)):
+            indv_fraction = fractions[i]
+            print(indv_fraction, np.sum(indv_fraction))
+            indv_color = colors
+            if not np.isclose(np.sum(indv_fraction), 1, atol=0.01):
+                indv_fraction = np.append(indv_fraction, 1 - np.sum(indv_fraction))
+                indv_color = np.append(indv_color, 'grey')
+            transform = (fig.dpi_scale_trans + transforms.ScaledTranslation(x[i], y[i], ax.transData))
+            #  print([f'{np.sum(indv_fraction[:k+1])}-{np.sum(indv_fraction[:k+2])}' for k in range(len(indv_color))])
+            wedges = [
+                Wedge(
+                    (0,0),
+                    np.sqrt(s[i] / 1.5) / 72,
+                    360 * np.sum(indv_fraction[:j+1]),
+                    360 * np.sum(indv_fraction[:j+2]),
+                    color=indv_color[j],
+                    zorder=150,
+                    ec=None,
+                    #  transform=transform,
+                ) for j in range(len(indv_color))
+            ]
+            #  patches.extend(wedges)
+
+            collection = PatchCollection(wedges, transform=transform, match_original=True)
+            ax.add_collection(collection)
+        #  [ax.add_patch(patch) for patch in patches]
+        #  plt.axis('equal', adjustable='datalim')
+        #  ax.set_xlim(-0.5,0.5)
+
+    def _plot_projected_general_unfold(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black'):
+        """
+        This is a general method for plotting projected data
+
+        Parameters:
+            scale_factor (float): Factor to scale weights. This changes the size of the
+                points in the scatter plot
+            color_dict (dict[str][str]): This option allow the colors of each orbital
+                specified. Should be in the form of:
+                {'orbital index': <color>, 'orbital index': <color>, ...}
+            legend (bool): Determines if the legend should be included or not.
+            linewidth (float): Line width of the plain band structure plotted in the background
+            band_color (string): Color of the plain band structure
+        """
+        #  self.plot_plain(ax=ax, linewidth=linewidth, scale_factor=0.1, color=band_color, erange=erange)
+
+        bands_in_plot = self._filter_bands(erange=erange)
+        K_indices = np.array(self.K_indices[0], dtype=int)
+        projected_data = projected_data[bands_in_plot]
+        projected_data = projected_data[:, K_indices, :]
+        wave_vectors = self._get_k_distance()
+        wave_vectors = (wave_vectors / np.max(wave_vectors)) * 5
+        eigenvalues = self.eigenvalues[bands_in_plot]
+        spectral_weights = self.spectral_weights[bands_in_plot]
+
+        projected_data_reshape = np.reshape(
+            projected_data, (np.prod(projected_data.shape[:2]), np.prod(projected_data.shape[2:]))
+        )
+
+        #  norm_term = np.sum(projected_data_reshape, axis=1)[:,np.newaxis]
+        #  projected_data_reshape = np.divide(
+            #  projected_data_reshape,
+            #  norm_term,
+            #  out=np.zeros_like(projected_data_reshape),
+            #  where=norm_term!=0
+        #  )
+
+        wave_vectors_tile = np.tile(wave_vectors, projected_data.shape[0])
+        eigenvalues_ravel = np.ravel(eigenvalues)
+        spectral_weights_ravel = np.ravel(spectral_weights)
+
+        self._pie_scatter(
+            ax=ax,
+            x=wave_vectors_tile,
+            y=eigenvalues_ravel,
+            colors=colors,
+            s=scale_factor*spectral_weights_ravel,
+            fractions=projected_data_reshape,
+        )
+
+        if self.hse:
+            self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
+        elif self.unfold:
+            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
+        else:
+            self._get_kticks(ax=ax)
+
+        ax.set_xlim(0, np.max(wave_vectors))
         
     def plot_orbitals(self, ax, orbitals, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
@@ -654,7 +823,12 @@ class Band:
 
         projected_data = self._sum_spd(spd=orbitals)
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -690,7 +864,12 @@ class Band:
 
         projected_data = self._sum_atoms(atoms=atoms)
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -742,7 +921,12 @@ class Band:
         else:
             colors = color_list
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -798,7 +982,12 @@ class Band:
         else:
             colors = color_list
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -838,7 +1027,12 @@ class Band:
 
         projected_data = self._sum_elements(elements=elements)
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -886,7 +1080,12 @@ class Band:
         else:
             colors = color_list
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -922,7 +1121,7 @@ class Band:
                 orbitals to be specified. Should be in the form of:
                 {'s': <s color>, 'p': <p color>, 'd': <d color>}
             legend (bool): Determines if the legend should be included or not.
-            linewidth (float): Line width of the plain band structure plotted in the background
+            linewidth (float):12 Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
         element_symbols = list(element_spd_dict.keys())
@@ -945,7 +1144,12 @@ class Band:
             colors = color_list
 
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -963,864 +1167,36 @@ class Band:
         )
 
 
-    # =================================================================================================
-    # =================================== Old Stuff ===================================================
-    # =================================================================================================
+if __name__ == "__main__":
+    M = [[-1,1,0],[-1,-1,1],[0,0,1]]
+    high_symm_points = [
+        [0.5, 0.5, 0],
+        [0.0, 0.0, 0],
+        [0.5, 0.5, 0]
+    ] 
+    band = Band(
+        folder="../../vaspvis_data/band-unfold",
+        projected=True,
+        unfold=True,
+        kpath='XGX',
+        high_symm_points=high_symm_points, 
+        n=30,
+        M=M,
+    )
+    fig, ax = plt.subplots(figsize=(3,4), dpi=300)
+    start = time.time()
+    band.plot_spd(ax=ax, orbitals='p', scale_factor=5, erange=[-5,0])
+    #  ax.set_aspect(3, adjustable='datalim')
+    end = time.time()
+    print(end-start)
+    ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
+    ax.tick_params(labelsize=6, length=2.5)
+    ax.tick_params(axis='x', length=0)
+    ax.set_ylim(-5,0)
+    plt.tight_layout()
+    plt.savefig('unfold_plain.png')
+        
+        
 
-    #  def plot_orbitals_old(self, ax, orbitals, scale_factor=5, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
-        #  """
-        #  This function plots the projected band structure of given orbitals summed across all atoms on a given axis.
-#
-        #  Parameters:
-            #  ax (matplotlib.pyplot.axis): Axis to plot the data on
-            #  orbitals (list): List of orbits to compare
-#
-                #  | 0 = s
-                #  | 1 = py
-                #  | 2 = pz
-                #  | 3 = px
-                #  | 4 = dxy
-                #  | 5 = dyz
-                #  | 6 = dz2
-                #  | 7 = dxz
-                #  | 8 = dx2-y2
-                #  | 9 = fy3x2
-                #  | 10 = fxyz
-                #  | 11 = fyz2
-                #  | 12 = fz3
-                #  | 13 = fxz2
-                #  | 14 = fzx3
-                #  | 15 = fx3
-#
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  color_dict (dict[str][str]): This option allow the colors of each orbital
-                #  specified. Should be in the form of:
-                #  {'orbital index': <color>, 'orbital index': <color>, ...}
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  scale_factor = scale_factor ** 1.5
-#
-        #  self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
-#
-        #  orbital_dict = self._sum_orbitals(orbitals=orbitals)
-#
-        #  if color_dict is None:
-            #  color_dict = self.color_dict
-#
-        #  plot_df = pd.DataFrame(columns=orbitals)
-        #  plot_band = []
-        #  plot_wave_vec = []
-#
-        #  for band in orbital_dict:
-            #  plot_df = plot_df.append(orbital_dict[band])
-            #  plot_band.extend(self.bands_dict[band])
-            #  plot_wave_vec.extend(self.wave_vector)
-#
-        #  for orbital in orbitals:
-            #  ax.scatter(
-                #  plot_wave_vec,
-                #  plot_band,
-                #  c=color_dict[orbital],
-                #  s=scale_factor * plot_df[orbital],
-                #  zorder=1,
-            #  )
-#
-        #  if legend:
-            #  legend_lines = []
-            #  legend_labels = []
-            #  for orbital in orbitals:
-                #  legend_lines.append(plt.Line2D(
-                    #  [0],
-                    #  [0],
-                    #  marker='o',
-                    #  markersize=2,
-                    #  linestyle='',
-                    #  color=color_dict[orbital])
-                #  )
-                #  legend_labels.append(
-                    #  f'{self.orbital_labels[orbital]}'
-                #  )
-#
-            #  leg = ax.get_legend()
-#
-            #  if leg is None:
-                #  handles = legend_lines
-                #  labels = legend_labels
-            #  else:
-                #  handles = [l._legmarker for l in leg.legendHandles]
-                #  labels = [text._text for text in leg.texts]
-                #  handles.extend(legend_lines)
-                #  labels.extend(legend_labels)
-#
-            #  ax.legend(
-                #  handles,
-                #  labels,
-                #  ncol=1,
-                #  loc='upper left',
-                #  fontsize=5,
-                #  bbox_to_anchor=(1, 1),
-                #  borderaxespad=0,
-                #  frameon=False,
-                #  handletextpad=0.1,
-            #  )
-#
-    #  def _load_bands_old(self):
-        #  """
-        #  This function is used to load eigenvalues from the vasprun.xml
-        #  file and into a dictionary which is in the form of
-        #  band index --> eigenvalues
-#
-        #  Returns:
-            #  bands_dict (dict[str][np.ndarray]): Dictionary which contains
-                #  the eigenvalues for each band
-        #  """
-#
-        #  spin = self.spin
-#
-        #  if self.hse:
-            #  kpoints_band = self.n * (len(self.kpath) - 1)
-            #  eigenvalues = self.vasprun.eigenvalues[
-                #  self.spin_dict[spin]
-            #  ][-1 * kpoints_band:]
-        #  else:
-            #  eigenvalues = self.vasprun.eigenvalues[self.spin_dict[spin]]
-#
-        #  efermi = self.vasprun.efermi
-        #  nkpoints = len(eigenvalues)
-        #  nbands = len(eigenvalues[0])
-#
-        #  bands_dict = {f'band{i+1}': [] for i in range(nbands)}
-#
-        #  for i in range(nkpoints):
-            #  for j in range(nbands):
-                #  bands_dict[f'band{j+1}'].append(
-                    #  eigenvalues[i][j][0] - efermi
-                #  )
-#
-        #  return bands_dict
-#
-    #  def _load_projected_bands_old(self):
-        #  """
-        #  This function loads the project weights of the orbitals in each band
-        #  from vasprun.xml into a dictionary of the form:
-        #  band index --> atom index --> weights of orbitals
-#
-        #  Returns:
-            #  projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
-        #  """
-#
-        #  spin = self.spin
-#
-        #  if self.hse:
-            #  kpoints_band = self.n * (len(self.kpath) - 1)
-            #  projected_eigenvalues = self.vasprun.projected_eigenvalues[
-                #  self.spin_dict[spin]
-            #  ][-1 * kpoints_band:]
-        #  else:
-            #  projected_eigenvalues = self.vasprun.projected_eigenvalues[
-                #  self.spin_dict[spin]
-            #  ]
-#
-        #  poscar = Poscar.from_file(
-            #  f'{self.folder}/POSCAR',
-            #  check_for_POTCAR=False,
-            #  read_velocities=False
-        #  )
-        #  spin = self.spin
-        #  natoms = np.sum(poscar.natoms)
-        #  nkpoints = len(projected_eigenvalues)
-        #  nbands = len(projected_eigenvalues[0])
-        #  norbitals = len(projected_eigenvalues[0][0][0])
-#
-        #  if norbitals == 16:
-            #  self.forbitals = True
-#
-        #  projected_dict = {f'band{i+1}':
-                          #  {atom: np.zeros(norbitals) for atom in range(natoms)}
-                          #  for i in range(nbands)}
-#
-        #  for i in range(nkpoints):
-            #  for j in range(nbands):
-                #  band = f'band{j+1}'
-                #  for atom in range(natoms):
-                    #  orbital_weights = projected_eigenvalues[i][j][atom] ** 2
-                    #  projected_dict[band][atom] = np.vstack([
-                        #  projected_dict[band][atom],
-                        #  orbital_weights
-                    #  ])
-#
-        #  for band in projected_dict:
-            #  for atom in projected_dict[band]:
-                #  projected_dict[band][atom] = pd.DataFrame(
-                    #  projected_dict[band][atom][1:]
-                #  )
-#
-        #  return projected_dict
-#
-    #  def _sum_spd_old(self):
-        #  """
-        #  This function sums the weights of the s, p, and d orbitals for each atom
-        #  and creates a dictionary of the form:
-        #  band index --> s,p,d orbital weights
-#
-        #  Returns:
-            #  spd_dict (dict([str][pd.DataFrame])): Dictionary that contains the summed weights for the s, p, and d orbitals for each band
-        #  """
-#
-        #  # spd_orbitals = {'s': [0], 'p': [1, 2, 3], 'd': [4, 5, 6, 7, 8]}
-#
-        #  spd_dict = {band: np.nan for band in self.projected_dict}
-#
-        #  for band in self.projected_dict:
-            #  atom_list = [
-                #  self.projected_dict[band][atom] for atom in self.projected_dict[band]]
-            #  spd_dict[band] = reduce(
-                #  lambda x, y: x.add(y, fill_value=0), atom_list
-            #  )
-#
-        #  for band in spd_dict:
-            #  df = spd_dict[band]
-            #  spd_dict[band]['s'] = df[0]
-            #  spd_dict[band]['p'] = df[1] + df[2] + df[3]
-            #  spd_dict[band]['d'] = df[4] + df[5] + df[6] + df[7] + df[8]
-#
-            #  if self.forbitals:
-                #  spd_dict[band]['f'] = df[9] + df[10] + \
-                    #  df[11] + df[12] + df[13] + df[14] + df[15]
-                #  spd_dict[band] = spd_dict[band].drop(columns=range(16))
-            #  else:
-                #  spd_dict[band] = spd_dict[band].drop(columns=range(9))
-#
-        #  return spd_dict
-#
-    #  def _sum_atoms_old(self, atoms):
-        #  """
-        #  This function finds the weights of desired atoms for all orbitals and
-            #  returns a dictionary of the form:
-            #  band index --> atom index
-#
-        #  Parameters:
-            #  atoms (list): List of desired atoms where atom 0 is the first atom in
-                #  the POSCAR file.
-#
-        #  Returns:
-            #  atom_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected
-                #  weights of the selected atoms.
-        #  """
-#
-        #  projected_dict = self.projected_dict
-        #  atoms_dict = {band: np.nan for band in projected_dict}
-#
-        #  for band in projected_dict:
-            #  atom_dict = {atom: projected_dict[band][atom].sum(
-                #  axis=1) for atom in atoms}
-            #  atoms_dict[band] = pd.DataFrame.from_dict(atom_dict)
-#
-        #  return atoms_dict
-#
-    #  def plot_spd_old(self, ax, scale_factor=5, order=['s', 'p', 'd'], color_dict=None, legend=True, linewidth=0.75, band_color='black'):
-        #  """
-        #  This function plots the s, p, d projected band structure onto a given axis
-#
-        #  Parameters:
-            #  ax (matplotlib.pyplot.axis): Axis to plot the data on
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  order (list): This determines the order in which the points are plotted on the
-                #  graph. This is an option because sometimes certain orbitals can be hidden
-                #  under others because they have a larger weight. For example, if the
-                #  weights of the d orbitals are greater than that of the s orbitals, it
-                #  might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-                #  plotted over the d orbitals.
-            #  color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-                #  orbitals to be specified. Should be in the form of:
-                #  {'s': <s color>, 'p': <p color>, 'd': <d color>}
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  scale_factor = scale_factor ** 1.5
-#
-        #  self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
-#
-        #  spd_dict = self._sum_spd()
-#
-        #  if color_dict is None:
-            #  color_dict = {
-                #  's': self.color_dict[0],
-                #  'p': self.color_dict[1],
-                #  'd': self.color_dict[2],
-                #  'f': self.color_dict[4],
-            #  }
-#
-        #  plot_df = pd.DataFrame()
-#
-        #  if self.forbitals and 'f' not in order:
-            #  order.append('f')
-#
-        #  plot_band = []
-        #  plot_wave_vec = []
-#
-        #  for band in spd_dict:
-            #  plot_df = plot_df.append(spd_dict[band])
-            #  plot_band.extend(self.bands_dict[band])
-            #  plot_wave_vec.extend(self.wave_vector)
-#
-        #  for col in order:
-            #  ax.scatter(
-                #  plot_wave_vec,
-                #  plot_band,
-                #  c=color_dict[col],
-                #  s=scale_factor * plot_df[col],
-                #  zorder=1,
-            #  )
-#
-        #  if legend:
-            #  legend_lines = []
-            #  legend_labels = []
-            #  for orbital in order:
-                #  legend_lines.append(plt.Line2D(
-                    #  [0],
-                    #  [0],
-                    #  marker='o',
-                    #  markersize=2,
-                    #  linestyle='',
-                    #  color=color_dict[orbital]
-                #  ))
-                #  legend_labels.append(
-                    #  f'${orbital}$'
-                #  )
-#
-            #  leg = ax.get_legend()
-#
-            #  if leg is None:
-                #  handles = legend_lines
-                #  labels = legend_labels
-            #  else:
-                #  handles = [l._legmarker for l in leg.legendHandles]
-                #  labels = [text._text for text in leg.texts]
-                #  handles.extend(legend_lines)
-                #  labels.extend(legend_labels)
-#
-            #  ax.legend(
-                #  handles,
-                #  labels,
-                #  ncol=1,
-                #  loc='upper left',
-                #  fontsize=5,
-                #  bbox_to_anchor=(1, 1),
-                #  borderaxespad=0,
-                #  frameon=False,
-                #  handletextpad=0.1,
-            #  )
-#
-    #  def plot_atoms_old(self, ax, atoms, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
-        #  """
-        #  This function plots the projected band structure of given atoms summed across all orbitals on a given axis.
-#
-        #  Parameters:
-            #  ax (matplotlib.pyplot.axis): Axis to plot the data on
-            #  atoms (list): List of atoms to project onto
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  color_list (list): List of colors of the same length as the atoms list
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  scale_factor = scale_factor ** 1.5
-#
-        #  self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
-#
-        #  atom_dict = self._sum_atoms(atoms=atoms)
-#
-        #  if color_list is None:
-            #  color_dict = self.color_dict
-        #  else:
-            #  color_dict = {i: color for i, color in enumerate(color_list)}
-#
-        #  plot_df = pd.DataFrame(columns=atoms)
-        #  plot_band = []
-        #  plot_wave_vec = []
-#
-        #  for band in atom_dict:
-            #  plot_df = plot_df.append(atom_dict[band], ignore_index=True)
-            #  plot_band.extend(self.bands_dict[band])
-            #  plot_wave_vec.extend(self.wave_vector)
-#
-        #  for (i, atom) in enumerate(atoms):
-            #  ax.scatter(
-                #  plot_wave_vec,
-                #  plot_band,
-                #  c=color_dict[i],
-                #  s=scale_factor * plot_df[atom],
-                #  zorder=1,
-            #  )
-#
-        #  if legend:
-            #  legend_lines = []
-            #  legend_labels = []
-            #  for (i, atom) in enumerate(atoms):
-                #  legend_lines.append(plt.Line2D(
-                    #  [0],
-                    #  [0],
-                    #  marker='o',
-                    #  markersize=2,
-                    #  linestyle='',
-                    #  color=color_dict[i])
-                #  )
-                #  legend_labels.append(
-                    #  f'{atom}'
-                #  )
-#
-            #  leg = ax.get_legend()
-#
-            #  if leg is None:
-                #  handles = legend_lines
-                #  labels = legend_labels
-            #  else:
-                #  handles = [l._legmarker for l in leg.legendHandles]
-                #  labels = [text._text for text in leg.texts]
-                #  handles.extend(legend_lines)
-                #  labels.extend(legend_labels)
-#
-            #  ax.legend(
-                #  handles,
-                #  labels,
-                #  ncol=1,
-                #  loc='upper left',
-                #  fontsize=5,
-                #  bbox_to_anchor=(1, 1),
-                #  borderaxespad=0,
-                #  frameon=False,
-                #  handletextpad=0.1,
-            #  )
-#
-    #  def _sum_elements_old(self, elements, orbitals=False, spd=False):
-        #  """
-        #  This function sums the weights of the orbitals of specific elements within the
-        #  calculated structure and returns a dictionary of the form:
-        #  band index --> element label --> orbital weights for orbitals = True
-        #  band index --> element label for orbitals = False
-        #  This is useful for structures with many elements because manually entering indicies is
-        #  not practical for large structures.
-#
-        #  Parameters:
-            #  elements (list): List of element symbols to sum the weights of.
-            #  orbitals (bool): Determines whether or not to inclue orbitals or not
-                #  (True = keep orbitals, False = sum orbitals together )
-            #  spd (bool): Determines whether or not to sum the s, p, and d orbitals
-#
-#
-        #  Returns:
-            #  element_dict (dict([str][str][pd.DataFrame])): Dictionary that contains the summed weights for each orbital for a given element in the structure.
-        #  """
-#
-        #  poscar = self.poscar
-        #  natoms = poscar.natoms
-        #  symbols = poscar.site_symbols
-        #  projected_dict = self.projected_dict
-#
-        #  element_list = np.hstack(
-            #  [[symbols[i] for j in range(natoms[i])]
-             #  for i in range(len(symbols))]
-        #  )
-#
-        #  element_dict = {
-            #  band: {element: [] for element in elements} for band in projected_dict
-        #  }
-#
-        #  for band in projected_dict:
-            #  band_df = pd.DataFrame()
-            #  for element in elements:
-                #  element_index = np.where(np.isin(element_list, element))[0]
-                #  nb_atoms = len(element_index)
-                #  df = pd.concat(
-                    #  [projected_dict[band][i] for i in element_index],
-                    #  axis=1
-                #  )
-#
-                #  if orbitals:
-                    #  element_dict[band][element] = df.groupby(
-                        #  by=df.columns,
-                        #  axis=1
-                    #  ).sum()
-                    #  if spd:
-                        #  df = element_dict[band][element]
-                        #  element_dict[band][element]['s'] = df[0]
-                        #  element_dict[band][element]['p'] = df[1] + \
-                            #  df[2] + df[3]
-                        #  element_dict[band][element]['d'] = df[4] + \
-                            #  df[5] + df[6] + df[7] + df[8]
-#
-                        #  if self.forbitals:
-                            #  element_dict[band][element]['f'] = df[9] + df[10] + \
-                                #  df[11] + df[12] + df[13] + df[14] + df[15]
-                            #  element_dict[band][element] = element_dict[band][element].drop(
-                                #  columns=range(16))
-                        #  else:
-                            #  element_dict[band][element] = element_dict[band][element].drop(
-                                #  columns=range(9))
-                #  else:
-                    #  norm_df = df.sum(axis=1)
-                    #  element_dict[band][element] = norm_df.tolist()
-#
-        #  return element_dict
-#
-    #  def plot_elements_old(self, ax, elements, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
-        #  """
-        #  This function plots the projected band structure on specified elements in the calculated structure
-#
-        #  Parameters:
-            #  ax (matplotlib.pyplot.axis): Axis to plot the data on
-            #  elements (list): List of element symbols to project onto
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  color_list (list): List of colors of the same length as the elements list
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  scale_factor = scale_factor ** 1.5
-#
-        #  self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
-#
-        #  element_dict = self._sum_elements(elements=elements, orbitals=False)
-#
-        #  if color_list is None:
-            #  color_dict = self.color_dict
-        #  else:
-            #  color_dict = {i: color for i, color in enumerate(color_list)}
-#
-        #  plot_element = {element: [] for element in elements}
-        #  plot_band = []
-        #  plot_wave_vec = []
-#
-        #  for band in element_dict:
-            #  plot_band.extend(self.bands_dict[band])
-            #  plot_wave_vec.extend(self.wave_vector)
-            #  for element in elements:
-                #  plot_element[element].extend(element_dict[band][element])
-#
-        #  for (i, element) in enumerate(elements):
-            #  ax.scatter(
-                #  plot_wave_vec,
-                #  plot_band,
-                #  c=color_dict[i],
-                #  s=scale_factor * np.array(plot_element[element]),
-                #  zorder=1,
-            #  )
-#
-        #  if legend:
-            #  legend_lines = []
-            #  legend_labels = []
-            #  for (i, element) in enumerate(elements):
-                #  legend_lines.append(plt.Line2D(
-                    #  [0],
-                    #  [0],
-                    #  marker='o',
-                    #  markersize=2,
-                    #  linestyle='',
-                    #  color=color_dict[i])
-                #  )
-                #  legend_labels.append(
-                    #  f'{element}'
-                #  )
-#
-            #  leg = ax.get_legend()
-#
-            #  if leg is None:
-                #  handles = legend_lines
-                #  labels = legend_labels
-            #  else:
-                #  handles = [l._legmarker for l in leg.legendHandles]
-                #  labels = [text._text for text in leg.texts]
-                #  handles.extend(legend_lines)
-                #  labels.extend(legend_labels)
-#
-            #  ax.legend(
-                #  handles,
-                #  labels,
-                #  ncol=1,
-                #  loc='upper left',
-                #  fontsize=5,
-                #  bbox_to_anchor=(1, 1),
-                #  borderaxespad=0,
-                #  frameon=False,
-                #  handletextpad=0.1,
-            #  )
-#
-    #  def plot_element_spd_old(self, ax, atoms, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
-        #  """
-        #  This function plots the projected band structure on the s, p, and d orbitals for each specified element in the calculated structure.
-#
-        #  Parameters:
-            #  ax (matplotlib.pyplot.axis): Axis to plot the data on
-            #  elements (list): List of element symbols to project onto
-            #  order (list): This determines the order in which the points are plotted on the
-                #  graph. This is an option because sometimes certain orbitals can be hidden
-                #  under other orbitals because they have a larger weight. For example, if the
-                #  signitures of the d orbitals are greater than that of the s orbitals, it
-                #  might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-                #  plotted over the d orbitals.
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-                #  orbitals to be specified. Should be in the form of:
-                #  {'s': <s color>, 'p': <p color>, 'd': <d color>}
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  scale_factor = scale_factor ** 1.5
-#
-        #  self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
-#
-        #  element_dict = self._sum_elements(
-            #  elements=elements, orbitals=True, spd=True)
-#
-        #  if color_dict is None:
-            #  color_dict = {
-                #  's': self.color_dict[0],
-                #  'p': self.color_dict[1],
-                #  'd': self.color_dict[2],
-                #  'f': self.color_dict[4],
-            #  }
-#
-        #  plot_element = {element: pd.DataFrame() for element in elements}
-#
-        #  if self.forbitals and 'f' not in order:
-            #  order.append('f')
-#
-        #  plot_band = []
-        #  plot_wave_vec = []
-#
-        #  for band in element_dict:
-            #  plot_band.extend(self.bands_dict[band])
-            #  plot_wave_vec.extend(self.wave_vector)
-            #  for element in elements:
-                #  plot_element[element] = plot_element[element].append(
-                    #  element_dict[band][element])
-#
-        #  for (i, element) in enumerate(elements):
-            #  if self.forbitals:
-                #  electronic_structure = Element(
-                    #  element).full_electronic_structure
-                #  if not np.isin('f', electronic_structure):
-                    #  order = order.remove('f')
-            #  for orbital in order:
-                #  ax.scatter(
-                    #  plot_wave_vec,
-                    #  plot_band,
-                    #  c=color_dict[orbital],
-                    #  s=scale_factor * plot_element[element][orbital],
-                    #  zorder=1,
-                #  )
-#
-        #  if legend:
-            #  legend_lines = []
-            #  legend_labels = []
-            #  for element in elements:
-                #  for orbital in order:
-                    #  legend_lines.append(plt.Line2D(
-                        #  [0],
-                        #  [0],
-                        #  marker='o',
-                        #  markersize=2,
-                        #  linestyle='',
-                        #  color=color_dict[orbital])
-                    #  )
-                    #  legend_labels.append(
-                        #  f'{element}(${orbital}$)'
-                    #  )
-#
-            #  leg = ax.get_legend()
-#
-            #  if leg is None:
-                #  handles = legend_lines
-                #  labels = legend_labels
-            #  else:
-                #  handles = [l._legmarker for l in leg.legendHandles]
-                #  labels = [text._text for text in leg.texts]
-                #  handles.extend(legend_lines)
-                #  labels.extend(legend_labels)
-#
-            #  ax.legend(
-                #  handles,
-                #  labels,
-                #  ncol=1,
-                #  loc='upper left',
-                #  fontsize=5,
-                #  bbox_to_anchor=(1, 1),
-                #  borderaxespad=0,
-                #  frameon=False,
-                #  handletextpad=0.1,
-            #  )
-#
-    #  def plot_element_orbitals_old(self, ax, element_orbital_pairs, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
-        #  """
-        #  this function plots the projected band structure on chosen orbitals for each specified element in the calculated structure.
-#
-        #  Parameters:
-            #  ax (matplotlib.pyplot.axis): axis to plot the data on
-            #  element_orbital_pairs (list[list]): List of list in the form of
-                #  [[element symbol, orbital index], [element symbol, orbital_index], ...]
-            #  scale_factor (float): factor to scale weights. this changes the size of the
-                #  points in the scatter plot
-            #  color_list (list): List of colors of the same length as the element_orbital_pairs
-            #  legend (bool): determines if the legend should be included or not.
-            #  linewidth (float): line width of the plain band structure plotted in the background
-            #  band_color (string): color of the plain band structure
-        #  """
-        #  scale_factor = scale_factor ** 1.5
-#
-        #  self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
-#
-        #  elements = [i[0] for i in element_orbital_pairs]
-#
-        #  element_dict = self._sum_elements(elements=elements, orbitals=True)
-#
-        #  if color_list is None:
-            #  color_dict = self.color_dict
-        #  else:
-            #  color_dict = {i: color for i, color in enumerate(color_list)}
-#
-        #  plot_element = {element: pd.DataFrame(
-            #  columns=[range(9)]) for element in elements}
-        #  plot_band = []
-        #  plot_wave_vec = []
-#
-        #  for band in element_dict:
-            #  plot_band.extend(self.bands_dict[band])
-            #  plot_wave_vec.extend(self.wave_vector)
-            #  for element in elements:
-                #  plot_element[element] = plot_element[element].append(
-                    #  element_dict[band][element])
-#
-        #  for i, element_orbital_pair in enumerate(element_orbital_pairs):
-            #  element = element_orbital_pair[0]
-            #  orbital = element_orbital_pair[1]
-            #  ax.scatter(
-                #  plot_wave_vec,
-                #  plot_band,
-                #  c=color_dict[i],
-                #  s=scale_factor * plot_element[element][orbital],
-                #  zorder=1,
-            #  )
-#
-        #  if legend:
-            #  legend_lines = []
-            #  legend_labels = []
-            #  for i, element_orbital_pair in enumerate(element_orbital_pairs):
-                #  element = element_orbital_pair[0]
-                #  orbital = element_orbital_pair[1]
-                #  legend_lines.append(plt.Line2D(
-                    #  [0],
-                    #  [0],
-                    #  marker='o',
-                    #  markersize=2,
-                    #  linestyle='',
-                    #  color=color_dict[i])
-                #  )
-                #  legend_labels.append(
-                    #  f'{element}({self.orbital_labels[orbital]})'
-                #  )
-#
-            #  leg = ax.get_legend()
-#
-            #  if leg is None:
-                #  handles = legend_lines
-                #  labels = legend_labels
-            #  else:
-                #  handles = [l._legmarker for l in leg.legendHandles]
-                #  labels = [text._text for text in leg.texts]
-                #  handles.extend(legend_lines)
-                #  labels.extend(legend_labels)
-#
-            #  ax.legend(
-                #  handles,
-                #  labels,
-                #  ncol=1,
-                #  loc='upper left',
-                #  fontsize=5,
-                #  bbox_to_anchor=(1, 1),
-                #  borderaxespad=0,
-                #  frameon=False,
-                #  handletextpad=0.1,
-            #  )
-#
-    #  def plot_atom_orbitals_old(self, ax, atom_orbital_pairs, scale_factor=5, color_list=None, legend=True, linewidth=0.75, band_color='black'):
-        #  """
-        #  This function plots the projected band structure of individual orbitals on a given axis.
-#
-        #  Parameters:
-            #  ax (matplotlib.pyplot.axis): Axis to plot the data on
-            #  atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
-                #  This should take the form of [[atom index, orbital_index], ...].
-                #  To plot the px orbital of the 1st atom and the pz orbital of the 2nd atom
-                #  in the POSCAR file, the input would be [[0, 3], [1, 2]]
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  color_list (list): List of colors of the same length as the atom_orbital_pairs
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  scale_factor = scale_factor ** 1.5
-#
-        #  self.plot_plain(ax=ax, linewidth=linewidth, color=band_color)
-#
-        #  projected_dict = self.projected_dict
-        #  wave_vector = self.wave_vector
-#
-        #  if color_list is None:
-            #  color_dict = self.color_dict
-        #  else:
-            #  color_dict = {i: color for i, color in enumerate(color_list)}
-#
-        #  for band in projected_dict:
-            #  for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
-                #  atom = atom_orbital_pair[0]
-                #  orbital = atom_orbital_pair[1]
-#
-                #  ax.scatter(
-                    #  wave_vector,
-                    #  self.bands_dict[band],
-                    #  c=color_dict[i],
-                    #  s=scale_factor * projected_dict[band][atom][orbital],
-                    #  zorder=1,
-                #  )
-#
-        #  if legend:
-            #  legend_lines = []
-            #  legend_labels = []
-            #  for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
-                #  atom = atom_orbital_pair[0]
-                #  orbital = atom_orbital_pair[1]
-#
-                #  legend_lines.append(plt.Line2D(
-                    #  [0],
-                    #  [0],
-                    #  marker='o',
-                    #  markersize=2,
-                    #  linestyle='',
-                    #  color=color_dict[i])
-                #  )
-                #  legend_labels.append(
-                    #  f'{atom}({self.orbital_labels[atom_orbital_pair[1]]})'
-                #  )
-#
-            #  ax.legend(
-                #  legend_lines,
-                #  legend_labels,
-                #  ncol=1,
-                #  loc='upper left',
-                #  fontsize=5,
-                #  bbox_to_anchor=(1, 1),
-                #  borderaxespad=0,
-                #  frameon=False,
-                #  handletextpad=0.1,
-            #  )
+
+

@@ -83,6 +83,7 @@ class Unfold:
         )
         kpath = make_kpath(self.high_symm_points, nseg=self.n)
         spectral_weight = wavecar_data.spectral_weight(kpath)
+        print(spectral_weight.shape)
         band_energies = []
         spectral_weights = []
         K_indices = []

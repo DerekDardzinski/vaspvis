@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Wedge
 from matplotlib.collections import PatchCollection
+import matplotlib.transforms as transforms
 
 fig, ax = plt.subplots(figsize=(4,3), dpi=300)
 
@@ -17,13 +18,15 @@ fractions = np.repeat(np.array([
     [0.3,0.3,0.4],
 ]), 4, axis=0)
 
-r = (0.15 + 0.1 * np.cos(x)) * 70
+r = (0.15 + 0.1 * np.cos(x))  * 70
 
 ax.scatter(
     x,
     y,
-    s=100,
+    s=r,
     color='red',
+    ec=None,
+    zorder=0,
 )
 
 t = ax.get_figure().transFigure.transform([(0,0), (1,1)])
@@ -34,15 +37,17 @@ def draw_pie(r, x, y, fractions, colors):
     fractions = np.c_[np.zeros(fractions.shape[0]), fractions]
     fractions = fractions * 360
     for i in range(len(x)):
+        trans = (fig.dpi_scale_trans + transforms.ScaledTranslation(x[i], y[i], ax.transData))
         wedges = [
             Wedge(
-                (x[i], y[i]),
-                (10 * t) * np.sqrt(np.pi),
+                (0,0),
+                np.sqrt(r[i] / np.pi) / 72,
                 np.sum(fractions[i][:j+1]),
                 np.sum(fractions[i][:j+2]),
                 color=colors[j],
-                zorder=100,
+                zorder=150,
                 ec=None,
+                transform=trans,
             ) for j in range(len(colors))
         ]
         patches.extend(wedges)
@@ -57,24 +62,27 @@ patches = draw_pie(
     colors=['red', 'blue', 'green']
 )
 
-for i in range(len(x)):
-    ax.plot(
-        x[i],
-        y[i],
-        markersize=10,
-        marker='o',
-        linestyle='',
-        zorder=1000
-    )
+#  for i in range(len(x)):
+    #  ax.plot(
+        #  x[i],
+        #  y[i] + 1,
+        #  markersize=10,
+        #  marker='o',
+        #  linestyle='',
+        #  zorder=10
+    #  )
 #  scat.get_marker()
 #  wedge = Wedge((1,1), 0.1, 0, 270, ec="none")
 #  patches.append(wedge)
 
-collection = PatchCollection(patches, match_original=True)
+#  collection = PatchCollection(patches, match_original=True)
 #  collection.set_array(colors)
-ax.add_collection(collection)
-plt.axis('equal')
+#  ax.add_collection(collection)
+[ax.add_patch(i) for i in patches]
+#  plt.axis('equal')
 #  plt.axis('off')
+#  plt.xlim(-10,10)
+#  plt.ylim(-10,10)
 plt.tight_layout()
 
 #  plt.show()
