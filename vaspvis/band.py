@@ -1,7 +1,7 @@
 from pymatgen.electronic_structure.core import Spin, Orbital
 from pymatgen.io.vasp.outputs import BSVasprun, Eigenval
 from pymatgen.io.vasp.inputs import Kpoints, Poscar, Incar
-from unfold import unfold, make_kpath, removeDuplicateKpoints
+from unfold.unfold import unfold, make_kpath, removeDuplicateKpoints
 from pymatgen.core.periodic_table import Element
 from pyprocar.utilsprocar import UtilsProcar
 from pyprocar.procarparser import ProcarParser
@@ -218,15 +218,12 @@ class Band:
         if self.pre_loaded_projections:
             with open(os.path.join(self.folder, 'projected_eigenvalues.npy'), 'rb') as projected_eigenvals:
                 projected_eigenvalues = np.load(projected_eigenvals) 
-            print(projected_eigenvalues[0][0])
-            print(np.sum(projected_eigenvalues[0][0][:,0]))
         else:
             parser = ProcarParser()
             parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
             projected_eigenvalues = np.transpose(parser.spd[:,:,spin,:-1, 1:-1], axes=(1,0,2,3))
             projected_eigenvalues = projected_eigenvalues 
             #  / np.sum(np.sum(projected_eigenvalues, axis=3),axis=2)[:,:,np.newaxis,np.newaxis]
-            print(np.sum(projected_eigenvalues[0][0]), axis=0)
             np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
 
         if self.hse:
@@ -272,8 +269,8 @@ class Band:
             ]), axes=[1,2,0]
         )
 
-        norm_term = np.sum(spd_contributions, axis=2)[:,:,np.newaxis]
-        spd_contributions = np.divide(spd_contributions, norm_term, out=np.zeros_like(spd_contributions), where=norm_term!=0)
+        #  norm_term = np.sum(spd_contributions, axis=2)[:,:,np.newaxis]
+        #  spd_contributions = np.divide(spd_contributions, norm_term, out=np.zeros_like(spd_contributions), where=norm_term!=0)
 
         spd_contributions = spd_contributions[:,:,[self.spd_relations[orb] for orb in spd]]
 
@@ -310,8 +307,8 @@ class Band:
             orbital_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected weights of the selected orbitals.
         """
         orbital_contributions = self.projected_eigenvalues.sum(axis=2)
-        norm_term = np.sum(orbital_contributions, axis=2)[:,:,np.newaxis]
-        orbital_contributions = np.divide(orbital_contributions, norm_term, out=np.zeros_like(orbital_contributions), where=norm_term!=0)
+        #  norm_term =  np.sum(orbital_contributions, axis=2)[:,:,np.newaxis]
+        #  orbital_contributions = np.divide(orbital_contributions, norm_term, out=np.zeros_like(orbital_contributions), where=norm_term!=0)
         orbital_contributions = orbital_contributions[:,:,[orbitals]]
 
         return orbital_contributions
@@ -348,15 +345,17 @@ class Band:
                 np.sum(self.projected_eigenvalues[:,:,:,ind], axis=3) for ind in spd_indices
             ]), axes=(1,2,3,0))
 
-            norm_term = np.sum(atoms_spd, axis=2)[:,:,np.newaxis]
-            atoms_spd = np.divide(atoms_spd, norm_term, out=np.zeros_like(atoms_spd), where=norm_term!=0)
+            atoms_spd_to_norm = atoms_spd[:,:,[atoms], :]
+
+            #  norm_term = np.sum(atoms_spd_to_norm, axis=(2,3))[:,:, np.newaxis]
+            #  atoms_spd = np.divide(atoms_spd, norm_term, out=np.zeros_like(atoms_spd), where=norm_term!=0)
 
             return atoms_spd
         else:
             atoms_array = self.projected_eigenvalues.sum(axis=3)
-            norm_term = np.sum(atoms_array, axis=2)[:,:,np.newaxis]
-            atoms_array = np.divide(atoms_array, norm_term, out=np.zeros_like(atoms_array), where=norm_term!=0)
-            atoms_array = atoms_array[:,:,[atoms]]
+            #  norm_term = np.sum(atoms_array, axis=2)[:,:,np.newaxis]
+            #  atoms_array = np.divide(atoms_array, norm_term, out=np.zeros_like(atoms_array), where=norm_term!=0)
+            #  atoms_array = atoms_array[:,:,[atoms]]
 
             return atoms_array
 
@@ -416,11 +415,15 @@ class Band:
                 np.sum(element_orbitals[:,:,:,ind], axis=3) for ind in spd_indices
             ]), axes=(1,2,3,0))
 
-            #  element_spd = element_spd[:,:,[self.spd_relations[i] for i in spd_options]]
+            norm_term = np.sum(element_spd, axis=(2,3))[:,:,np.newaxis, np.newaxis]
+            element_spd = np.divide(element_spd, norm_term, out=np.zeros_like(element_spd), where=norm_term!=0)
 
             return element_spd
         else:
             element_array = np.sum(element_orbitals, axis=3)
+            norm_term = np.sum(element_array, axis=2)[:,:,np.newaxis]
+            element_array = np.divide(element_array, norm_term, out=np.zeros_like(element_array), where=norm_term!=0)
+
             return element_array
 
 
@@ -554,8 +557,8 @@ class Band:
         bands_in_plot = self._filter_bands(erange=erange)
         eigenvalues = self.eigenvalues[bands_in_plot]
         wave_vectors = self._get_k_distance()
-        if self.unfold:
-            wave_vectors = (wave_vectors / np.max(wave_vectors)) * 5
+        #  if self.unfold:
+            #  wave_vectors = (wave_vectors / np.max(wave_vectors)) * 5
         eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
         wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
 
@@ -566,6 +569,7 @@ class Band:
                 wave_vectors_tile,
                 eigenvalues_ravel,
                 c=color,
+                ec=None,
                 s=scale_factor * spectral_weights_ravel,
                 zorder=0,
             )
@@ -603,14 +607,21 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
-        #  scale_factor = scale_factor ** 1.5
-        
+        if self.unfold:
+            band_color = [(0.9,0.9,0.9)]
+
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color, erange=erange)
 
         bands_in_plot = self._filter_bands(erange=erange)
         projected_data = projected_data[bands_in_plot]
         wave_vectors = self._get_k_distance()
         eigenvalues = self.eigenvalues[bands_in_plot]
+
+        if self.unfold:
+            spectral_weights = self.spectral_weights[bands_in_plot]
+            K_indices = np.array(self.K_indices[0], dtype=int)
+            projected_data = projected_data[:, K_indices, :]
+            spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
 
         projected_data_ravel = np.ravel(projected_data)
         wave_vectors_tile = np.tile(
@@ -632,104 +643,196 @@ class Band:
             colors_tile = colors_tile[sort_index]
             projected_data_ravel = projected_data_ravel[sort_index]
 
+            if self.unfold:
+                spectral_weights_ravel = spectral_weights_ravel[sort_index]
+
+        if self.unfold:
+            s = scale_factor * projected_data_ravel * spectral_weights_ravel
+            ec = None
+        else:
+            s = scale_factor * projected_data_ravel
+            ec = colors_tile
+
         ax.scatter(
             wave_vectors_tile,
             eigenvalues_tile,
             c=colors_tile,
-            s=scale_factor * projected_data_ravel,
+            ec=ec,
+            s=s,
             zorder=100,
         )
 
-    def _pie_scatter(self, ax, x, y, s, fractions, colors):
-        #  patches = []
-        fractions = np.c_[np.zeros(fractions.shape[0]), fractions]
-        for i in range(len(x)):
-            indv_fraction = fractions[i]
-            print(indv_fraction, np.sum(indv_fraction))
-            indv_color = colors
-            if not np.isclose(np.sum(indv_fraction), 1, atol=0.01):
-                indv_fraction = np.append(indv_fraction, 1 - np.sum(indv_fraction))
-                indv_color = np.append(indv_color, 'grey')
-            transform = (fig.dpi_scale_trans + transforms.ScaledTranslation(x[i], y[i], ax.transData))
-            #  print([f'{np.sum(indv_fraction[:k+1])}-{np.sum(indv_fraction[:k+2])}' for k in range(len(indv_color))])
-            wedges = [
-                Wedge(
-                    (0,0),
-                    np.sqrt(s[i] / 1.5) / 72,
-                    360 * np.sum(indv_fraction[:j+1]),
-                    360 * np.sum(indv_fraction[:j+2]),
-                    color=indv_color[j],
-                    zorder=150,
-                    ec=None,
-                    #  transform=transform,
-                ) for j in range(len(indv_color))
-            ]
-            #  patches.extend(wedges)
-
-            collection = PatchCollection(wedges, transform=transform, match_original=True)
-            ax.add_collection(collection)
-        #  [ax.add_patch(patch) for patch in patches]
-        #  plt.axis('equal', adjustable='datalim')
-        #  ax.set_xlim(-0.5,0.5)
-
-    def _plot_projected_general_unfold(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black'):
-        """
-        This is a general method for plotting projected data
-
-        Parameters:
-            scale_factor (float): Factor to scale weights. This changes the size of the
-                points in the scatter plot
-            color_dict (dict[str][str]): This option allow the colors of each orbital
-                specified. Should be in the form of:
-                {'orbital index': <color>, 'orbital index': <color>, ...}
-            legend (bool): Determines if the legend should be included or not.
-            linewidth (float): Line width of the plain band structure plotted in the background
-            band_color (string): Color of the plain band structure
-        """
-        #  self.plot_plain(ax=ax, linewidth=linewidth, scale_factor=0.1, color=band_color, erange=erange)
-
-        bands_in_plot = self._filter_bands(erange=erange)
-        K_indices = np.array(self.K_indices[0], dtype=int)
-        projected_data = projected_data[bands_in_plot]
-        projected_data = projected_data[:, K_indices, :]
-        wave_vectors = self._get_k_distance()
-        wave_vectors = (wave_vectors / np.max(wave_vectors)) * 5
-        eigenvalues = self.eigenvalues[bands_in_plot]
-        spectral_weights = self.spectral_weights[bands_in_plot]
-
-        projected_data_reshape = np.reshape(
-            projected_data, (np.prod(projected_data.shape[:2]), np.prod(projected_data.shape[2:]))
-        )
-
-        #  norm_term = np.sum(projected_data_reshape, axis=1)[:,np.newaxis]
-        #  projected_data_reshape = np.divide(
-            #  projected_data_reshape,
-            #  norm_term,
-            #  out=np.zeros_like(projected_data_reshape),
-            #  where=norm_term!=0
+    #  def _pie_scatter(self, ax, x, y, s, fractions, colors):
+        #  #  patches = []
+        #  fractions = np.c_[np.zeros(fractions.shape[0]), fractions]
+        #  for i in range(len(x)):
+            #  indv_fraction = fractions[i]
+            #  indv_color = colors
+            #  if not np.isclose(np.sum(indv_fraction), 1, atol=0.01):
+                #  indv_fraction = np.append(indv_fraction, 1 - np.sum(indv_fraction))
+                #  indv_color = np.append(indv_color, 'black')
+            #  transform = (fig.dpi_scale_trans + transforms.ScaledTranslation(x[i], y[i], ax.transData))
+            #  wedges = [
+                #  Wedge(
+                    #  (0,0),
+                    #  np.sqrt(s[i] / 1.5) / 72,
+                    #  360 * np.sum(indv_fraction[:j+1]),
+                    #  360 * np.sum(indv_fraction[:j+2]),
+                    #  color=indv_color[j],
+                    #  zorder=150,
+                    #  ec=None,
+                    #  #  transform=transform,
+                #  ) for j in range(len(indv_color))
+            #  ]
+            #  #  patches.extend(wedges)
+#
+            #  collection = PatchCollection(wedges, transform=transform, match_original=True)
+            #  ax.add_collection(collection)
+        #  #  [ax.add_patch(patch) for patch in patches]
+        #  #  plt.axis('equal', adjustable='datalim')
+        #  #  ax.set_xlim(-0.5,0.5)
+#
+    #  def _plot_projected_general_unfold(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black'):
+        #  """
+        #  This is a general method for plotting projected data
+#
+        #  Parameters:
+            #  scale_factor (float): Factor to scale weights. This changes the size of the
+                #  points in the scatter plot
+            #  color_dict (dict[str][str]): This option allow the colors of each orbital
+                #  specified. Should be in the form of:
+                #  {'orbital index': <color>, 'orbital index': <color>, ...}
+            #  legend (bool): Determines if the legend should be included or not.
+            #  linewidth (float): Line width of the plain band structure plotted in the background
+            #  band_color (string): Color of the plain band structure
+        #  """
+        #  #  self.plot_plain(ax=ax, linewidth=linewidth, scale_factor=scale_factor, color=band_color, erange=erange)
+        #  scale_factor = scale_factor + (scale_factor * 0.5)
+        #  bands_in_plot = self._filter_bands(erange=erange)
+        #  K_indices = np.array(self.K_indices[0], dtype=int)
+        #  projected_data = projected_data[bands_in_plot]
+        #  projected_data = projected_data[:, K_indices, :]
+        #  wave_vectors = self._get_k_distance()
+        #  eigenvalues = self.eigenvalues[bands_in_plot]
+        #  spectral_weights = self.spectral_weights[bands_in_plot]
+#
+        #  projected_data_ravel = np.square(np.ravel(projected_data))
+        #  wave_vectors_tile = np.tile(
+            #  np.repeat(wave_vectors, projected_data.shape[-1]), projected_data.shape[0]
         #  )
-
-        wave_vectors_tile = np.tile(wave_vectors, projected_data.shape[0])
-        eigenvalues_ravel = np.ravel(eigenvalues)
-        spectral_weights_ravel = np.ravel(spectral_weights)
-
-        self._pie_scatter(
-            ax=ax,
-            x=wave_vectors_tile,
-            y=eigenvalues_ravel,
-            colors=colors,
-            s=scale_factor*spectral_weights_ravel,
-            fractions=projected_data_reshape,
-        )
-
-        if self.hse:
-            self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
-        elif self.unfold:
-            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
-        else:
-            self._get_kticks(ax=ax)
-
-        ax.set_xlim(0, np.max(wave_vectors))
+        #  eigenvalues_ravel = np.repeat(np.ravel(eigenvalues), projected_data.shape[-1])
+        #  colors_tile = np.tile(colors, np.prod(projected_data.shape[:-1]))
+        #  spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
+#
+        #  if display_order is None:
+            #  pass
+        #  else:
+            #  sort_index = np.argsort(projected_data_ravel)
+#
+            #  if display_order == 'all':
+                #  sort_index = sort_index[::-1]
+#
+            #  wave_vectors_tile = wave_vectors_tile[sort_index]
+            #  eigenvalues_ravel = eigenvalues_ravel[sort_index]
+            #  colors_tile = colors_tile[sort_index]
+            #  projected_data_ravel = projected_data_ravel[sort_index]
+            #  spectral_weights_ravel = spectral_weights_ravel[sort_index]
+#
+        #  ax.scatter(
+            #  wave_vectors_tile,
+            #  eigenvalues_ravel,
+            #  c=colors_tile,
+            #  s=scale_factor * projected_data_ravel * spectral_weights_ravel,
+            #  zorder=100,
+        #  )
+#
+#
+        #  if self.hse:
+            #  self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
+        #  elif self.unfold:
+            #  self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
+        #  else:
+            #  self._get_kticks(ax=ax)
+#
+        #  ax.set_xlim(0, np.max(wave_vectors))
+#
+    #  def _plot_projected_general_unfold_old(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black'):
+        #  """
+        #  This is a general method for plotting projected data
+#
+        #  Parameters:
+            #  scale_factor (float): Factor to scale weights. This changes the size of the
+                #  points in the scatter plot
+            #  color_dict (dict[str][str]): This option allow the colors of each orbital
+                #  specified. Should be in the form of:
+                #  {'orbital index': <color>, 'orbital index': <color>, ...}
+            #  legend (bool): Determines if the legend should be included or not.
+            #  linewidth (float): Line width of the plain band structure plotted in the background
+            #  band_color (string): Color of the plain band structure
+        #  """
+        #  #  self.plot_plain(ax=ax, linewidth=linewidth, scale_factor=0.1, color=band_color, erange=erange)
+        #  scale_factor = scale_factor + (scale_factor * 0.5)
+        #  bands_in_plot = self._filter_bands(erange=erange)
+        #  K_indices = np.array(self.K_indices[0], dtype=int)
+        #  projected_data = projected_data[bands_in_plot]
+        #  projected_data = projected_data[:, K_indices, :]
+        #  wave_vectors = self._get_k_distance()
+        #  eigenvalues = self.eigenvalues[bands_in_plot]
+        #  spectral_weights = self.spectral_weights[bands_in_plot]
+#
+        #  if display_order is None or display_order == 'all':
+            #  projected_data_reshape = np.reshape(
+                #  projected_data, (np.prod(projected_data.shape[:2]), np.prod(projected_data.shape[2:]))
+            #  )
+#
+            #  wave_vectors_tile = np.tile(wave_vectors, projected_data.shape[0])
+            #  eigenvalues_ravel = np.ravel(eigenvalues)
+            #  spectral_weights_ravel = np.ravel(spectral_weights)
+#
+            #  self._pie_scatter(
+                #  ax=ax,
+                #  x=wave_vectors_tile,
+                #  y=eigenvalues_ravel,
+                #  colors=colors,
+                #  s=scale_factor*spectral_weights_ravel,
+                #  fractions=projected_data_reshape,
+            #  )
+        #  elif display_order == 'dominant':
+            #  projected_data_ravel = np.square(np.ravel(projected_data))
+            #  wave_vectors_tile = np.tile(
+                #  np.repeat(wave_vectors, projected_data.shape[-1]), projected_data.shape[0]
+            #  )
+            #  eigenvalues_ravel = np.repeat(np.ravel(eigenvalues), projected_data.shape[-1])
+            #  colors_tile = np.tile(colors, np.prod(projected_data.shape[:-1]))
+            #  spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
+#
+            #  sort_index = np.argsort(projected_data_ravel)
+            #  sort_index = sort_index[::-1]
+#
+            #  wave_vectors_tile = wave_vectors_tile[sort_index]
+            #  eigenvalues_ravel = eigenvalues_ravel[sort_index]
+            #  colors_tile = colors_tile[sort_index]
+            #  projected_data_ravel = projected_data_ravel[sort_index]
+            #  spectral_weights_ravel = spectral_weights_ravel[sort_index]
+#
+            #  ax.scatter(
+                #  wave_vectors_tile,
+                #  eigenvalues_ravel,
+                #  c=colors_tile,
+                #  ec=None,
+                #  s=scale_factor * projected_data_ravel * spectral_weights_ravel,
+                #  zorder=100,
+            #  )
+#
+#
+        #  if self.hse:
+            #  self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
+        #  elif self.unfold:
+            #  self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
+        #  else:
+            #  self._get_kticks(ax=ax)
+#
+        #  ax.set_xlim(0, np.max(wave_vectors))
         
     def plot_orbitals(self, ax, orbitals, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
@@ -773,7 +876,12 @@ class Band:
 
         projected_data = self._sum_orbitals(orbitals=orbitals)
 
-        self._plot_projected_general(
+        if self.unfold:
+            plot_func = self._plot_projected_general_unfold
+        else:
+            plot_func = self._plot_projected_general
+
+        plot_func(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -823,12 +931,7 @@ class Band:
 
         projected_data = self._sum_spd(spd=orbitals)
 
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -864,12 +967,7 @@ class Band:
 
         projected_data = self._sum_atoms(atoms=atoms)
 
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -921,12 +1019,7 @@ class Band:
         else:
             colors = color_list
 
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -982,12 +1075,7 @@ class Band:
         else:
             colors = color_list
 
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -1027,12 +1115,7 @@ class Band:
 
         projected_data = self._sum_elements(elements=elements)
 
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -1080,12 +1163,7 @@ class Band:
         else:
             colors = color_list
 
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -1143,13 +1221,7 @@ class Band:
         else:
             colors = color_list
 
-
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -1185,7 +1257,16 @@ if __name__ == "__main__":
     )
     fig, ax = plt.subplots(figsize=(3,4), dpi=300)
     start = time.time()
-    band.plot_spd(ax=ax, orbitals='p', scale_factor=5, erange=[-5,0])
+    #  band.plot_plain(ax=ax, color=[(0.9,0.9,0.9)])
+    #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
+    #  band.plot_orbitals(ax=ax, scale_factor=35, orbitals=range(8), display_order=None)
+    band.plot_spd( 
+        ax=ax,
+        orbitals='s',
+        display_order='all',
+        scale_factor=20,
+        erange=[-5,0],
+    )
     #  ax.set_aspect(3, adjustable='datalim')
     end = time.time()
     print(end-start)
@@ -1193,8 +1274,8 @@ if __name__ == "__main__":
     ax.tick_params(labelsize=6, length=2.5)
     ax.tick_params(axis='x', length=0)
     ax.set_ylim(-5,0)
-    plt.tight_layout()
-    plt.savefig('unfold_plain.png')
+    plt.tight_layout(pad=0.2)
+    plt.savefig('unfold_spd.png')
         
         
 

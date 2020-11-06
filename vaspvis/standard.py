@@ -6650,57 +6650,58 @@ def _main():
     import time
     band_folder = '../../vaspvis_data/band'
     start = time.time()
-    band_plain(
+    #  band_plain(
+        #  folder=band_folder,
+        #  erange=[-3,3],
+    #  )
+    #  band_spd(
+        #  folder=band_folder,
+        #  display_order='dominant',
+        #  erange=[-3,3],
+    #  )
+    #  band_orbitals(
+        #  folder=band_folder,
+        #  orbitals=[0,1,2,3,4,5,6,7,8],
+        #  display_order='dominant',
+        #  erange=[-3,3],
+    #  )
+    #  band_atoms(
+        #  folder=band_folder,
+        #  atoms=[0,1],
+        #  display_order='dominant',
+        #  erange=[-3,3],
+    #  )
+    #  band_atom_orbitals(
+        #  folder=band_folder,
+        #  atom_orbital_dict={0:[0,1,2,3,4,5,6,7,8]},
+        #  display_order='dominant',
+        #  erange=[-3,3],
+    #  )
+    dos_element_spd(
         folder=band_folder,
+        elements=["Sb"],
+        #  display_order='dominant',
+        output='Sb.png',
         erange=[-3,3],
     )
-    band_spd(
-        folder=band_folder,
-        display_order='dominant',
-        erange=[-3,3],
-    )
-    band_orbitals(
-        folder=band_folder,
-        orbitals=[0,1,2,3,4,5,6,7,8],
-        display_order='dominant',
-        erange=[-3,3],
-    )
-    band_atoms(
-        folder=band_folder,
-        atoms=[0,1],
-        display_order='dominant',
-        erange=[-3,3],
-    )
-    band_atom_orbitals(
-        folder=band_folder,
-        atom_orbital_dict={0:[0,1,2,3,4,5,6,7,8]},
-        display_order='dominant',
-        erange=[-3,3],
-    )
-    band_atom_spd(
-        folder=band_folder,
-        atom_spd_dict={1:'spd'},
-        display_order='dominant',
-        erange=[-3,3],
-    )
-    band_elements(
-        folder=band_folder,
-        elements=['In', 'Sb'],
-        display_order='dominant',
-        erange=[-3,3],
-    )
-    band_element_orbitals(
-        folder=band_folder,
-        element_orbital_dict={'In':[0,1,2,3,4,5,6,7,8]},
-        display_order='dominant',
-        erange=[-3,3],
-    )
-    band_element_spd(
-        folder=band_folder,
-        element_spd_dict={'Sb':'spd'},
-        display_order='dominant',
-        erange=[-3,3],
-    )
+    #  band_elements(
+        #  folder=band_folder,
+        #  elements=['In', 'Sb'],
+        #  display_order='dominant',
+        #  erange=[-3,3],
+    #  )
+    #  band_element_orbitals(
+        #  folder=band_folder,
+        #  element_orbital_dict={'In':[0,1,2,3,4,5,6,7,8]},
+        #  display_order='dominant',
+        #  erange=[-3,3],
+    #  )
+    #  band_element_spd(
+        #  folder=band_folder,
+        #  element_spd_dict={'Sb':'spd'},
+        #  display_order='dominant',
+        #  erange=[-3,3],
+    #  )
     end = time.time()
     print('Total', end - start)
 

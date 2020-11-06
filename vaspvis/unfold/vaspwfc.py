@@ -4,7 +4,7 @@
 import os
 import numpy as np
 from math import sqrt
-from vasp_constant import *
+from .vasp_constant import *
 from multiprocessing import cpu_count
 from scipy.fftpack import fftfreq, fftn, ifftn
 
