@@ -89,9 +89,11 @@ def band_plain(
     figsize=(4, 3),
     erange=[-6, 6],
     hse=False,
-    unfold=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -129,8 +131,11 @@ def band_plain(
         folder=folder,
         spin=spin,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -166,6 +171,9 @@ def band_spd(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -214,14 +222,15 @@ def band_spd(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
-    start = time.time()
     band.plot_spd(
         ax=ax,
         scale_factor=scale_factor,
@@ -233,8 +242,6 @@ def band_spd(
         linewidth=linewidth,
         band_color=band_color,
     )
-    end = time.time()
-    print(end - start)
     plt.tight_layout(pad=0.2)
 
     if save:
@@ -259,6 +266,9 @@ def band_atom_orbitals(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -301,9 +311,11 @@ def band_atom_orbitals(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -343,6 +355,9 @@ def band_orbitals(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -404,9 +419,11 @@ def band_orbitals(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -446,6 +463,9 @@ def band_atoms(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -487,9 +507,11 @@ def band_atoms(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -528,6 +550,9 @@ def band_atom_spd(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -577,9 +602,11 @@ def band_atom_spd(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -619,6 +646,9 @@ def band_elements(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -660,9 +690,11 @@ def band_elements(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -702,6 +734,9 @@ def band_element_orbitals(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -744,9 +779,11 @@ def band_element_orbitals(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -786,6 +823,9 @@ def band_element_spd(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -835,9 +875,11 @@ def band_element_spd(
         folder=folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -6649,59 +6691,119 @@ def dos_layers(
 def _main():
     import time
     band_folder = '../../vaspvis_data/band'
+    #  band_plain(folder=band_folder)
+    #  band_folder = '../../vaspvis_data/InSb111_band'
     start = time.time()
-    #  band_plain(
-        #  folder=band_folder,
-        #  erange=[-3,3],
-    #  )
-    #  band_spd(
-        #  folder=band_folder,
-        #  display_order='dominant',
-        #  erange=[-3,3],
-    #  )
-    #  band_orbitals(
-        #  folder=band_folder,
-        #  orbitals=[0,1,2,3,4,5,6,7,8],
-        #  display_order='dominant',
-        #  erange=[-3,3],
-    #  )
-    #  band_atoms(
-        #  folder=band_folder,
-        #  atoms=[0,1],
-        #  display_order='dominant',
-        #  erange=[-3,3],
-    #  )
-    #  band_atom_orbitals(
-        #  folder=band_folder,
-        #  atom_orbital_dict={0:[0,1,2,3,4,5,6,7,8]},
-        #  display_order='dominant',
-        #  erange=[-3,3],
-    #  )
-    dos_element_spd(
+    #  M = [
+        #  [0,1,-1],
+        #  [1,-1,0],
+        #  [-8,-8,-8]
+    #  ]
+    #  high_symm_points = [
+        #  [0.5, 0.0, 0.5],
+        #  [0.0, 0.0, 0],
+        #  [0.5, 0.0, 0.5]
+    #  ]
+    band_plain(
         folder=band_folder,
-        elements=["Sb"],
-        #  display_order='dominant',
-        output='Sb.png',
-        erange=[-3,3],
+        erange=[-4,0],
+        figsize=(3,4),
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
     )
-    #  band_elements(
-        #  folder=band_folder,
-        #  elements=['In', 'Sb'],
-        #  display_order='dominant',
-        #  erange=[-3,3],
-    #  )
-    #  band_element_orbitals(
-        #  folder=band_folder,
-        #  element_orbital_dict={'In':[0,1,2,3,4,5,6,7,8]},
-        #  display_order='dominant',
-        #  erange=[-3,3],
-    #  )
-    #  band_element_spd(
-        #  folder=band_folder,
-        #  element_spd_dict={'Sb':'spd'},
-        #  display_order='dominant',
-        #  erange=[-3,3],
-    #  )
+    band_spd(
+        folder=band_folder,
+        display_order='all',
+        erange=[-4,0],
+        figsize=(3,4),
+        #  scale_factor=25,
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    )
+    band_orbitals(
+        folder=band_folder,
+        orbitals=[0,1,2,3,4,5,6,7,8],
+        display_order='all',
+        erange=[-4,0],
+        figsize=(3,4),
+        #  scale_factor=25,
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    )
+    band_atoms(
+        folder=band_folder,
+        atoms=[0,1],
+        display_order='all',
+        erange=[-4,0],
+        figsize=(3,4),
+        #  scale_factor=25,
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    )
+    band_atom_orbitals(
+        folder=band_folder,
+        atom_orbital_dict={0:[0,1,2,3,4,5,6,7,8]},
+        display_order='all',
+        erange=[-4,0],
+        figsize=(3,4),
+        #  scale_factor=25,
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    )
+    band_elements(
+        folder=band_folder,
+        elements=['In', 'Sb'],
+        display_order='all',
+        erange=[-4,0],
+        figsize=(3,4),
+        #  scale_factor=25,
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    )
+    band_element_orbitals(
+        folder=band_folder,
+        element_orbital_dict={'In':[0,1,2,3,4,5,6,7,8]},
+        display_order='all',
+        erange=[-4,0],
+        figsize=(3,4),
+        #  scale_factor=25,
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    )
+    band_element_spd(
+        folder=band_folder,
+        element_spd_dict={'Sb':'spd'},
+        display_order='all',
+        erange=[-4,0],
+        figsize=(3,4),
+        #  scale_factor=25,
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    )
     end = time.time()
     print('Total', end - start)
 

@@ -71,6 +71,14 @@ class Band:
         self.incar = Incar.from_file(
             os.path.join(folder, 'INCAR')
         )
+        if 'LSORBIT' in self.incar:
+            if self.incar['LSORBIT']:
+                self.lsorbit = True
+            else:
+                self.lsorbit = False
+        else:
+            self.lsorbit = False
+
         self.wavecar = os.path.join(folder, 'WAVECAR')
         self.projected = projected
         self.forbitals = False
@@ -84,8 +92,10 @@ class Band:
         self.spin = spin
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
         if not self.unfold:
+            self.pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
             self.eigenvalues, self.kpoints = self._load_bands()
         else:
+            self.pre_loaded_bands = os.path.isfile(os.path.join(folder, 'unfolded_eigenvalues.npy'))
             self.eigenvalues, self.spectral_weights, self.K_indices, self.kpoints = self._load_bands_unfold()
         self.color_dict = {
             0: '#FF0000',
@@ -130,13 +140,6 @@ class Band:
             'f': 3,
         }
 
-        if 'LORBIT' in self.incar:
-            if self.incar['LORBIT']:
-                self.lorbit = True
-            else:
-                self.lorbit = False
-        else:
-            self.lorbit = False
 
         if projected:
             self.pre_loaded_projections = os.path.isfile(os.path.join(folder, 'projected_eigenvalues.npy'))
@@ -158,13 +161,27 @@ class Band:
 
         spin = self.spin_dict[self.spin]
 
-        eigenvalues = np.transpose(self.eigenval.eigenvalues[spin][:,:,0]) - self.efermi
-        kpoints = np.array(self.eigenval.kpoints)
+        if self.pre_loaded_bands:
+            with open(os.path.join(self.folder, 'eigenvalues.npy'), 'rb') as eigenvals:
+                band_data = np.load(eigenvals)
 
-        if self.hse:
-            kpoints_band = self.n * (len(self.kpath) - 1)
-            eigenvalues = eigenvalues[-kpoints_band:]
-            kpoints = kpoints[-kpoints_band:]
+            eigenvalues = band_data[:,:,0]
+            kpoints = band_data[0,:,1:]
+        else:
+            eigenvalues = np.transpose(self.eigenval.eigenvalues[spin][:,:,0]) - self.efermi
+            kpoints = np.array(self.eigenval.kpoints)
+
+            if self.hse:
+                kpoints_band = self.n * (len(self.kpath) - 1)
+                eigenvalues = eigenvalues[-kpoints_band:]
+                kpoints = kpoints[-kpoints_band:]
+
+            band_data = np.append(
+                eigenvalues[:,:,np.newaxis],
+                np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+                axis=2,
+            )
+            np.save(os.path.join(self.folder, 'eigenvalues.npy'), band_data)
 
         return eigenvalues, kpoints
 
@@ -176,17 +193,23 @@ class Band:
         if self.spin == 'down':
             spin = 1
 
-        efermi = self.efermi
-        wavecar_data = unfold(
-            M=self.M,
-            wavecar=self.wavecar,
-            lsorbit=True,
-        )
         kpath = make_kpath(self.high_symm_points, nseg=self.n)
-        band_data = wavecar_data.spectral_weight(kpath)
+
+        if self.pre_loaded_bands:
+            with open(os.path.join(self.folder, 'unfolded_eigenvalues.npy'), 'rb') as eigenvals:
+                band_data = np.load(eigenvals) 
+        else:
+            wavecar_data = unfold(
+                M=self.M,
+                wavecar=self.wavecar,
+                lsorbit=self.lsorbit,
+            )
+            band_data = wavecar_data.spectral_weight(kpath)
+            np.save(os.path.join(self.folder, 'unfolded_eigenvalues.npy'), band_data)
+
         band_data = np.transpose(band_data[spin], axes=(2,1,0))
         eigenvalues, spectral_weights, K_indices = band_data
-        eigenvalues = eigenvalues - efermi
+        eigenvalues = eigenvalues - self.efermi
         kpath = np.array(kpath)
 
         return eigenvalues, spectral_weights, K_indices, kpath
@@ -202,7 +225,7 @@ class Band:
             projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
         """
         
-        if self.lorbit:
+        if self.lsorbit:
             spin = 0
         elif self.spin == 'up':
             spin = 0
@@ -345,7 +368,7 @@ class Band:
                 np.sum(self.projected_eigenvalues[:,:,:,ind], axis=3) for ind in spd_indices
             ]), axes=(1,2,3,0))
 
-            atoms_spd_to_norm = atoms_spd[:,:,[atoms], :]
+            #  atoms_spd = atoms_spd[:,:,[atoms], :]
 
             #  norm_term = np.sum(atoms_spd_to_norm, axis=(2,3))[:,:, np.newaxis]
             #  atoms_spd = np.divide(atoms_spd, norm_term, out=np.zeros_like(atoms_spd), where=norm_term!=0)
@@ -355,7 +378,7 @@ class Band:
             atoms_array = self.projected_eigenvalues.sum(axis=3)
             #  norm_term = np.sum(atoms_array, axis=2)[:,:,np.newaxis]
             #  atoms_array = np.divide(atoms_array, norm_term, out=np.zeros_like(atoms_array), where=norm_term!=0)
-            #  atoms_array = atoms_array[:,:,[atoms]]
+            atoms_array = atoms_array[:,:,[atoms]]
 
             return atoms_array
 
@@ -876,12 +899,7 @@ class Band:
 
         projected_data = self._sum_orbitals(orbitals=orbitals)
 
-        if self.unfold:
-            plot_func = self._plot_projected_general_unfold
-        else:
-            plot_func = self._plot_projected_general
-
-        plot_func(
+        self._plot_projected_general(
             ax=ax,
             projected_data=projected_data,
             colors=colors,
@@ -1260,10 +1278,10 @@ if __name__ == "__main__":
     #  band.plot_plain(ax=ax, color=[(0.9,0.9,0.9)])
     #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
     #  band.plot_orbitals(ax=ax, scale_factor=35, orbitals=range(8), display_order=None)
-    band.plot_spd( 
+    band.plot_atoms( 
         ax=ax,
-        orbitals='s',
-        display_order='all',
+        atoms=[0,1],
+        display_order='dominant',
         scale_factor=20,
         erange=[-5,0],
     )
@@ -1275,7 +1293,7 @@ if __name__ == "__main__":
     ax.tick_params(axis='x', length=0)
     ax.set_ylim(-5,0)
     plt.tight_layout(pad=0.2)
-    plt.savefig('unfold_spd.png')
+    plt.savefig('unfold_spd_dominant.png')
         
         
 
