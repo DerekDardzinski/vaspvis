@@ -22,7 +22,7 @@ copyright = '2020, Derek Dardzinski'
 author = 'Derek Dardzinski'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.17'
+release = '0.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -54,7 +54,7 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 add_module_names = False
-autodoc_mock_imports = ['pymatgen', 'matplotlib', 'numpy', 'scipy', 'pandas', 'ase']
+autodoc_mock_imports = ['pymatgen', 'matplotlib', 'numpy', 'scipy', 'pandas', 'ase', 'pychemia']
 master_doc = 'index'
 autodoc_member_order = 'bysource'
 

@@ -1,6 +1,6 @@
 import numpy as np
-from unfold.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
-from unfold.convert import convert
+from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
+from vaspvis.unfold import convert
 
 def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
     M = convert(

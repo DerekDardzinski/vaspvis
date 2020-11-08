@@ -1,7 +1,7 @@
 from pymatgen.electronic_structure.core import Spin, Orbital
 from pymatgen.io.vasp.outputs import BSVasprun, Eigenval
 from pymatgen.io.vasp.inputs import Kpoints, Poscar, Incar
-from unfold.unfold import unfold, make_kpath, removeDuplicateKpoints
+from vaspvis.unfold import unfold, make_kpath, removeDuplicateKpoints
 from pymatgen.core.periodic_table import Element
 from pyprocar.utilsprocar import UtilsProcar
 from pyprocar.procarparser import ProcarParser

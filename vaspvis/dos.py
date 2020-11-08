@@ -34,7 +34,21 @@ class Dos:
         self.spin = spin
         self.combination_method = combination_method
         self.forbitals = False
-        self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
+        if os.path.isfile(os.path.join(folder, 'dos.npy')) and os.path.isfile(os.path.join(folder, 'projected_dos.npy')):
+            with open(os.path.join(folder, 'dos.npy'), 'rb') as dos_file:
+                dos = np.load(dos_file)
+            with open(os.path.join(folder, 'projected_dos.npy'), 'rb') as projected_dos_file:
+                projected_dos = np.load(projected_dos_file)
+
+            self.doscar = {
+                'total': dos,
+                'projected': projected_dos,
+            }
+        else:
+            self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
+            np.save(os.path.join(folder, 'dos.npy'), self.doscar['total'])
+            np.save(os.path.join(folder, 'projected_dos.npy'), self.doscar['projected'])
+
         self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
         self.poscar = Poscar.from_file(
             os.path.join(folder, 'POSCAR'),
@@ -93,9 +107,6 @@ class Dos:
         self.tdos_dict = self._load_tdos()
         self.pdos_dict = self._load_pdos()
 
-
-        
-
     def _load_tdos(self):
         """
         This function loads the total density of states into a dictionary
@@ -105,12 +116,8 @@ class Dos:
                 energies and densities of the system.
         """
 
-        if self.spin == 'up':
-            spin_factor = 1
-        elif self.spin == 'down':
-            spin_factor = -1
-
         tdos = self.doscar['total']
+        print(tdos.shape)
 
         if self.spin == 'up' or self.spin == 'down':
             tdos_dict = {
@@ -183,6 +190,7 @@ class Dos:
         """
 
         pdos = self.doscar['projected']
+        print(pdos.shape)
 
         if self.spin == 'up':
             if not self.forbitals:
@@ -1783,7 +1791,8 @@ class Dos:
                 handletextpad=0.1,
             )
 
-    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], vmax=0.6, vmin=0.0, antialiased=False, fontsize=6, interface_layer=None, interface_line_color='white', interface_line_width=2, interface_line_style='--'):
+    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], antialiased=False, fontsize=6, interface_layer=None, interface_line_color='white', interface_line_width=2, interface_line_style='--', log_scale=False):
+        import matplotlib.colors as colors
         """
         This function plots a layer by layer heat map of the density
         of states.
@@ -1808,6 +1817,12 @@ class Dos:
         densities = np.transpose(densities)
         densities = gaussian_filter(densities, sigma=sigma)
 
+        if log_scale:
+            norm = colors.LogNorm(vmin=np.min(densities), vmax=np.max(densities))
+        else:
+            norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
+
+
         if energyaxis == 'y':
             im = ax.pcolormesh(
                 atom_index,
@@ -1815,8 +1830,7 @@ class Dos:
                 densities,
                 cmap=cmap,
                 shading='gouraud',
-                vmax=vmax,
-                vmin=vmin,
+                norm=norm,
                 antialiased=antialiased,
             )
 
@@ -1844,8 +1858,7 @@ class Dos:
                 np.transpose(densities),
                 cmap=cmap,
                 shading='gouraud',
-                vmax=vmax,
-                vmin=vmin,
+                norm=norm,
                 antialiased=antialiased,
             )
             if len(group_heights) <= 12:

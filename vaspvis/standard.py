@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from band import Band
+from vaspvis.band import Band
 from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -6597,14 +6597,13 @@ def dos_layers(
     save=True,
     cmap='magma',
     sigma=1.5,
-    vmax=0.6,
-    vmin=0.0,
     antialiased=False,
-    show_structure=True,
+    show_structure=False,
     interface_layer=None,
     interface_line_color='white',
     interface_line_style='--',
     interface_line_width=2,
+    log_scale=False,
 ):
     if show_structure:
         if energyaxis == 'x':
@@ -6656,8 +6655,6 @@ def dos_layers(
         sigma=sigma,
         cmap=cmap,
         erange=erange,
-        vmax=vmax,
-        vmin=vmin,
         antialiased=antialiased,
         fontsize=fontsize,
         energyaxis=energyaxis,
@@ -6665,6 +6662,7 @@ def dos_layers(
         interface_line_color=interface_line_color,
         interface_line_style=interface_line_style,
         interface_line_width=interface_line_width,
+        log_scale=log_scale,
     )
 
     if energyaxis == 'y':
@@ -6689,123 +6687,8 @@ def dos_layers(
 
 
 def _main():
-    import time
-    band_folder = '../../vaspvis_data/band'
-    #  band_plain(folder=band_folder)
-    #  band_folder = '../../vaspvis_data/InSb111_band'
-    start = time.time()
-    #  M = [
-        #  [0,1,-1],
-        #  [1,-1,0],
-        #  [-8,-8,-8]
-    #  ]
-    #  high_symm_points = [
-        #  [0.5, 0.0, 0.5],
-        #  [0.0, 0.0, 0],
-        #  [0.5, 0.0, 0.5]
-    #  ]
-    band_plain(
-        folder=band_folder,
-        erange=[-4,0],
-        figsize=(3,4),
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    band_spd(
-        folder=band_folder,
-        display_order='all',
-        erange=[-4,0],
-        figsize=(3,4),
-        #  scale_factor=25,
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    band_orbitals(
-        folder=band_folder,
-        orbitals=[0,1,2,3,4,5,6,7,8],
-        display_order='all',
-        erange=[-4,0],
-        figsize=(3,4),
-        #  scale_factor=25,
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    band_atoms(
-        folder=band_folder,
-        atoms=[0,1],
-        display_order='all',
-        erange=[-4,0],
-        figsize=(3,4),
-        #  scale_factor=25,
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    band_atom_orbitals(
-        folder=band_folder,
-        atom_orbital_dict={0:[0,1,2,3,4,5,6,7,8]},
-        display_order='all',
-        erange=[-4,0],
-        figsize=(3,4),
-        #  scale_factor=25,
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    band_elements(
-        folder=band_folder,
-        elements=['In', 'Sb'],
-        display_order='all',
-        erange=[-4,0],
-        figsize=(3,4),
-        #  scale_factor=25,
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    band_element_orbitals(
-        folder=band_folder,
-        element_orbital_dict={'In':[0,1,2,3,4,5,6,7,8]},
-        display_order='all',
-        erange=[-4,0],
-        figsize=(3,4),
-        #  scale_factor=25,
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    band_element_spd(
-        folder=band_folder,
-        element_spd_dict={'Sb':'spd'},
-        display_order='all',
-        erange=[-4,0],
-        figsize=(3,4),
-        #  scale_factor=25,
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-    )
-    end = time.time()
-    print('Total', end - start)
+    dos_folder = '../../vaspvis_data/dos'
+    dos_spd(folder=dos_folder)
 
 
 if __name__ == "__main__":
