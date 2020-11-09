@@ -77,35 +77,41 @@ class Dos:
             15: '#778392',
         }
         self.orbital_labels = {
-            0: '$s$',
-            1: '$p_{y}$',
-            2: '$p_{x}$',
-            3: '$p_{z}$',
-            4: '$d_{xy}$',
-            5: '$d_{yz}$',
-            6: '$d_{z^{2}}$',
-            7: '$d_{xz}$',
-            8: '$d_{x^{2}-y^{2}}$',
-            9: '$f_{y^{3}x^{2}}$',
-            10: '$f_{xyz}$',
-            11: '$f_{yz^{2}}$',
-            12: '$f_{z^{3}}$',
-            13: '$f_{xz^{2}}$',
-            14: '$f_{zx^{3}}$',
-            15: '$f_{x^{3}}$',
+            0: 's',
+            1: 'p_{y}',
+            2: 'p_{x}',
+            3: 'p_{z}',
+            4: 'd_{xy}',
+            5: 'd_{yz}',
+            6: 'd_{z^{2}}',
+            7: 'd_{xz}',
+            8: 'd_{x^{2}-y^{2}}',
+            9: 'f_{y^{3}x^{2}}',
+            10: 'f_{xyz}',
+            11: 'f_{yz^{2}}',
+            12: 'f_{z^{3}}',
+            13: 'f_{xz^{2}}',
+            14: 'f_{zx^{3}}',
+            15: 'f_{x^{3}}',
+        }
+        self.spd_relations = {
+            's': 0,
+            'p': 1,
+            'd': 2,
+            'f': 3,
         }
 
-        if 'LORBIT' in self.incar:
-            if self.incar['LORBIT']:
-                self.lorbit = True
+        if 'LSORBIT' in self.incar:
+            if self.incar['LSORBIT']:
+                self.lsorbit = True
             else:
-                self.lorbit = False
+                self.lsorbit = False
         else:
-            self.lorbit = False
+            self.lsorbit = False
 
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
-        self.tdos_dict = self._load_tdos()
-        self.pdos_dict = self._load_pdos()
+        self.tdos_array = self._load_tdos()
+        self.pdos_array = self._load_pdos()
 
     def _load_tdos(self):
         """
@@ -117,66 +123,23 @@ class Dos:
         """
 
         tdos = self.doscar['total']
-        print(tdos.shape)
-
-        if self.spin == 'up' or self.spin == 'down':
-            tdos_dict = {
-                'energy': tdos[:,0] - self.efermi,
-                'density': tdos[:,1],
-            }
-        elif self.spin == 'down':
-            tdos_dict = {
-                'energy': tdos[:,0] - self.efermi,
-                'density': -1 * tdos[:,2],
-            }
-        elif self.spin == 'both':
-            if self.combination_method == "add":
-                tdos_dict = {
-                    'energy': tdos[:,0] - self.efermi,
-                    'density': tdos[:,1] - tdos[:,2],
-                }
-            if self.combination_method == "sub":
-                tdos_dict = {
-                    'energy': tdos[:,0] - self.efermi,
-                    'density': tdos[:,1] + tdos[:,2],
-                }
-
-        return tdos_dict
-
-    def _load_tdos_old(self):
-        """
-        This function loads the total density of states into a dictionary
-
-        Returns:
-            tdos_dict (dict[str][np.ndarray]): Dictionary that consists or the
-                energies and densities of the system.
-        """
+        tdos[:,0] = tdos[:,0] - self.efermi
 
         if self.spin == 'up':
-            spin_factor = 1
+            tdos = tdos[:,:2]
         elif self.spin == 'down':
-            spin_factor = -1
-
-        tdos = self.vasprun.tdos
-
-        if self.spin == 'up' or self.spin == 'down':
-            tdos_dict = {
-                'energy': np.array(tdos.energies - tdos.efermi),
-                'density': spin_factor * np.array(tdos.densities[self.spin_dict[self.spin]])
-            }
+            tdos = tdos[:,1:3]
+            tdos[:,1] = -tdos[:,1]
         elif self.spin == 'both':
+            tdos_up = tdos[:,1]
+            tdos_down = tdos[:,2]
             if self.combination_method == "add":
-                tdos_dict = {
-                    'energy': np.array(tdos.energies - tdos.efermi),
-                    'density': np.array(tdos.densities[Spin.up]) + np.array(tdos.densities[Spin.down])
-                }
+                tdos = np.c_[tdos[:,0], tdos_up + tdos_down]
             if self.combination_method == "sub":
-                tdos_dict = {
-                    'energy': np.array(tdos.energies - tdos.efermi),
-                    'density': np.array(tdos.densities[Spin.up]) - np.array(tdos.densities[Spin.down])
-                }
+                tdos = np.c_[tdos[:,0], tdos_up - tdos_down]
 
-        return tdos_dict
+        return tdos
+
 
     def _load_pdos(self):
         """
@@ -190,109 +153,211 @@ class Dos:
         """
 
         pdos = self.doscar['projected']
-        print(pdos.shape)
+        pdos = np.transpose(pdos, axes=(1,0,2))
 
         if self.spin == 'up':
             if not self.forbitals:
-                if self.lorbit:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,[(j*4) + 1 for j in range(9)]].T, columns=range(9)) for i in range(pdos.shape[0])
-                    }
+                if self.lsorbit:
+                    pdos = pdos[:,:,[(j*4) + 1 for j in range(9)]]
                 else:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,1:10], columns=range(9)) for i in range(pdos.shape[0])
-                    }
+                    pdos = pdos[:,:,[(j*2) + 1 for j in range(9)]]
             else:
-                if self.lorbit:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,[(j*4) + 1 for j in range(16)]].T, columns=range(16)) for i in range(pdos.shape[0])
-                    }
+                if self.lsorbit:
+                    pdos = pdos[:,:,[(j*4) + 1 for j in range(16)]]
                 else:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,1:17], columns=range(16)) for i in range(pdos.shape[0])
-                    }
-        elif self.spin == 'down':
+                    pdos = pdos[:,:,[(j*2) + 1 for j in range(16)]]
+        if self.spin == 'down':
             if not self.forbitals:
-                pdos_dict = {
-                    i: pd.DataFrame(data=(-1 * pdos[i,:,10:19]), columns=range(9)) for i in range(pdos.shape[0])
-                }
+                pdos = -pdos[:,:,[(j*2) + 2 for j in range(9)]]
             else:
-                pdos_dict = {
-                    i: pd.DataFrame(data=(-1 * pdos[i,:,17:33]), columns=range(16)) for i in range(pdos.shape[0])
-                }
-        elif self.spin == 'both':
+                pdos = -pdos[:,:,[(j*2) + 2 for j in range(16)]]
+        if self.spin == 'both':
+            if not self.forbitals:
+                pdos_up = pdos[:,:,[(j*2) + 1 for j in range(9)]]
+                pdos_down = pdos[:,:,[(j*2) + 2 for j in range(9)]]
+            else:
+                pdos_up = pdos[:,:,[(j*2) + 1 for j in range(16)]]
+                pdos_down = pdos[:,:,[(j*2) + 2 for j in range(16)]]
+
             if self.combination_method == 'add':
-                if not self.forbitals:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,1:10] + pdos[i,:,10:19], columns=range(9)) for i in range(pdos.shape[0])
-                    }
-                else:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,1:17] + pdos[i,:,17:33], columns=range(16)) for i in range(pdos.shape[0])
-                    }
-            elif self.combination_method == 'sub':
-                if not self.forbitals:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,1:10] - pdos[i,:,10:19], columns=range(9)) for i in range(pdos.shape[0])
-                    }
-                else:
-                    pdos_dict = {
-                        i: pd.DataFrame(data=pdos[i,:,1:17] - pdos[i,:,17:33], columns=range(16)) for i in range(pdos.shape[0])
-                    }
+                pdos = pdos_up + pdos_down
+            if self.combination_method == 'sub':
+                pdos = pdos_up - pdos_down
 
-        return pdos_dict
+        return pdos
 
-    def _load_pdos_old(self):
+
+    def _sum_spd(self, spd):
         """
-        This function loads the projected density of states into a dictionary
-        of the form:
-        atom index --> orbital projections
+        This function sums the weights of the s, p, and d orbitals for each atom
+        and creates a dictionary of the form:
+        band index --> s,p,d orbital weights
 
         Returns:
-            pdos_dict (dict[int][pd.DataFrame]): Dictionary that contains a data frame
-                with the orbital weights for each atom index.
+            spd_dict (dict([str][pd.DataFrame])): Dictionary that contains the summed weights for the s, p, and d orbitals for each band
         """
 
-        if self.spin == 'up':
-            spin_factor = 1
-        elif self.spin == 'down':
-            spin_factor = -1
+        if not self.forbitals:
+            spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+            spd_indices[0][0] = True
+            spd_indices[1][1:4] = True
+            spd_indices[2][4:] = True
+        else:
+            spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+            spd_indices[0][0] = True
+            spd_indices[1][1:4] = True
+            spd_indices[2][4:9] = True
+            spd_indices[3][9:] = True
 
-        pdos = self.vasprun.pdos
-        pdos_dict = {i: [] for i in range(len(pdos))}
+        orbital_contributions = np.sum(self.pdos_array, axis=1)
 
-        if self.spin == 'up' or self.spin == 'down':
-            spin = self.spin_dict[self.spin]
-            for (i, atom) in enumerate(pdos):
-                new_dict = {
-                    i: spin_factor * atom[orbital][spin] for (i, orbital) in enumerate(atom)
-                }
+        spd_contributions = np.transpose(
+            np.array([
+                np.sum(orbital_contributions[:,ind], axis=1) for ind in spd_indices
+            ]), axes=[1,0]
+        )
 
-                if len(list(new_dict.keys())) == 16:
-                    self.forbitals = True
+        spd_contributions = spd_contributions[:,[self.spd_relations[orb] for orb in spd]]
 
-                df = pd.DataFrame.from_dict(new_dict)
-                pdos_dict[i] = df
-
-        elif self.spin == 'both':
-            for (i, atom) in enumerate(pdos):
-                if self.combination_method == 'add':
-                    new_dict = {
-                        i: np.array(atom[orbital][Spin.up]) + np.array(atom[orbital][Spin.down]) for (i, orbital) in enumerate(atom)
-                    }
-                elif self.combination_method == 'sub':
-                    new_dict = {
-                        i: np.array(atom[orbital][Spin.up]) - np.array(atom[orbital][Spin.down]) for (i, orbital) in enumerate(atom)
-                    }
+        return spd_contributions
 
 
-                if len(list(new_dict.keys())) == 16:
-                    self.forbitals = True
 
-                df = pd.DataFrame.from_dict(new_dict)
-                pdos_dict[i] = df
+    def _sum_orbitals(self, orbitals):
+        """
+        This function finds the weights of desired orbitals for all atoms and
+            returns a dictionary of the form:
+            band index --> orbital index
 
-        return pdos_dict
+        Parameters:
+            orbitals (list): List of desired orbitals. 
+                0 = s
+                1 = py
+                2 = pz
+                3 = px
+                4 = dxy
+                5 = dyz
+                6 = dz2
+                7 = dxz
+                8 = dx2-y2
+                9 = fy3x2
+                10 = fxyz
+                11 = fyz2
+                12 = fz3
+                13 = fxz2
+                14 = fzx3
+                15 = fx3
+
+        Returns:
+            orbital_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected weights of the selected orbitals.
+        """
+        orbital_contributions = self.pdos_array.sum(axis=1)
+        orbital_contributions = orbital_contributions[:,orbitals]
+
+        return orbital_contributions
+
+    def _sum_atoms(self, atoms, spd=False):
+        """
+        This function finds the weights of desired atoms for all orbitals and
+            returns a dictionary of the form:
+            band index --> atom index
+
+        Parameters:
+            atoms (list): List of desired atoms where atom 0 is the first atom in
+                the POSCAR file. 
+
+        Returns:
+            atom_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected
+                weights of the selected atoms.
+        """
+
+        if spd:
+            if not self.forbitals:
+                spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+                spd_indices[0][0] = True
+                spd_indices[1][1:4] = True
+                spd_indices[2][4:] = True
+            else:
+                spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+                spd_indices[0][0] = True
+                spd_indices[1][1:4] = True
+                spd_indices[2][4:9] = True
+                spd_indices[3][9:] = True
+
+            atoms_spd = np.transpose(np.array([
+                np.sum(self.pdos_array[:,:,ind], axis=2) for ind in spd_indices
+            ]), axes=(1,2,0))
+
+            return atoms_spd
+        else:
+            atoms_array = self.pdos_array.sum(axis=2)
+            if atoms is not None:
+                atoms_array = atoms_array[:,atoms]
+
+            return atoms_array
+
+    def _sum_elements(self, elements, orbitals=False, spd=False, spd_options=None):
+        """
+        This function sums the weights of the orbitals of specific elements within the
+        calculated structure and returns a dictionary of the form:
+        band index --> element label --> orbital weights for orbitals = True
+        band index --> element label for orbitals = False
+        This is useful for structures with many elements because manually entering indicies is
+        not practical for large structures.
+
+        Parameters:
+            elements (list): List of element symbols to sum the weights of.
+            orbitals (bool): Determines whether or not to inclue orbitals or not
+                (True = keep orbitals, False = sum orbitals together )
+            spd (bool): Determines whether or not to sum the s, p, and d orbitals
+
+
+        Returns:
+            element_dict (dict([str][str][pd.DataFrame])): Dictionary that contains the summed weights for each orbital for a given element in the structure.
+        """
+
+        poscar = self.poscar
+        natoms = poscar.natoms
+        symbols = poscar.site_symbols
+        pdos_array = self.pdos_array
+
+        element_list = np.hstack(
+            [[symbols[i] for j in range(natoms[i])] for i in range(len(symbols))]
+        )
+
+        element_indices = [np.where(np.isin(element_list, element))[0] for element in elements]
+
+        element_orbitals = np.transpose(
+            np.array([
+                np.sum(pdos_array[:,ind,:], axis=1) for ind in element_indices
+            ]), axes=(1,0,2)
+        )
+
+        if orbitals:
+            return element_orbitals
+        elif spd:
+            if not self.forbitals:
+                spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+                spd_indices[0][0] = True
+                spd_indices[1][1:4] = True
+                spd_indices[2][4:] = True
+            else:
+                spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+                spd_indices[0][0] = True
+                spd_indices[1][1:4] = True
+                spd_indices[2][4:9] = True
+                spd_indices[3][9:] = True
+
+            element_spd = np.transpose(np.array([
+                np.sum(element_orbitals[:,:,ind], axis=2) for ind in spd_indices
+            ]), axes=(1,2,0))
+
+            return element_spd
+        else:
+            element_array = np.sum(element_orbitals, axis=2)
+
+            return element_array
+
 
     def _smear(self, dos, sigma):
         """
@@ -307,212 +372,25 @@ class Dos:
             _smeared_dos (np.ndarray): Array of _smeared densities.
         """
 
-        diff = np.diff(self.tdos_dict['energy'])
+        diff = np.diff(self.tdos_array[:,0])
         avgdiff = np.mean(diff)
         _smeared_dos = gaussian_filter1d(dos, sigma / avgdiff)
 
         return _smeared_dos
 
-    def _sum_orbitals(self):
-        """
-        This function sums the weights of all orbitals for each atom
-        and creates a Dataframe containing the projected densities:
-
-        Returns:
-            orbital_df (pd.DataFrame): Dataframe that has the summed densities of
-                each orbital for all atoms
-        """
-
-        atom_list = [self.pdos_dict[atom] for atom in self.pdos_dict]
-        orbital_df = reduce(
-            lambda x, y: x.add(y, fill_value=0), atom_list
-        )
-
-        return orbital_df
-
-    def _sum_atoms(self, spd=False):
-        """
-        This function sums all the orbitals for each atom and returns a Dataframe
-        of atoms with their projected densities.
-
-        Returns:
-            atom_df (pd.DataFrame): Dataframe containing the projected densities for
-                each atom.
-        """
-
-        pdos_dict = self.pdos_dict
-        if not spd:
-            atom_df = pd.concat(
-                [pdos_dict[atom].sum(axis=1) for atom in pdos_dict],
-                axis=1
-            )
-        else:
-            atom_df = {atom: pd.DataFrame() for atom in pdos_dict}
-            for atom in atom_df:
-                df = copy.deepcopy(pdos_dict[atom])
-                atom_df[atom]['s'] = df[0]
-                atom_df[atom]['p'] = df[1] + \
-                    df[2] + df[3]
-                atom_df[atom]['d'] = df[4] + \
-                    df[5] + df[6] + df[7] + df[8]
-
-                if self.forbitals:
-                    atom_df[atom]['f'] = df[9] + df[10] + \
-                        df[11] + df[12] + df[13] + df[14] + df[15]
-                    #  atom_df[atom] = atom_df[atom].drop(
-                        #  columns=range(16))
-                else:
-                    pass
-                    #  atom_df[atom] = atom_df[atom].drop(
-                        #  columns=range(9))
-
-        return atom_df
-
-    def _sum_elements(self, elements, orbitals=False, spd=False):
-        """
-        This function sums the weights of the orbitals of specific elements within the
-        calculated structure and returns a dictionary of the form:
-        element label --> orbital weights for orbitals = True
-        element label for orbitals = False
-        This is useful for structures with many elements because manually entering indicies is
-        not practical for large structures.
-
-        Parameters:
-            elements (list): List of element symbols to sum the weights of.
-            orbitals (bool): Determines whether or not to inclue orbitals or not
-                (True = keep orbitals, False = sum orbitals together )
-            spd (bool): Determines whether or not to sum the s, p, and d orbitals
-
-
-        Returns:
-            element_dict (dict([str][str][pd.DataFrame])): Dictionary that contains the summed
-                weights for each orbital for a given element in the structure.
-        """
-
-        poscar = self.poscar
-        natoms = poscar.natoms
-        symbols = poscar.site_symbols
-
-        element_list = np.hstack(
-            [[symbols[i] for j in range(natoms[i])]
-             for i in range(len(symbols))]
-        )
-
-        element_dict = {element: [] for element in elements}
-
-        for element in elements:
-            element_index = np.where(np.isin(element_list, element))[0]
-            df = pd.concat(
-                [self.pdos_dict[i] for i in element_index],
-                axis=1
-            )
-
-            if orbitals:
-                element_dict[element] = df.groupby(
-                    by=df.columns,
-                    axis=1
-                ).sum()
-                if spd:
-                    df = element_dict[element]
-                    element_dict[element]['s'] = df[0]
-                    element_dict[element]['p'] = df[1] + \
-                        df[2] + df[3]
-                    element_dict[element]['d'] = df[4] + \
-                        df[5] + df[6] + df[7] + df[8]
-
-                    if self.forbitals:
-                        element_dict[element]['f'] = df[9] + df[10] + \
-                            df[11] + df[12] + df[13] + df[14] + df[15]
-                        element_dict[element] = element_dict[element].drop(
-                            columns=range(16))
-                    else:
-                        element_dict[element] = element_dict[element].drop(
-                            columns=range(9))
-
-            else:
-                element_dict[element] = df.sum(axis=1).tolist()
-
-        return element_dict
-
-    def _sum_spd(self):
-        """
-        This function sums the weights of the s, p, and d orbitals for each atom
-        and creates a Dataframe containing the projected densities:
-
-        Returns:
-            spd_df (pd.DataFrame): Dataframe that has the summed densities of the
-                s, p, and d orbitals across all atoms.
-        """
-
-        spd_df = self._sum_orbitals()
-
-        spd_df['s'] = spd_df[0]
-        spd_df['p'] = spd_df[1] + spd_df[2] + spd_df[3]
-        spd_df['d'] = spd_df[4] + spd_df[5] + spd_df[6] + spd_df[7] + spd_df[8]
-
-        if self.forbitals:
-            spd_df['f'] = spd_df[9] + spd_df[10] + \
-                spd_df[11] + spd_df[12] + spd_df[13] + spd_df[14] + spd_df[15]
-            spd_df = spd_df.drop(columns=range(16))
-        else:
-            spd_df = spd_df.drop(columns=range(9))
-
-        return spd_df
-
     def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False, is_dict=False, idx=None, multiple=False):
         energy_in_plot_index = np.where(
-            (tenergy > erange[0]) & (tenergy < erange[1])
+            (tenergy >= erange[0]) & (tenergy <= erange[1])
         )[0]
 
-        if partial:
-            if is_dict:
-                if multiple:
-                    total = []
-                    for i in idx:
-                        first = i[0]
-                        second = i[1]
-                        total.append(tdensity[first][second][energy_in_plot_index])
+        tdensity = tdensity[energy_in_plot_index]
 
-                    if spin == 'up' or spin == 'both':
-                        density_in_plot = total[np.argmax(np.max(total, axis=1))]
-                    elif spin == 'down':
-                        density_in_plot = total[np.argmin(np.min(total, axis=1))]
-                else:
-                    columns = []
-                    values = []
-                    dfs = []
-                    for i in idx:
-                        selected_densities = tdensity[i].iloc[energy_in_plot_index]
-                        dfs.append(selected_densities)
-                        if spin == 'up' or spin == 'both':
-                            max_value_column = selected_densities.max().idxmax() 
-                            max_value = selected_densities[max_value_column].max().max()
-                            columns.append(max_value_column)
-                            values.append(max_value)
-                        elif spin == 'down':
-                            min_value_column = selected_densities.min().idxmin() 
-                            min_value = selected_densities[min_value_column].min().min()
-                            columns.append(min_value_column)
-                            values.append(min_value)
-
-                    if spin=='up' or spin=='both':
-                        max_column = columns[np.argmax(values)]
-                        max_df = dfs[np.argmax(values)]
-                        density_in_plot = max_df[max_column].__array__()
-                    elif spin=='down':
-                        min_column = columns[np.argmin(values)]
-                        min_df = dfs[np.argmin(values)]
-                        density_in_plot = min_df[min_column].__array__()
-
-            else:
-                selected_densities = tdensity.iloc[energy_in_plot_index]
-                if spin=='up' or spin=='both':
-                    density_in_plot = selected_densities[selected_densities.max().idxmax()].__array__()
-                elif spin=='down':
-                    density_in_plot = selected_densities[selected_densities.min().idxmax()].__array__()
-
+        if len(tdensity.shape) == 1:
+           density_in_plot = tdensity 
         else:
-            density_in_plot = tdensity[energy_in_plot_index]
+            if spin == 'up' or spin == 'both':
+                max_index = np.argmax(np.max(tdensity, axis=0))
+                density_in_plot = tdensity[:,max_index]
 
         if len(ax.lines) == 0:
             if energyaxis == 'y':
@@ -555,6 +433,7 @@ class Dos:
                     elif spin == 'down':
                         ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
 
+
     def _group_layers(self):
         poscar = self.poscar
         sites = poscar.structure.sites
@@ -580,6 +459,114 @@ class Dos:
 
         return np.array(groups), np.array(group_heights)
 
+    def _add_legend(self, ax, names, colors):
+        legend_lines = []
+        legend_labels = []
+        for name, color in zip(names, colors):
+            legend_lines.append(plt.Line2D(
+                [0],
+                [0],
+                marker='o',
+                markersize=2,
+                linestyle='',
+                color=color
+            ))
+            legend_labels.append(
+                f'${name}$'
+            )
+
+        leg = ax.get_legend()
+
+        if leg is None:
+            handles = legend_lines
+            labels = legend_labels
+        else:
+            handles = [l._legmarker for l in leg.legendHandles]
+            labels = [text._text for text in leg.texts]
+            handles.extend(legend_lines)
+            labels.extend(legend_labels)
+
+        ax.legend(
+            handles,
+            labels,
+            ncol=1,
+            loc='upper left',
+            fontsize=5,
+            bbox_to_anchor=(1, 1),
+            borderaxespad=0,
+            frameon=False,
+            handletextpad=0.1,
+        )
+
+
+    def _plot_projected_general(self, ax, energy, projected_data, colors, sigma, erange, linewidth, alpha_line, alpha, fill, energyaxis, total):
+        if total:
+            self.plot_plain(
+                ax=ax,
+                linewidth=linewidth,
+                fill=fill,
+                alpha=alpha,
+                alpha_line=alpha_line,
+                sigma=sigma,
+                energyaxis=energyaxis,
+                erange=erange,
+            )
+        else:
+            self._set_density_lims(
+                ax=ax,
+                tdensity=projected_data,
+                tenergy=energy,
+                erange=erange,
+                energyaxis=energyaxis,
+                spin=self.spin,
+                partial=True,
+            )
+
+        for i in range(projected_data.shape[-1]):
+            if sigma > 0:
+                pdensity = self._smear(
+                    projected_data[:,i],
+                    sigma=sigma,
+                )
+            else:
+                pdensity = projected_data[:,i]
+
+            if energyaxis == 'y':
+                ax.plot(
+                    pdensity,
+                    energy,
+                    color=colors[i],
+                    linewidth=linewidth,
+                    alpha=alpha_line
+                )
+
+                if fill:
+                    ax.fill_betweenx(
+                        energy,
+                        pdensity,
+                        0,
+                        color=colors[i],
+                        alpha=alpha,
+                    )
+
+            if energyaxis == 'x':
+                ax.plot(
+                    energy,
+                    pdensity,
+                    color=colors[i],
+                    linewidth=linewidth,
+                    alpha=alpha_line
+                )
+
+                if fill:
+                    ax.fill_between(
+                        energy,
+                        pdensity,
+                        0,
+                        color=colors[i],
+                        alpha=alpha,
+                    )
+
 
     def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='y', color='black', erange=[-6, 6]):
         """
@@ -597,20 +584,20 @@ class Dos:
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
-        tdos_dict = self.tdos_dict
+        tdos_array = self.tdos_array
 
         if sigma > 0:
             tdensity = self._smear(
-                tdos_dict['density'],
+                tdos_array[:,1],
                 sigma=sigma
             )
         else:
-            tdensity = tdos_dict['density']
+            tdensity = tdos_array[:,1]
 
         self._set_density_lims(
             ax=ax,
             tdensity=tdensity,
-            tenergy=tdos_dict['energy'],
+            tenergy=tdos_array[:,0],
             erange=erange,
             energyaxis=energyaxis,
             spin=self.spin,
@@ -619,7 +606,7 @@ class Dos:
         if energyaxis == 'y':
             ax.plot(
                 tdensity,
-                tdos_dict['energy'],
+                tdos_array[:,0],
                 linewidth=linewidth,
                 color=color,
                 alpha=alpha_line
@@ -627,7 +614,7 @@ class Dos:
 
             if fill:
                 ax.fill_betweenx(
-                    tdos_dict['energy'],
+                    tdos_array[:,0],
                     tdensity,
                     0,
                     alpha=alpha,
@@ -636,7 +623,7 @@ class Dos:
 
         if energyaxis == 'x':
             ax.plot(
-                tdos_dict['energy'],
+                tdos_array[:,0],
                 tdensity,
                 linewidth=linewidth,
                 color=color,
@@ -645,14 +632,14 @@ class Dos:
 
             if fill:
                 ax.fill_between(
-                    tdos_dict['energy'],
+                    tdos_array[:,0],
                     tdensity,
                     0,
                     color=color,
                     alpha=alpha,
                 )
 
-    def plot_spd(self, ax, order=['s', 'p', 'd'], fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_spd(self, ax, orbitals='spd', fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -675,127 +662,37 @@ class Dos:
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
-        spd_df = self._sum_spd()
-        tdos_dict = self.tdos_dict
+        projected_data = self._sum_spd(spd=orbitals)
 
         if color_dict is None:
             color_dict = {
-                's': self.color_dict[0],
-                'p': self.color_dict[1],
-                'd': self.color_dict[2],
-                'f': self.color_dict[4],
+                0: self.color_dict[0],
+                1: self.color_dict[1],
+                2: self.color_dict[2],
+                3: self.color_dict[4],
             }
 
-        if self.forbitals and 'f' not in order:
-            order.append('f')
+        colors = np.array([color_dict[self.spd_relations[i]] for i in orbitals])
 
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
-        else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=spd_df,
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-            )
-
-        for orbital in order:
-            if sigma > 0:
-                pdensity = self._smear(
-                    spd_df[orbital],
-                    sigma=sigma
-                )
-            else:
-                pdensity = spd_df[orbital]
-
-            if energyaxis == 'y':
-                ax.plot(
-                    pdensity,
-                    tdos_dict['energy'],
-                    color=color_dict[orbital],
-                    linewidth=linewidth,
-                    alpha=alpha_line
-                )
-
-                if fill:
-                    ax.fill_betweenx(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[orbital],
-                        alpha=alpha,
-                    )
-
-            if energyaxis == 'x':
-                ax.plot(
-                    tdos_dict['energy'],
-                    pdensity,
-                    color=color_dict[orbital],
-                    linewidth=linewidth,
-                    alpha=alpha_line
-                )
-
-                if fill:
-                    ax.fill_between(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[orbital],
-                        alpha=alpha,
-                    )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for i, orbital in enumerate(order):
-                legend_lines.append(plt.Line2D(
-                    [0],
-                    [0],
-                    marker='o',
-                    markersize=2,
-                    linestyle='',
-                    color=color_dict[orbital])
-                )
-                legend_labels.append(
-                    f'${orbital}$'
-                )
+            self._add_legend(ax, names=[i for i in orbitals], colors=colors)
 
-            leg = ax.get_legend()
-
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
-            )
-
-    def plot_atom_orbitals(self, ax, atom_orbital_pairs, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_atom_orbitals(self, ax, atom_orbital_dict, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the projections or orbitals on individual atoms.
@@ -816,129 +713,50 @@ class Dos:
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
-        tdos_dict = self.tdos_dict
+        atom_indices = list(atom_orbital_dict.keys())
+        orbital_indices = list(atom_orbital_dict.values())
+        number_orbitals = [len(i) for i in orbital_indices]
+        atom_indices = np.repeat(atom_indices, number_orbitals)
+        orbital_symbols_long = np.hstack([
+            [self.orbital_labels[o] for o in  orb] for orb in orbital_indices
+        ])
+        orbital_indices_long = np.hstack(orbital_indices)
+        indices = np.vstack([atom_indices, orbital_indices_long]).T
+
+        projected_data = self.pdos_array
+        projected_data = np.transpose(np.array([
+            projected_data[:,ind[0],ind[1]] for ind in indices
+        ]), axes=(1,0))
 
         if color_list is None:
-            color_dict = self.color_dict
+            colors = np.array([self.color_dict[i] for i in range(len(orbital_indices_long))])
         else:
-            color_dict = {i: color for i, color in enumerate(color_list)}
+            colors = color_list
 
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
-        else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=self.pdos_dict,
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-                is_dict=True,
-                idx=atom_orbital_pairs,
-                multiple=True,
-            )
-
-        for i, atom_orbital_pair in enumerate(atom_orbital_pairs):
-            atom = atom_orbital_pair[0]
-            orbital = atom_orbital_pair[1]
-
-            if sigma > 0:
-                pdensity = self._smear(
-                    self.pdos_dict[atom][orbital],
-                    sigma=sigma
-                )
-            else:
-                pdensity = self.pdos_dict[atom][orbital]
-
-            if energyaxis == 'y':
-                ax.plot(
-                    pdensity,
-                    tdos_dict['energy'],
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_betweenx(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
-
-            if energyaxis == 'x':
-                ax.plot(
-                    tdos_dict['energy'],
-                    pdensity,
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_between(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for (i, atom_orbital_pair) in enumerate(atom_orbital_pairs):
-                atom = atom_orbital_pair[0]
-                orbital = atom_orbital_pair[1]
-
-                legend_lines.append(plt.Line2D(
-                    [0],
-                    [0],
-                    marker='o',
-                    markersize=2,
-                    linestyle='',
-                    color=color_dict[i])
-                )
-                legend_labels.append(
-                    f'{atom}({self.orbital_labels[atom_orbital_pair[1]]})'
-                )
-
-            leg = ax.get_legend()
-
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                colors=colors
             )
 
-    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+
+    def plot_orbitals(self, ax, orbitals, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the projections onto given orbitals
@@ -959,118 +777,31 @@ class Dos:
             total (bool): Determines wheth to draw the total density of states or not
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
-
-        orbital_df = self._sum_orbitals()
-        tdos_dict = self.tdos_dict
-
-        if color_dict is None:
-            color_dict = self.color_dict
-
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
+        if color_list is None:
+            colors = np.array([self.color_dict[i] for i in orbitals])
         else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=orbital_df,
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-            )
+            colors = color_list
 
-        for i, orbital in enumerate(orbitals):
-            if sigma > 0:
-                pdensity = self._smear(
-                    orbital_df[orbital],
-                    sigma=sigma
-                )
-            else:
-                pdensity = orbital_df[orbital]
+        projected_data = self._sum_orbitals(orbitals=orbitals)
 
-            if energyaxis == 'y':
-                ax.plot(
-                    pdensity,
-                    tdos_dict['energy'],
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_betweenx(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
-
-            if energyaxis == 'x':
-                ax.plot(
-                    tdos_dict['energy'],
-                    pdensity,
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_between(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for i, orbital in enumerate(orbitals):
-                legend_lines.append(plt.Line2D(
-                    [0],
-                    [0],
-                    marker='o',
-                    markersize=2,
-                    linestyle='',
-                    color=color_dict[i])
-                )
-                legend_labels.append(
-                    f'{self.orbital_labels[orbital]}'
-                )
+            self._add_legend(ax, names=[self.orbital_labels[i] for i in orbitals], colors=colors)
 
-            leg = ax.get_legend()
-
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
-            )
 
     def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
@@ -1092,121 +823,33 @@ class Dos:
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
-        atom_df = self._sum_atoms()
-        tdos_dict = self.tdos_dict
-
         if color_list is None:
-            color_dict = self.color_dict
+            colors = np.array([self.color_dict[i] for i in range(len(atoms))])
         else:
-            color_dict = {i: color for i, color in enumerate(color_list)}
+            colors = color_list
 
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
-        else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=atom_df,
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-            )
+        projected_data = self._sum_atoms(atoms=atoms)
 
-        for i, atom in enumerate(atoms):
-            if sigma > 0:
-                pdensity = self._smear(
-                    atom_df[atom],
-                    sigma=sigma
-                )
-            else:
-                pdensity = atom_df[atom]
-
-            if energyaxis == 'y':
-                ax.plot(
-                    pdensity,
-                    tdos_dict['energy'],
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_betweenx(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
-
-            elif energyaxis == 'x':
-                ax.plot(
-                    tdos_dict['energy'],
-                    pdensity,
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_between(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for i, atom in enumerate(atoms):
-                legend_lines.append(plt.Line2D(
-                    [0],
-                    [0],
-                    marker='o',
-                    markersize=2,
-                    linestyle='',
-                    color=color_dict[i])
-                )
-                legend_labels.append(
-                    f'{atom}'
-                )
+            self._add_legend(ax, names=atoms, colors=colors)
 
-            leg = ax.get_legend()
 
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
-            )
-
-    def plot_atom_spd(self, ax, atoms, order=['s', 'p', 'd'], fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_atom_spd(self, ax, atom_spd_dict, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states onto the s, p, and d orbitals of specified atoms. 
@@ -1232,128 +875,44 @@ class Dos:
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
-        atoms_dict = self._sum_atoms(spd=True)
-        tdos_dict = self.tdos_dict
+        atom_indices = list(atom_spd_dict.keys())
+        orbital_symbols = list(atom_spd_dict.values())
+        number_orbitals = [len(i) for i in orbital_symbols]
+        atom_indices = np.repeat(atom_indices, number_orbitals)
+        orbital_symbols_long = np.hstack([[o for o in  orb] for orb in orbital_symbols])
+        orbital_indices = np.hstack([[self.spd_relations[o] for o in  orb] for orb in orbital_symbols])
+        indices = np.vstack([atom_indices, orbital_indices]).T
 
-        if color_dict is None:
-            color_dict = {
-                's': self.color_dict[0],
-                'p': self.color_dict[1],
-                'd': self.color_dict[2],
-                'f': self.color_dict[4],
-            }
+        projected_data = self._sum_atoms(atoms=atom_indices, spd=True)
+        projected_data = np.transpose(np.array([
+            projected_data[:,ind[0],ind[1]] for ind in indices
+        ]), axes=(1,0))
 
-        if self.forbitals and 'f' not in order:
-            order.append('f')
-
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
+        if color_list is None:
+            colors = np.array([self.color_dict[i] for i in range(len(orbital_symbols_long))])
         else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=atoms_dict,
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-                is_dict=True,
-                idx=atoms,
-            )
+            colors = color_list
 
-        for atom in atoms:
-            for i, orbital in enumerate(order):
-                if sigma > 0:
-                    pdensity = self._smear(
-                        atoms_dict[atom][orbital],
-                        sigma=sigma
-                    )
-                else:
-                    pdensity = atoms_dict[atom][orbital]
-
-                if energyaxis == 'y':
-                    ax.plot(
-                        pdensity,
-                        tdos_dict['energy'],
-                        color=color_dict[orbital],
-                        linewidth=linewidth,
-                        alpha=alpha_line
-                    )
-
-                    if fill:
-                        ax.fill_betweenx(
-                            tdos_dict['energy'],
-                            pdensity,
-                            0,
-                            color=color_dict[orbital],
-                            alpha=alpha,
-                        )
-
-                if energyaxis == 'x':
-                    ax.plot(
-                        tdos_dict['energy'],
-                        pdensity,
-                        color=color_dict[orbital],
-                        linewidth=linewidth,
-                        alpha=alpha_line
-                    )
-
-                    if fill:
-                        ax.fill_between(
-                            tdos_dict['energy'],
-                            pdensity,
-                            0,
-                            color=color_dict[orbital],
-                            alpha=alpha,
-                        )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for atom in atoms:
-                for orbital in order:
-                    legend_lines.append(plt.Line2D(
-                        [0],
-                        [0],
-                        marker='o',
-                        markersize=2,
-                        linestyle='',
-                        color=color_dict[orbital])
-                    )
-                    legend_labels.append(
-                        f'{atom}(${orbital}$)'
-                    )
-
-            leg = ax.get_legend()
-
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                colors=colors
             )
 
     def plot_elements(self, ax, elements, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
@@ -1378,122 +937,32 @@ class Dos:
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
-        element_dict = self._sum_elements(
-            elements=elements, orbitals=False, spd=False)
-        tdos_dict = self.tdos_dict
-
         if color_list is None:
-            color_dict = self.color_dict
+            colors = np.array([self.color_dict[i] for i in range(len(elements))])
         else:
-            color_dict = {i: color for i, color in enumerate(color_list)}
+            colors = color_list
 
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
-        else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=pd.DataFrame(element_dict),
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-            )
+        projected_data = self._sum_elements(elements=elements)
 
-        for i, element in enumerate(elements):
-            if sigma > 0:
-                pdensity = self._smear(
-                    element_dict[element],
-                    sigma=sigma
-                )
-            else:
-                pdensity = element_dict[element]
-
-            if energyaxis == 'y':
-                ax.plot(
-                    pdensity,
-                    tdos_dict['energy'],
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_betweenx(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
-
-            if energyaxis == 'x':
-                ax.plot(
-                    tdos_dict['energy'],
-                    pdensity,
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_between(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for (i, element) in enumerate(elements):
-                legend_lines.append(plt.Line2D(
-                    [0],
-                    [0],
-                    marker='o',
-                    markersize=2,
-                    linestyle='',
-                    color=color_dict[i])
-                )
-                legend_labels.append(
-                    f'{element}'
-                )
+            self._add_legend(ax, names=elements, colors=colors)
 
-            leg = ax.get_legend()
-
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
-            )
-
-    def plot_element_orbitals(self, ax, element_orbital_pairs, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_element_orbitals(self, ax, element_orbital_dict, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states onto the chosen orbitals of specified elements. This is 
@@ -1516,131 +985,48 @@ class Dos:
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
 
-        elements = [i[0] for i in element_orbital_pairs]
+        element_symbols = list(element_orbital_dict.keys())
+        orbital_indices = list(element_orbital_dict.values())
+        number_orbitals = [len(i) for i in orbital_indices]
+        element_symbols_long = np.repeat(element_symbols, number_orbitals)
+        element_indices = np.repeat(range(len(element_symbols)), number_orbitals)
+        orbital_symbols_long = np.hstack([[self.orbital_labels[o] for o in  orb] for orb in orbital_indices])
+        orbital_indices_long = np.hstack(orbital_indices)
+        indices = np.vstack([element_indices, orbital_indices_long]).T
 
-        element_dict = self._sum_elements(
-            elements=elements, orbitals=True, spd=False)
-        tdos_dict = self.tdos_dict
+        projected_data = self._sum_elements(elements=element_symbols, orbitals=True)
+        projected_data = np.transpose(np.array([
+            projected_data[:,ind[0],ind[1]] for ind in indices
+        ]), axes=(1,0))
 
         if color_list is None:
-            color_dict = self.color_dict
+            colors = np.array([self.color_dict[i] for i in range(len(orbital_indices_long))])
         else:
-            color_dict = {i: color for i, color in enumerate(color_list)}
+            colors = color_list
 
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
-        else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=element_dict,
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-                is_dict=True,
-                idx=element_orbital_pairs,
-                multiple=True,
-            )
-
-        for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
-            element = element_orbital_pair[0]
-            orbital = element_orbital_pair[1]
-            if sigma > 0:
-                pdensity = self._smear(
-                    element_dict[element][orbital],
-                    sigma=sigma
-                )
-            else:
-                pdensity = element_dict[element][orbital]
-
-            if energyaxis == 'y':
-                ax.plot(
-                    pdensity,
-                    tdos_dict['energy'],
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_betweenx(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
-
-            if energyaxis == 'x':
-                ax.plot(
-                    tdos_dict['energy'],
-                    pdensity,
-                    color=color_dict[i],
-                    linewidth=linewidth,
-                    alpha=alpha_line,
-                )
-
-                if fill:
-                    ax.fill_between(
-                        tdos_dict['energy'],
-                        pdensity,
-                        0,
-                        color=color_dict[i],
-                        alpha=alpha,
-                    )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for (i, element_orbital_pair) in enumerate(element_orbital_pairs):
-                element = element_orbital_pair[0]
-                orbital = element_orbital_pair[1]
-                legend_lines.append(plt.Line2D(
-                    [0],
-                    [0],
-                    marker='o',
-                    markersize=2,
-                    linestyle='',
-                    color=color_dict[i])
-                )
-                legend_labels.append(
-                    f'{element}({self.orbital_labels[orbital]})'
-                )
-
-            leg = ax.get_legend()
-
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                colors=colors
             )
 
-    def plot_element_spd(self, ax, elements, order=['s', 'p', 'd'], fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_element_spd(self, ax, element_spd_dict, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states onto the s, p, and d orbitals of specified elements. 
@@ -1665,130 +1051,45 @@ class Dos:
             total (bool): Determines wheth to draw the total density of states or not
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         """
+        element_symbols = list(element_spd_dict.keys())
+        orbital_symbols = list(element_spd_dict.values())
+        number_orbitals = [len(i) for i in orbital_symbols]
+        element_symbols_long = np.repeat(element_symbols, number_orbitals)
+        element_indices = np.repeat(range(len(element_symbols)), number_orbitals)
+        orbital_symbols_long = np.hstack([[o for o in  orb] for orb in orbital_symbols])
+        orbital_indices = np.hstack([[self.spd_relations[o] for o in  orb] for orb in orbital_symbols])
+        indices = np.vstack([element_indices, orbital_indices]).T
 
-        element_dict = self._sum_elements(
-            elements=elements, orbitals=True, spd=True)
-        tdos_dict = self.tdos_dict
+        projected_data = self._sum_elements(elements=element_symbols, spd=True)
+        projected_data = np.transpose(np.array([
+            projected_data[:,ind[0],ind[1]] for ind in indices
+        ]), axes=(1,0))
 
-        if color_dict is None:
-            color_dict = {
-                's': self.color_dict[0],
-                'p': self.color_dict[1],
-                'd': self.color_dict[2],
-                'f': self.color_dict[4],
-            }
-
-        if self.forbitals and 'f' not in order:
-            order.append('f')
-
-        if total:
-            self.plot_plain(
-                ax=ax,
-                linewidth=linewidth,
-                fill=fill,
-                alpha=alpha,
-                alpha_line=alpha_line,
-                sigma=sigma,
-                energyaxis=energyaxis,
-                erange=erange,
-            )
+        if color_list is None:
+            colors = np.array([self.color_dict[i] for i in range(len(orbital_symbols_long))])
         else:
-            self._set_density_lims(
-                ax=ax,
-                tdensity=element_dict,
-                tenergy=tdos_dict['energy'],
-                erange=erange,
-                energyaxis=energyaxis,
-                spin=self.spin,
-                partial=True,
-                is_dict=True,
-                idx=elements,
-            )
+            colors = color_list
 
-        for element in elements:
-            for i, orbital in enumerate(order):
-                if sigma > 0:
-                    pdensity = self._smear(
-                        element_dict[element][orbital],
-                        sigma=sigma
-                    )
-                else:
-                    pdensity = element_dict[element][orbital]
-
-                if energyaxis == 'y':
-                    ax.plot(
-                        pdensity,
-                        tdos_dict['energy'],
-                        color=color_dict[orbital],
-                        linewidth=linewidth,
-                        alpha=alpha_line
-                    )
-
-                    if fill:
-                        ax.fill_betweenx(
-                            tdos_dict['energy'],
-                            pdensity,
-                            0,
-                            color=color_dict[orbital],
-                            alpha=alpha,
-                        )
-
-                if energyaxis == 'x':
-                    ax.plot(
-                        tdos_dict['energy'],
-                        pdensity,
-                        color=color_dict[orbital],
-                        linewidth=linewidth,
-                        alpha=alpha_line
-                    )
-
-                    if fill:
-                        ax.fill_between(
-                            tdos_dict['energy'],
-                            pdensity,
-                            0,
-                            color=color_dict[orbital],
-                            alpha=alpha,
-                        )
+        self._plot_projected_general(
+            ax=ax,
+            energy=self.tdos_array[:,0],
+            projected_data=projected_data,
+            colors=colors,
+            sigma=sigma,
+            erange=erange,
+            linewidth=linewidth,
+            alpha_line=alpha_line,
+            alpha=alpha,
+            fill=fill,
+            energyaxis=energyaxis,
+            total=total,
+        )
 
         if legend:
-            legend_lines = []
-            legend_labels = []
-            for element in elements:
-                for orbital in order:
-                    legend_lines.append(plt.Line2D(
-                        [0],
-                        [0],
-                        marker='o',
-                        markersize=2,
-                        linestyle='',
-                        color=color_dict[orbital])
-                    )
-                    legend_labels.append(
-                        f'{element}(${orbital}$)'
-                    )
-
-            leg = ax.get_legend()
-
-            if leg is None:
-                handles = legend_lines
-                labels = legend_labels
-            else:
-                handles = [l._legmarker for l in leg.legendHandles]
-                labels = [text._text for text in leg.texts]
-                handles.extend(legend_lines)
-                labels.extend(legend_labels)
-
-            ax.legend(
-                handles,
-                labels,
-                ncol=1,
-                loc='upper left',
-                fontsize=6,
-                bbox_to_anchor=(1, 1),
-                borderaxespad=0,
-                frameon=False,
-                handletextpad=0.1,
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                colors=colors
             )
 
     def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], antialiased=False, fontsize=6, interface_layer=None, interface_line_color='white', interface_line_width=2, interface_line_style='--', log_scale=False):
@@ -1804,7 +1105,7 @@ class Dos:
             sigma (float): Sigma parameter for the _smearing of the heat map.
             energyaxis (str): Axis to plot the energy on. ('x' or 'y')
         """
-        energy = self.tdos_dict['energy']
+        energy = self.tdos_array[:,0]
 
         ind = np.where(
                 (erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5)
@@ -1812,7 +1113,7 @@ class Dos:
         groups, group_heights = self._group_layers()
         atom_index = group_heights
         energies = energy[ind]
-        atom_densities = self._sum_atoms().to_numpy()[ind]
+        atom_densities = self._sum_atoms(atoms=None)[ind]
         densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
         densities = np.transpose(densities)
         densities = gaussian_filter(densities, sigma=sigma)
@@ -1893,5 +1194,4 @@ class Dos:
             rotation=(f'{rotation[0]}x,{rotation[1]}y,{rotation[2]}z'),
             show_unit_cell=0
         )
-
 

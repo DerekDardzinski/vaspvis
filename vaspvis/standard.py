@@ -2407,12 +2407,12 @@ def dos_plain(
 def dos_spd(
     folder,
     output='dos_spd.png',
-    order=['s', 'p', 'd'],
+    orbitals='spd',
     fill=True,
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
+    energyaxis='x',
     color_dict=None,
     legend=True,
     total=True,
@@ -2463,7 +2463,7 @@ def dos_spd(
 
     dos.plot_spd(
         ax=ax,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -2485,13 +2485,13 @@ def dos_spd(
 
 def dos_atom_orbitals(
     folder,
-    atom_orbital_pairs,
+    atom_orbital_dict,
     output='dos_atom_orbitals.png',
     fill=True,
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
+    energyaxis='x',
     color_list=None,
     legend=True,
     total=True,
@@ -2540,7 +2540,7 @@ def dos_atom_orbitals(
 
     dos.plot_atom_orbitals(
         ax=ax,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -2568,8 +2568,8 @@ def dos_orbitals(
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
-    color_dict=None,
+    energyaxis='x',
+    color_list=None,
     legend=True,
     total=True,
     figsize=(4, 3),
@@ -2624,7 +2624,7 @@ def dos_orbitals(
         linewidth=linewidth,
         sigma=sigma,
         energyaxis=energyaxis,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         total=total,
         erange=erange,
@@ -2646,7 +2646,7 @@ def dos_atoms(
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
+    energyaxis='x',
     color_list=None,
     legend=True,
     total=True,
@@ -2715,15 +2715,14 @@ def dos_atoms(
 
 def dos_atom_spd(
     folder,
-    atoms,
-    order=['s', 'p', 'd'],
+    atom_spd_dict,
     output='dos_atom_spd.png',
     fill=True,
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
-    color_dict=None,
+    energyaxis='x',
+    color_list=None,
     legend=True,
     total=True,
     figsize=(4, 3),
@@ -2774,14 +2773,13 @@ def dos_atom_spd(
 
     dos.plot_atom_spd(
         ax=ax,
-        atoms=atoms,
-        order=order,
+        atom_spd_dict=atom_spd_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
         sigma=sigma,
         energyaxis=energyaxis,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         total=total,
         erange=erange,
@@ -2803,7 +2801,7 @@ def dos_elements(
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
+    energyaxis='x',
     color_list=None,
     legend=True,
     total=True,
@@ -2873,15 +2871,14 @@ def dos_elements(
 
 def dos_element_spd(
     folder,
-    elements,
-    order=['s', 'p', 'd'],
+    element_spd_dict,
     output='dos_element_spd.png',
     fill=True,
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
-    color_dict=None,
+    energyaxis='x',
+    color_list=None,
     legend=True,
     total=True,
     figsize=(4, 3),
@@ -2932,14 +2929,13 @@ def dos_element_spd(
 
     dos.plot_element_spd(
         ax=ax,
-        elements=elements,
-        order=order,
+        element_spd_dict=element_spd_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
         sigma=sigma,
         energyaxis=energyaxis,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         total=total,
         erange=erange,
@@ -2955,13 +2951,13 @@ def dos_element_spd(
 
 def dos_element_orbitals(
     folder,
-    element_orbital_pairs,
+    element_orbital_dict,
     output='dos_element_orbitals.png',
     fill=True,
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
+    energyaxis='x',
     color_list=None,
     legend=True,
     total=True,
@@ -3010,7 +3006,7 @@ def dos_element_orbitals(
 
     dos.plot_element_orbitals(
         ax=ax,
-        element_orbital_pairs=element_orbital_pairs,
+        element_orbital_dict=element_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -6687,8 +6683,11 @@ def dos_layers(
 
 
 def _main():
-    dos_folder = '../../vaspvis_data/dos'
-    dos_spd(folder=dos_folder)
+    dos_folder = '../../vaspvis_data/slabdos'
+    dos_layers(
+        folder=dos_folder,
+        log_scale=True,
+    )
 
 
 if __name__ == "__main__":

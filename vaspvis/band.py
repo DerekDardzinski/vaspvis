@@ -438,14 +438,14 @@ class Band:
                 np.sum(element_orbitals[:,:,:,ind], axis=3) for ind in spd_indices
             ]), axes=(1,2,3,0))
 
-            norm_term = np.sum(element_spd, axis=(2,3))[:,:,np.newaxis, np.newaxis]
-            element_spd = np.divide(element_spd, norm_term, out=np.zeros_like(element_spd), where=norm_term!=0)
+            #  norm_term = np.sum(element_spd, axis=(2,3))[:,:,np.newaxis, np.newaxis]
+            #  element_spd = np.divide(element_spd, norm_term, out=np.zeros_like(element_spd), where=norm_term!=0)
 
             return element_spd
         else:
             element_array = np.sum(element_orbitals, axis=3)
-            norm_term = np.sum(element_array, axis=2)[:,:,np.newaxis]
-            element_array = np.divide(element_array, norm_term, out=np.zeros_like(element_array), where=norm_term!=0)
+            #  norm_term = np.sum(element_array, axis=2)[:,:,np.newaxis]
+            #  element_array = np.divide(element_array, norm_term, out=np.zeros_like(element_array), where=norm_term!=0)
 
             return element_array
 
@@ -910,7 +910,8 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(ax, names=[self.orbital_labels[i] for i in orbitals], colors=colors)
+        if legend:
+            self._add_legend(ax, names=[self.orbital_labels[i] for i in orbitals], colors=colors)
 
 
     def plot_spd(self, ax, scale_factor=5, orbitals='spd', erange=[-6,6], display_order=None, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
@@ -942,9 +943,6 @@ class Band:
                 3: self.color_dict[4],
             }
 
-        if self.forbitals:
-            orbitals = orbitals + 'f'
-
         colors = np.array([color_dict[self.spd_relations[i]] for i in orbitals])
 
         projected_data = self._sum_spd(spd=orbitals)
@@ -960,7 +958,8 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(ax, names=[i for i in orbitals], colors=colors)
+        if legend:
+            self._add_legend(ax, names=[i for i in orbitals], colors=colors)
 
 
 
@@ -996,7 +995,8 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(ax, names=atoms, colors=colors)
+        if legend:
+            self._add_legend(ax, names=atoms, colors=colors)
 
 
     def plot_atom_orbitals(self, ax, atom_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
@@ -1048,11 +1048,12 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(
-            ax,
-            names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
-            colors=colors
-        )
+        if legend:
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                colors=colors
+            )
 
     def plot_atom_spd(self, ax, atom_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
@@ -1104,11 +1105,12 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(
-            ax,
-            names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
-            colors=colors
-        )
+        if legend:
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                colors=colors
+            )
 
 
 
@@ -1144,7 +1146,8 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(ax, names=elements, colors=colors)
+        if legend:
+            self._add_legend(ax, names=elements, colors=colors)
 
 
     def plot_element_orbitals(self, ax, element_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
@@ -1192,11 +1195,12 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(
-            ax,
-            names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
-            colors=colors
-        )
+        if legend:
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                colors=colors
+            )
 
     def plot_element_spd(self, ax, element_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
@@ -1250,11 +1254,12 @@ class Band:
             band_color=band_color
         )
 
-        self._add_legend(
-            ax,
-            names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
-            colors=colors
-        )
+        if legend:
+            self._add_legend(
+                ax,
+                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                colors=colors
+            )
 
 
 if __name__ == "__main__":
