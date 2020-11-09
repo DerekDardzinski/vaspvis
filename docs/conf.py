@@ -13,6 +13,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../vaspvis'))
 
 
 # -- Project information -----------------------------------------------------
@@ -54,8 +55,6 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 add_module_names = False
-autodoc_mock_imports = ['pymatgen', 'matplotlib', 'numpy', 'scipy', 'pandas', 'ase', 'pychemia']
+autodoc_mock_imports = ['pymatgen', 'matplotlib', 'numpy', 'scipy', 'pandas', 'ase', 'pychemia', 'pyprocar']
 master_doc = 'index'
 autodoc_member_order = 'bysource'
-
-

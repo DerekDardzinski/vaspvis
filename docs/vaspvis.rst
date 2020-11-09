@@ -28,6 +28,14 @@ vaspvis.standard module
    :undoc-members:
    :show-inheritance:
 
+vaspvis.utils module
+-----------------------
+
+.. automodule:: vaspvis.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

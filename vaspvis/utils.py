@@ -3,6 +3,19 @@ from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, sav
 from vaspvis.unfold import convert
 
 def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
+    """
+    This function rotates a slab structure so its transformation matrix
+    (M) to the primitive bulk structure becomes an integer matrix
+
+    Parameters:
+        bulk_path (str): File path to a primitive bulk POSCAR file
+        slab_path (str): File patch to a slab structure
+        index (list): A three element list defining the miller index of the surface
+        output (str): File name of the converted slab POSCAR
+
+    Returns:
+        Converted slab POSCAR
+    """
     M = convert(
         bulk=bulk_path,
         slab=slab_path,
@@ -13,6 +26,19 @@ def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
     return M
 
 def generate_kpoints(M, high_symmetry_points, n, output='KPOINTS'):
+    """
+    This function generates a KPOINTS file for a band unfolding calculation
+
+    Parameters:
+        M (list[list]): A 3x3 transformation matrix
+        high_symmetry_points (list[list]): Fractional coordinated of the high symmetry points
+            in the band structure path.
+        n (int): Numbering of segments between each point
+        output (str): File name of the KPOINTS file
+
+    Returns:
+        KPOINTS file
+    """
     kpath = make_kpath(high_symmetry_points, nseg=n)
     K_in_sup = []
     for kk in kpath:

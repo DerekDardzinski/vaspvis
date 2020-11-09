@@ -79,6 +79,116 @@ def _figure_setup_layer_dos(ax, fontsize=6, energyaxis='y'):
         ax.set_ylabel('Layers', fontsize=fontsize)
 
 
+spd_doc_string = """
+        orbitals (str): String that contains the s, p, or d orbitals that to project onto.
+            The default is 'spd', if the user only wanted to project onto the p, and d orbitals 
+            than 'pd' should be passed in
+            """ 
+
+orbital_doc_string = """
+        orbitals (list): List of orbitals to compare
+
+            | 0 = s
+            | 1 = py
+            | 2 = pz
+            | 3 = px
+            | 4 = dxy
+            | 5 = dyz
+            | 6 = dz2
+            | 7 = dxz
+            | 8 = dx2-y2
+            | 9 = fy3x2
+            | 10 = fxyz
+            | 11 = fyz2
+            | 12 = fz3
+            | 13 = fxz2
+            | 14 = fzx3
+            | 15 = fx3
+            """
+atoms_doc_string = """
+        atoms (list): List of atoms to project onto. The indices should be zero indexed (first atom is 0)
+            and the atoms are in the same order as they are in the POSCAR
+            """
+
+atom_orbitals_doc_string = """
+        atoms_orbitals_dict (dict[int:list]): A dictionary that contains the individual atoms and the
+            corresponding orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
+            of the first atom and the s orbital of the second atom then the dictionary would be {0:[0,1,2,3], 1:[0]}
+            """
+
+atom_spd_doc_string = """
+        atoms_spd_dict (dict[int:str]): A dictionary that contains the individual atoms and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals
+            of the first atom and the p orbitals of the second atom then the dictionary would be {0:'spd', 1:'p'}
+            """
+
+elements_doc_string = """
+        elements (list): List of elements to project onto. The list should countain the corresponding element symbols
+"""
+
+elements_orbitals_doc_string = """
+        elements_orbitals_dict (dict[str:list]): A dictionary that contains the individual elements and the
+            corresponding orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
+            of In and the s orbital of As for and InAs structure then the dictionary would be {'In':[0,1,2,3], 'As':[0]}
+            """
+
+elements_spd_doc_string = """
+        elements_spd_dict (dict[str:str]): A dictionary that contains the individual atoms and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals
+            of In and the p orbitals of As for an InAs structure then the dictionary would be {'In':'spd', 'As':'p'}
+            """
+
+def _band_docstring(projected_str):
+    doc_str = f"""    
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        ----------------------------------------------------------------
+        output (str): File name of the resulting plot.
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
+        legend (bool): Determines if the legend should be included or not.
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
+        kpath (str): High symmetry k-point path of band structure calculation
+            Due to the nature of the KPOINTS file for HSE calculations this
+            information is a required input for proper labeling of the figure
+            for HSE calculations. This information is extracted from the KPOINTS
+            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry points.
+            This is also only required for HSE calculations and band unfolding. This number should be 
+            known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. (fig, ax1, ax2) 
+    """
+    return doc_str
+
+
 def band_plain(
     folder,
     output='band_plain.png',
@@ -109,6 +219,7 @@ def band_plain(
         linestyle (str): Line style of the bands
         figsize (list / tuple): Desired size of the image in inches (width, height)
         erange (list / tuple): Range of energy to show in the plot [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
@@ -117,6 +228,11 @@ def band_plain(
         n (int): Number of points between each high symmetry points.
             This is also only required for HSE calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -179,35 +295,41 @@ def band_spd(
 ):
     """
     This function generates a s, p, d projected band structure.
-
+    
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        orbitals (str): String that contains the s, p, or d orbitals that to project onto.
+            The default is 'spd', if the user only wanted to project onto the p, and d orbitals 
+            than 'pd' should be passed in
         output (str): File name of the resulting plot.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        order (list): This determines the order in which the points are plotted on the
-            graph. This is an option because sometimes certain orbitals can be hidden
-            under others because they have a larger weight. For example, if the
-            weights of the d orbitals are greater than that of the s orbitals, it
-            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-            plotted over the d orbitals.
-        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -215,7 +337,7 @@ def band_spd(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -277,26 +399,38 @@ def band_atom_orbitals(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        atoms_orbitals_dict (dict[int:list]): A dictionary that contains the individual atoms and the corresponding
+            orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
+            of the first atom and the s orbital of the second atom then the dictionary would be {0:[0,1,2,3], 1:[0]}
         output (str): File name of the resulting plot.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
-            This should take the form of [[atom index, orbital_index], ...]. 
-        color_list (list): List of colors of the same length as the atom_orbital_pairs
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -304,7 +438,7 @@ def band_atom_orbitals(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -366,11 +500,7 @@ def band_orbitals(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
-        output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
-        scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        orbitals (list): List of orbits to compare
+        orbitals (list): List of orbitals to compare
 
             | 0 = s
             | 1 = py
@@ -389,22 +519,35 @@ def band_orbitals(
             | 14 = fzx3
             | 15 = fx3
 
-        color_list (dict[str][str]): This option allow the colors of each orbital
-            specified. Should be in the form of:
-            {'orbital index': <color>, 'orbital index': <color>, ...}
+        output (str): File name of the resulting plot.
+        spin (str): Choose which spin direction to parse. ('up' or 'down')
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -412,7 +555,7 @@ def band_orbitals(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -474,25 +617,37 @@ def band_atoms(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        atoms (list): List of atoms to project onto. The indices should be zero indexed (first atom is 0)
+            and the atoms are in the same order as they are in the POSCAR
         output (str): File name of the resulting plot.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        atoms (list): List of atoms to project onto
-        color_list (list): List of colors of the same length as the atoms list
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -500,7 +655,7 @@ def band_atoms(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -561,33 +716,38 @@ def band_atom_spd(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        atoms_spd_dict (dict[int:str]): A dictionary that contains the individual atoms and the
+            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals corresponding 
+            of the first atom and the p orbitals of the second atom then the dictionary would be {0:'spd', 1:'p'}
         output (str): File name of the resulting plot.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        atoms (list): List of atom symbols to project onto
-        order (list): This determines the order in which the points are plotted on the
-            graph. This is an option because sometimes certain orbitals can be hidden
-            under others because they have a larger weight. For example, if the
-            weights of the d orbitals are greater than that of the s orbitals, it
-            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-            plotted over the d orbitals.
-        color_list (dict[str][str]): This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -595,7 +755,7 @@ def band_atom_spd(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -657,25 +817,36 @@ def band_elements(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        elements (list): List of elements to project onto. The list should countain the corresponding element symbols
         output (str): File name of the resulting plot.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        elements (list): List of element symbols to project onto
-        color_list (list): List of colors of the same length as the elements list
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -683,7 +854,7 @@ def band_elements(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -745,26 +916,38 @@ def band_element_orbitals(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        elements_orbitals_dict (dict[str:list]): A dictionary that contains the individual elements and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
+            of In and the s orbital of As for and InAs structure then the dictionary would be {'In':[0,1,2,3], 'As':[0]}
         output (str): File name of the resulting plot.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        element_orbital_pairs (list[list]): List of list in the form of 
-            [[element symbol, orbital index], [element symbol, orbital_index], ...]
-        color_list (list): List of colors of the same length as the element_orbital_pairs
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -772,7 +955,7 @@ def band_element_orbitals(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -834,33 +1017,38 @@ def band_element_spd(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        elements_spd_dict (dict[str:str]): A dictionary that contains the individual atoms and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals
+            of In and the p orbitals of As for an InAs structure then the dictionary would be {'In':'spd', 'As':'p'}
         output (str): File name of the resulting plot.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        elements (list): List of element symbols to project onto
-        order (list): This determines the order in which the points are plotted on the
-            graph. This is an option because sometimes certain orbitals can be hidden
-            under others because they have a larger weight. For example, if the
-            weights of the d orbitals are greater than that of the s orbitals, it
-            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-            plotted over the d orbitals.
-        color_list (dict[str][str]): This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -868,7 +1056,7 @@ def band_element_spd(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing.
     """
 
     band = Band(
@@ -916,6 +1104,9 @@ def band_plain_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -925,21 +1116,33 @@ def band_plain_spin_polarized(
     Parameters:
         folder (str): This is the folder that contains the VASP files
         output (str): File name of the resulting plot.
-        up_color (str): Color of the spin-up lines
-        down_color (str): Color of the spin-down lines
-        linewidth (float): Line width of the band structure lines
-        up_linestyle (str): Line style of the spin-up bands
-        down_linestyle (str): Line style of the spin-down bands
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
+        legend (bool): Determines if the legend should be included or not.
+        unprojected_band_color (str): Color of the unprojected band
+        unprojected_linewidth (float): Line width of the unprojected bands
+        annotations (list): Annotations to put on the top and bottom (left and right) figures.
+            By default it will show the spin up and spin down arrows.
+        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
+        stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -947,22 +1150,28 @@ def band_plain_spin_polarized(
     Returns:
         If save == True, this function will return nothing and directly save the image as
         the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
+        and axis for further editing. (fig, ax1, ax2) 
     """
 
     band_up = Band(
         folder=folder,
         spin='up',
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     band_down = Band(
         folder=folder,
         spin='down',
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -1041,6 +1250,9 @@ def band_spd_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     save=True,
 ):
     """
@@ -1050,37 +1262,43 @@ def band_spd_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        orbitals (str): String that contains the s, p, or d orbitals that to project onto.
+            The default is 'spd', if the user only wanted to project onto the p, and d orbitals 
+            than 'pd' should be passed in
         output (str): File name of the resulting plot.
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        order (list): This determines the order in which the points are plotted on the
-            graph. This is an option because sometimes certain orbitals can be hidden
-            under others because they have a larger weight. For example, if the
-            weights of the d orbitals are greater than that of the s orbitals, it
-            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-            plotted over the d orbitals.
-        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -1096,8 +1314,11 @@ def band_spd_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -1105,8 +1326,11 @@ def band_spd_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -1208,6 +1432,9 @@ def band_atom_orbitals_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     save=True,
 ):
     """
@@ -1217,32 +1444,43 @@ def band_atom_orbitals_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        atoms_orbitals_dict (dict[int:list]): A dictionary that contains the individual atoms and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
+            of the first atom and the s orbital of the second atom then the dictionary would be {0:[0,1,2,3], 1:[0]}
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
-            This should take the form of [[atom index, orbital_index], ...]. 
-        color_list (list): List of colors of the same length as the atom_orbital_pairs
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -1258,8 +1496,11 @@ def band_atom_orbitals_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -1267,8 +1508,11 @@ def band_atom_orbitals_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -1366,6 +1610,9 @@ def band_orbitals_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -1376,11 +1623,7 @@ def band_orbitals_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
-        output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
-        scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        orbitals (list): Selected orbital indicies to plot.
+        orbitals (list): List of orbitals to compare
 
             | 0 = s
             | 1 = py
@@ -1399,28 +1642,40 @@ def band_orbitals_spin_polarized(
             | 14 = fzx3
             | 15 = fx3
 
-        color_dict (dict[str][str]): This option allow the colors of each orbital
-            specified. Should be in the form of:
-            {'orbital index': <color>, 'orbital index': <color>, ...}
+        output (str): File name of the resulting plot.
+        scale_factor (float): Factor to scale weights. This changes the size of the
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -1436,8 +1691,11 @@ def band_orbitals_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -1445,8 +1703,11 @@ def band_orbitals_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -1541,6 +1802,9 @@ def band_atoms_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -1551,31 +1815,42 @@ def band_atoms_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        atoms (list): List of atoms to project onto. The indices should be zero indexed (first atom is 0)
+            and the atoms are in the same order as they are in the POSCAR
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        atoms (list): Selected atom indicies to plot.
-        color_list (list): List of colors of the same length as the atoms list
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -1591,8 +1866,11 @@ def band_atoms_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -1600,8 +1878,11 @@ def band_atoms_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -1700,6 +1981,9 @@ def band_atom_spd_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     save=True,
 ):
     """
@@ -1709,39 +1993,43 @@ def band_atom_spd_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
-        atoms (list): Elements to project onto
+        atoms_spd_dict (dict[int:str]): A dictionary that contains the individual atoms and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals
+            of the first atom and the p orbitals of the second atom then the dictionary would be {0:'spd', 1:'p'}
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        order (list): This determines the order in which the points are plotted on the
-            graph. This is an option because sometimes certain orbitals can be hidden
-            under others because they have a larger weight. For example, if the
-            weights of the d orbitals are greater than that of the s orbitals, it
-            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-            plotted over the d orbitals.
-        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -1757,8 +2045,11 @@ def band_atom_spd_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -1766,8 +2057,11 @@ def band_atom_spd_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -1865,6 +2159,9 @@ def band_elements_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
 ):
@@ -1875,31 +2172,41 @@ def band_elements_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        elements (list): List of elements to project onto. The list should countain the corresponding element symbols
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        elements (list): Selected atom indicies to plot.
-        color_list (list): List of colors of the same length as the elements list
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -1915,8 +2222,11 @@ def band_elements_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -1924,8 +2234,11 @@ def band_elements_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -2024,6 +2337,9 @@ def band_element_orbital_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     save=True,
 ):
     """
@@ -2033,32 +2349,43 @@ def band_element_orbital_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
+        elements_orbitals_dict (dict[str:list]): A dictionary that contains the individual elements and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
+            of In and the s orbital of As for and InAs structure then the dictionary would be {'In':[0,1,2,3], 'As':[0]}
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        element_orbital_pairs (list[list]): Selected orbitals on selected elements to plot.
-            This should take the form of [[element index, orbital_index], ...]. 
-        color_list (list): List of colors of the same length as the atom_orbital_pairs
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -2074,8 +2401,11 @@ def band_element_orbital_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -2083,8 +2413,11 @@ def band_element_orbital_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -2186,6 +2519,9 @@ def band_element_spd_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     save=True,
 ):
     """
@@ -2195,39 +2531,43 @@ def band_element_spd_spin_polarized(
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
-        elements (list): Elements to project onto
+        elements_spd_dict (dict[str:str]): A dictionary that contains the individual atoms and the corresponding 
+            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals
+            of In and the p orbitals of As for an InAs structure then the dictionary would be {'In':'spd', 'As':'p'}
         output (str): File name of the resulting plot.
-        spin (str): Choose which spin direction to parse. ('up' or 'down')
         scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        order (list): This determines the order in which the points are plotted on the
-            graph. This is an option because sometimes certain orbitals can be hidden
-            under others because they have a larger weight. For example, if the
-            weights of the d orbitals are greater than that of the s orbitals, it
-            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-            plotted over the d orbitals.
-        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
+            points in the scatter plot.
+        display_order (str / None): If None, the projections will be displayed in the same order
+            the user inputs them. If 'all' the projections will be plotted from largest to smallest
+            so every point is visable. If 'dominant' the projections will be plotted from smallest 
+            to largest so only the dominant projection is shown.
+        color_list (list): List of colors that is the same length as the number of projections
+            in the plot.
         legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (str): Color of the plain band structure
         unprojected_band_color (str): Color of the unprojected band
         unprojected_linewidth (float): Line width of the unprojected bands
         annotations (list): Annotations to put on the top and bottom (left and right) figures.
             By default it will show the spin up and spin down arrows.
         annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list / tuple): Range of energy to show in the plot [low, high]
         stack (str): Determines how the plots are stacked (vertical or horizontal)
+        linewidth (float): Line width of the plain band structure plotted in the background.
+        band_color (string): Color of the plain band structure.
+        figsize (list / tuple): Desired size of the image in inches. (width, height)
+        erange (list / tuple): Range of energy to show in the plot. [low, high]
+        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for HSE calculations this
             information is a required input for proper labeling of the figure
             for HSE calculations. This information is extracted from the KPOINTS
             files for non-HSE calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for HSE calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
+        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
+        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
+            Only required for a band unfolding calculation.
+        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
+            the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
@@ -2243,8 +2583,11 @@ def band_element_spd_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -2252,8 +2595,11 @@ def band_element_spd_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     if stack == 'vertical':
@@ -3104,12 +3450,12 @@ def dos_plain_spin_polarized(
 def dos_spd_spin_polarized(
     folder,
     output='dos_spd_sp.png',
-    order=['s', 'p', 'd'],
+    orbitals='spd',
     fill=True,
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
+    energyaxis='x',
     color_dict=None,
     legend=True,
     total=True,
@@ -3158,7 +3504,7 @@ def dos_spd_spin_polarized(
 
     dos_up.plot_spd(
         ax=ax,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -3172,7 +3518,7 @@ def dos_spd_spin_polarized(
 
     dos_down.plot_spd(
         ax=ax,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -3194,7 +3540,7 @@ def dos_spd_spin_polarized(
 
 def dos_atom_orbitals_spin_polarized(
     folder,
-    atom_orbital_pairs,
+    atom_orbital_dict,
     output='dos_atom_orbitals_sp.png',
     fill=True,
     alpha=0.3,
@@ -3247,7 +3593,7 @@ def dos_atom_orbitals_spin_polarized(
 
     dos_up.plot_atom_orbitals(
         ax=ax,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -3261,7 +3607,7 @@ def dos_atom_orbitals_spin_polarized(
 
     dos_down.plot_atom_orbitals(
         ax=ax,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -3290,7 +3636,7 @@ def dos_orbitals_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='y',
-    color_dict=None,
+    color_list=None,
     legend=True,
     total=True,
     figsize=(4, 3),
@@ -3343,7 +3689,7 @@ def dos_orbitals_spin_polarized(
         linewidth=linewidth,
         sigma=sigma,
         energyaxis=energyaxis,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         total=total,
         erange=erange,
@@ -3357,7 +3703,7 @@ def dos_orbitals_spin_polarized(
         linewidth=linewidth,
         sigma=sigma,
         energyaxis=energyaxis,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=False,
         total=total,
         erange=erange,
@@ -3549,15 +3895,14 @@ def dos_elements_spin_polarized(
 
 def dos_element_spd_spin_polarized(
     folder,
-    elements,
-    order=['s', 'p', 'd'],
+    element_spd_dict,
     output='dos_element_spd_sp.png',
     fill=True,
     alpha=0.3,
     linewidth=1.5,
     sigma=0.05,
-    energyaxis='y',
-    color_dict=None,
+    energyaxis='x',
+    color_list=None,
     legend=True,
     total=True,
     figsize=(4, 3),
@@ -3606,14 +3951,13 @@ def dos_element_spd_spin_polarized(
 
     dos_up.plot_element_spd(
         ax=ax,
-        elements=elements,
-        order=order,
+        element_spd_dict=element_spd_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
         sigma=sigma,
         energyaxis=energyaxis,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         total=total,
         erange=erange,
@@ -3621,14 +3965,13 @@ def dos_element_spd_spin_polarized(
 
     dos_down.plot_element_spd(
         ax=ax,
-        elements=elements,
-        order=order,
+        element_spd_dict=element_spd_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
         sigma=sigma,
         energyaxis=energyaxis,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=False,
         total=total,
         erange=erange,
@@ -3644,7 +3987,7 @@ def dos_element_spd_spin_polarized(
 
 def dos_element_orbitals_spin_polarized(
     folder,
-    element_orbital_pairs,
+    element_orbital_dict,
     output='dos_element_orbitals_sp.png',
     fill=True,
     alpha=0.3,
@@ -3697,7 +4040,7 @@ def dos_element_orbitals_spin_polarized(
 
     dos_up.plot_element_orbitals(
         ax=ax,
-        element_orbital_pairs=element_orbital_pairs,
+        element_orbital_dict=element_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -3711,7 +4054,7 @@ def dos_element_orbitals_spin_polarized(
 
     dos_down.plot_element_orbitals(
         ax=ax,
-        element_orbital_pairs=element_orbital_pairs,
+        element_orbital_dict=element_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -3749,6 +4092,9 @@ def band_dos_plain(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -3808,8 +4154,11 @@ def band_dos_plain(
         folder=band_folder,
         spin=spin,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
@@ -3852,7 +4201,7 @@ def band_dos_spd(
     output='band_dos_spd.png',
     spin='up',
     scale_factor=6,
-    order=['s', 'p', 'd'],
+    orbitals='spd',
     color_dict=None,
     legend=True,
     linewidth=0.75,
@@ -3863,6 +4212,10 @@ def band_dos_spd(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -3935,9 +4288,11 @@ def band_dos_spd(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
@@ -3945,7 +4300,9 @@ def band_dos_spd(
     band.plot_spd(
         ax=ax1,
         scale_factor=scale_factor,
-        order=order,
+        orbitals=orbitals,
+        erange=erange,
+        display_order=display_order,
         color_dict=color_dict,
         legend=False,
         linewidth=linewidth,
@@ -3954,7 +4311,7 @@ def band_dos_spd(
 
     dos.plot_spd(
         ax=ax2,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -3982,7 +4339,7 @@ def band_dos_spd(
 def band_dos_atom_orbitals(
     band_folder,
     dos_folder,
-    atom_orbital_pairs,
+    atom_orbital_dict,
     output='band_dos_atom_orbitals.png',
     spin='up',
     scale_factor=6,
@@ -3996,6 +4353,10 @@ def band_dos_atom_orbitals(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -4063,8 +4424,11 @@ def band_dos_atom_orbitals(
         spin=spin,
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
@@ -4072,16 +4436,18 @@ def band_dos_atom_orbitals(
     band.plot_atom_orbitals(
         ax=ax1,
         scale_factor=scale_factor,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         color_list=color_list,
         legend=False,
+        erange=erange,
+        display_order=display_order,
         linewidth=linewidth,
         band_color=band_color,
     )
 
     dos.plot_atom_orbitals(
         ax=ax2,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -4113,7 +4479,7 @@ def band_dos_orbitals(
     output='band_dos_orbitals.png',
     spin='up',
     scale_factor=6,
-    color_dict=None,
+    color_list=None,
     legend=True,
     linewidth=0.75,
     band_color='black',
@@ -4123,6 +4489,10 @@ def band_dos_orbitals(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -4209,8 +4579,11 @@ def band_dos_orbitals(
         spin=spin,
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
@@ -4219,8 +4592,10 @@ def band_dos_orbitals(
         ax=ax1,
         orbitals=orbitals,
         scale_factor=scale_factor,
-        color_dict=color_dict,
-        legend=legend,
+        color_list=color_list,
+        erange=erange,
+        display_order=display_order,
+        legend=False,
         linewidth=linewidth,
         band_color=band_color,
     )
@@ -4233,7 +4608,7 @@ def band_dos_orbitals(
         linewidth=linewidth,
         sigma=sigma,
         energyaxis='y',
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         total=True,
         erange=erange,
@@ -4269,6 +4644,10 @@ def band_dos_atoms(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -4335,8 +4714,11 @@ def band_dos_atoms(
         spin=spin,
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
@@ -4346,7 +4728,9 @@ def band_dos_atoms(
         atoms=atoms,
         scale_factor=scale_factor,
         color_list=color_list,
-        legend=legend,
+        erange=erange,
+        display_order=display_order,
+        legend=False,
         linewidth=linewidth,
         band_color=band_color,
     )
@@ -4395,6 +4779,10 @@ def band_dos_elements(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -4461,8 +4849,11 @@ def band_dos_elements(
         spin=spin,
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
@@ -4472,7 +4863,9 @@ def band_dos_elements(
         elements=elements,
         scale_factor=scale_factor,
         color_list=color_list,
-        legend=legend,
+        erange=erange,
+        display_order=display_order,
+        legend=False,
         linewidth=linewidth,
         band_color=band_color,
     )
@@ -4507,12 +4900,11 @@ def band_dos_elements(
 def band_dos_element_spd(
     band_folder,
     dos_folder,
-    elements,
+    element_spd_dict,
     output='band_dos_element_spd.png',
     spin='up',
     scale_factor=6,
-    order=['s', 'p', 'd'],
-    color_dict=None,
+    color_list=None,
     legend=True,
     linewidth=0.75,
     band_color='black',
@@ -4522,6 +4914,10 @@ def band_dos_element_spd(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -4596,33 +4992,36 @@ def band_dos_element_spd(
         spin=spin,
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
 
     band.plot_element_spd(
         ax=ax1,
-        elements=elements,
+        element_spd_dict=element_spd_dict,
+        display_order=display_order,
         scale_factor=scale_factor,
-        order=order,
-        color_dict=color_dict,
+        color_list=color_list,
         legend=False,
         linewidth=linewidth,
         band_color=band_color,
+        erange=erange,
     )
 
     dos.plot_element_spd(
         ax=ax2,
-        elements=elements,
-        order=order,
+        element_spd_dict=element_spd_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
         sigma=sigma,
         energyaxis='y',
-        color_dict=color_dict,
+        color_list=color_list,
         legend=legend,
         total=True,
         erange=erange,
@@ -4644,7 +5043,7 @@ def band_dos_element_spd(
 def band_dos_element_orbitals(
     band_folder,
     dos_folder,
-    element_orbital_pairs,
+    element_orbital_dict,
     output='band_dos_element_orbitals.png',
     spin='up',
     scale_factor=6,
@@ -4658,6 +5057,10 @@ def band_dos_element_orbitals(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -4725,8 +5128,11 @@ def band_dos_element_orbitals(
         spin=spin,
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos = Dos(folder=dos_folder, spin=spin)
@@ -4734,7 +5140,9 @@ def band_dos_element_orbitals(
     band.plot_element_orbitals(
         ax=ax1,
         scale_factor=scale_factor,
-        element_orbital_pairs=element_orbital_pairs,
+        element_orbital_dict=element_orbital_dict,
+        display_order=display_order,
+        erange=erange,
         color_list=color_list,
         legend=False,
         linewidth=linewidth,
@@ -4743,7 +5151,7 @@ def band_dos_element_orbitals(
 
     dos.plot_element_orbitals(
         ax=ax2,
-        element_orbital_pairs=element_orbital_pairs,
+        element_orbital_dict=element_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -4783,6 +5191,9 @@ def band_dos_plain_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=7,
     save=True,
     fill=True,
@@ -4843,16 +5254,22 @@ def band_dos_plain_spin_polarized(
         folder=band_folder,
         spin='up',
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
         folder=band_folder,
         spin='down',
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos_up = Dos(folder=dos_folder, spin='up')
@@ -4863,6 +5280,7 @@ def band_dos_plain_spin_polarized(
         color=up_color,
         linewidth=linewidth,
         linestyle=up_linestyle,
+        erange=erange,
     )
 
     band_down.plot_plain(
@@ -4870,6 +5288,7 @@ def band_dos_plain_spin_polarized(
         color=down_color,
         linewidth=linewidth,
         linestyle=down_linestyle,
+        erange=erange,
     )
 
     dos_up.plot_plain(
@@ -4912,7 +5331,7 @@ def band_dos_spd_spin_polarized(
     dos_folder,
     output='band_dos_spd_sp.png',
     scale_factor=6,
-    order=['s', 'p', 'd'],
+    orbitals='spd',
     color_dict=None,
     legend=True,
     linewidth=0.75,
@@ -4925,6 +5344,10 @@ def band_dos_spd_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
@@ -5004,8 +5427,11 @@ def band_dos_spd_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -5013,8 +5439,11 @@ def band_dos_spd_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos_up = Dos(folder=dos_folder, spin='up')
@@ -5045,22 +5474,25 @@ def band_dos_spd_spin_polarized(
     band_up.plot_spd(
         ax=ax_band_up,
         scale_factor=scale_factor,
-        order=order,
+        orbitals=orbitals,
         color_dict=color_dict,
         legend=False,
         linewidth=linewidth,
         band_color=band_color,
+        display_order=display_order,
+        erange=erange,
     )
 
     band_down.plot_plain(
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     dos_up.plot_spd(
         ax=ax_dos_up,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -5074,7 +5506,7 @@ def band_dos_spd_spin_polarized(
 
     dos_down.plot_spd(
         ax=ax_dos_up,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=0.25 * alpha,
         alpha_line=0.25 * alpha,
@@ -5090,22 +5522,25 @@ def band_dos_spd_spin_polarized(
     band_down.plot_spd(
         ax=ax_band_down,
         scale_factor=scale_factor,
-        order=order,
+        orbitals=orbitals,
         color_dict=color_dict,
         legend=False,
         linewidth=linewidth,
         band_color=band_color,
+        display_order=display_order,
+        erange=erange,
     )
 
     band_up.plot_plain(
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     dos_down.plot_spd(
         ax=ax_dos_down,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -5119,7 +5554,7 @@ def band_dos_spd_spin_polarized(
 
     dos_up.plot_spd(
         ax=ax_dos_down,
-        order=order,
+        orbitals=orbitals,
         fill=fill,
         alpha=0.25 * alpha,
         alpha_line=0.25 * alpha,
@@ -5149,7 +5584,7 @@ def band_dos_spd_spin_polarized(
 def band_dos_atom_orbitals_spin_polarized(
     band_folder,
     dos_folder,
-    atom_orbital_pairs,
+    atom_orbital_dict,
     output='band_dos_atom_orbitals_sp.png',
     scale_factor=6,
     color_list=None,
@@ -5164,6 +5599,10 @@ def band_dos_atom_orbitals_spin_polarized(
     hse=False,
     kpath=None,
     n=None,
+    display_order=None,
+    unfold=False,
+    M=None,
+    high_symm_points=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
@@ -5171,6 +5610,7 @@ def band_dos_atom_orbitals_spin_polarized(
     fill=True,
     alpha=0.3,
     sigma=0.05,
+    total=True,
 ):
     """
     This function plots a spin polarized band structure projected onto specified [atom, orbital] pairs next to a spin
@@ -5238,8 +5678,11 @@ def band_dos_atom_orbitals_spin_polarized(
         spin='up',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     band_down = Band(
@@ -5247,8 +5690,11 @@ def band_dos_atom_orbitals_spin_polarized(
         spin='down',
         projected=True,
         hse=hse,
+        unfold=unfold,
+        high_symm_points=high_symm_points,
         kpath=kpath,
         n=n,
+        M=M,
     )
 
     dos_up = Dos(folder=dos_folder, spin='up')
@@ -5279,22 +5725,25 @@ def band_dos_atom_orbitals_spin_polarized(
     band_up.plot_atom_orbitals(
         ax=ax_band_up,
         scale_factor=scale_factor,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         color_list=color_list,
         legend=False,
         linewidth=linewidth,
         band_color=band_color,
+        display_order=display_order,
+        erange=erange,
     )
 
     band_down.plot_plain(
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     dos_up.plot_atom_orbitals(
         ax=ax_dos_up,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -5302,13 +5751,13 @@ def band_dos_atom_orbitals_spin_polarized(
         energyaxis='y',
         color_list=color_list,
         legend=legend,
-        total=True,
+        total=total,
         erange=erange,
     )
 
     dos_down.plot_atom_orbitals(
         ax=ax_dos_up,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=0.25 * alpha,
         alpha_line=0.25 * alpha,
@@ -5317,29 +5766,32 @@ def band_dos_atom_orbitals_spin_polarized(
         energyaxis='y',
         color_list=color_list,
         legend=False,
-        total=True,
+        total=total,
         erange=erange,
     )
 
     band_down.plot_atom_orbitals(
         ax=ax_band_down,
         scale_factor=scale_factor,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         color_list=color_list,
         legend=False,
         linewidth=linewidth,
         band_color=band_color,
+        display_order=display_order,
+        erange=erange,
     )
 
     band_up.plot_plain(
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
+        erange=erange,
     )
 
     dos_down.plot_atom_orbitals(
         ax=ax_dos_down,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=alpha,
         linewidth=linewidth,
@@ -5347,13 +5799,13 @@ def band_dos_atom_orbitals_spin_polarized(
         energyaxis='y',
         color_list=color_list,
         legend=legend,
-        total=True,
+        total=total,
         erange=erange,
     )
 
     dos_up.plot_atom_orbitals(
         ax=ax_dos_down,
-        atom_orbital_pairs=atom_orbital_pairs,
+        atom_orbital_dict=atom_orbital_dict,
         fill=fill,
         alpha=0.25 * alpha,
         alpha_line=0.25 * alpha,
@@ -5362,7 +5814,7 @@ def band_dos_atom_orbitals_spin_polarized(
         energyaxis='y',
         color_list=color_list,
         legend=False,
-        total=True,
+        total=total,
         erange=erange,
     )
 
