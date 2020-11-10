@@ -173,7 +173,7 @@ class Band:
 
             if self.hse:
                 kpoints_band = self.n * (len(self.kpath) - 1)
-                eigenvalues = eigenvalues[-kpoints_band:]
+                eigenvalues = eigenvalues[:,-kpoints_band:]
                 kpoints = kpoints[-kpoints_band:]
 
             band_data = np.append(
