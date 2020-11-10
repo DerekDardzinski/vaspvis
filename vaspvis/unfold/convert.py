@@ -140,13 +140,14 @@ def convert(bulk, slab, index, output):
     for atom in refSlab:
         newSlab.append(atom.specie, atom.frac_coords[:])
 
-    Poscar(newSlab.get_sorted_structure()).write_file(output, direct=True)
-    print(newSlab.lattice.matrix)
-    print(np.linalg.det(newSlab.lattice.matrix))
     transformMat = newSlab.lattice.matrix.dot(
         np.linalg.inv(primitiveCell.lattice.matrix))
+    transformMat = transformMat.round().astype(int)
+    print('Your Transformtaion Matrix is:')
+    print(' ')
+    print(transformMat)
 
-    return transformMat.round().astype(int)
+    return transformMat
 
 if __name__ == "__main__":
     bulk = './POSCAR_bulk'

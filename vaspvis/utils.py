@@ -16,7 +16,7 @@ def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
     Returns:
         Converted slab POSCAR
     """
-    M = convert(
+    M = convert.convert(
         bulk=bulk_path,
         slab=slab_path,
         index=index,
@@ -59,8 +59,8 @@ if __name__ == "__main__":
         slab_path='./unfold/POSCAR_sub_9_0_orientation_0',
         index=[1,1,1],
     )
-    generate_kpoints(
-        M=M,
-        high_symmetry_points=high_symmetry_points,
-        n=50,
-    )
+    #  generate_kpoints(
+        #  M=M,
+        #  high_symmetry_points=high_symmetry_points,
+        #  n=50,
+    #  )
