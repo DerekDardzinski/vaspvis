@@ -7942,12 +7942,11 @@ def dos_layers(
 
 
 def _main():
-    folder = '../../vaspvis_data/hseInAs'
-    band_plain(
+    folder = '../../vaspvis_data/slabdos'
+    dos_layers(
         folder=folder,
-        hse=True,
-        kpath='GXWLGK',
-        n=20,
+        log_scale=False,
+        output='dos_layer_nolog.png',
     )
 
 
