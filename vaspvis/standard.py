@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -304,7 +304,7 @@ def band_plain(
     linestyle='-',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
+    #  hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -352,7 +352,7 @@ def band_plain(
     band = Band(
         folder=folder,
         spin=spin,
-        hse=hse,
+        #  hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -7942,11 +7942,17 @@ def dos_layers(
 
 
 def _main():
-    folder = '../../vaspvis_data/slabdos'
-    dos_layers(
+    folder = '../../vaspvis_data/band'
+    folder_hse = '../../vaspvis_data/hseInAs'
+    band_spd(
         folder=folder,
-        log_scale=False,
-        output='dos_layer_nolog.png',
+    )
+    band_spd(
+        folder=folder_hse,
+        #  hse=True,
+        kpath='GXWLGK',
+        n=20,
+        output='band_plain_hse.png'
     )
 
 

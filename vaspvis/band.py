@@ -1,6 +1,7 @@
 from pymatgen.electronic_structure.core import Spin, Orbital
 from pymatgen.io.vasp.outputs import BSVasprun, Eigenval
 from pymatgen.io.vasp.inputs import Kpoints, Poscar, Incar
+from pymatgen.symmetry.bandstructure import HighSymmKpath
 from vaspvis.unfold import unfold, make_kpath, removeDuplicateKpoints
 from pymatgen.core.periodic_table import Element
 from pyprocar.utilsprocar import UtilsProcar
@@ -45,7 +46,7 @@ class Band:
             known by the user, as it was used to generate the KPOINTS file.
     """
 
-    def __init__(self, folder, projected=False, hse=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None):
+    def __init__(self, folder, projected=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None):
         """
         Initialize parameters upon the generation of this class
 
@@ -79,10 +80,12 @@ class Band:
         else:
             self.lsorbit = False
 
+        self.kpoints_file = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
+
         self.wavecar = os.path.join(folder, 'WAVECAR')
         self.projected = projected
         self.forbitals = False
-        self.hse = hse
+        self.hse = str(self.kpoints_file._style) != 'Line_mode'
         self.unfold = unfold
         self.kpath = kpath
         self.n = n
@@ -145,8 +148,6 @@ class Band:
             self.pre_loaded_projections = os.path.isfile(os.path.join(folder, 'projected_eigenvalues.npy'))
             self.projected_eigenvalues = self._load_projected_bands()
 
-        if not hse:
-            self.kpoints_file = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
 
     def _load_bands(self):
         """
@@ -161,7 +162,7 @@ class Band:
 
         spin = self.spin_dict[self.spin]
 
-        if self.pre_loaded_bands:
+        if not self.pre_loaded_bands:
             with open(os.path.join(self.folder, 'eigenvalues.npy'), 'rb') as eigenvals:
                 band_data = np.load(eigenvals)
 
@@ -172,9 +173,10 @@ class Band:
             kpoints = np.array(self.eigenval.kpoints)
 
             if self.hse:
-                kpoints_band = self.n * (len(self.kpath) - 1)
-                eigenvalues = eigenvalues[:,-kpoints_band:]
-                kpoints = kpoints[-kpoints_band:]
+                kpoint_weights = np.array(self.eigenval.kpoints_weights)
+                zero_weight = np.where(kpoint_weights == 0)[0]
+                eigenvalues = eigenvalues[:,zero_weight]
+                kpoints = kpoints[zero_weight]
 
             band_data = np.append(
                 eigenvalues[:,:,np.newaxis],
@@ -250,8 +252,12 @@ class Band:
             np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
 
         if self.hse:
-            kpoints_band = self.n * (len(self.kpath) - 1)
-            projected_eigenvalues = projected_eigenvalues[-kpoints_band:]
+            print(projected_eigenvalues.shape)
+            kpoint_weights = np.array(self.eigenval.kpoints_weights)
+            zero_weight = np.where(kpoint_weights == 0)[0]
+            projected_eigenvalues = projected_eigenvalues[:,zero_weight]
+            print(projected_eigenvalues.shape)
+            #  projected_eigenvalues = projected_eigenvalues[-kpoints_band:]
 
         if projected_eigenvalues.shape[-1] == 16:
             self.forbitals = True
@@ -492,6 +498,16 @@ class Band:
         ax.set_xticklabels(kpts_labels)
 
     def _get_kticks_hse(self, ax, kpath, n):
+        structure = self.poscar.structure
+        kpath_obj = HighSymmKpath(structure)
+        kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
+        kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
+        rev_dict = {list(coord): label for coord, label in zip(kpath_coords, kpath_labels)}
+        index = (self.kpoints[:, None] == kpath_coords).all(-1).any(-1)
+        symbol_index = (kpath_coords[:, None] == self.kpoints[index]).all(-1).any(-1)
+        kpoints_in_band = self.kpoints[index]
+        print([rev_dict[k] for k in kpoints_in_band])
+
         kpoints_index = [(i*n) - 1 for i in range(len(kpath))
                          if 0 < i < len(kpath)-1]
         kpoints_index.append(n*(len(kpath) - 1)-1)
