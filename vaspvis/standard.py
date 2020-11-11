@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from band import Band
+from vaspvis.band import Band
 from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -78,223 +78,6 @@ def _figure_setup_layer_dos(ax, fontsize=6, energyaxis='y'):
         ax.set_xlabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
         ax.set_ylabel('Layers', fontsize=fontsize)
 
-
-spd_doc_string = """
-        orbitals (str): String that contains the s, p, or d orbitals that to project onto.
-            The default is 'spd', if the user only wanted to project onto the p, and d orbitals 
-            than 'pd' should be passed in
-            """ 
-
-orbital_doc_string = """
-        orbitals (list): List of orbitals to compare
-
-            | 0 = s
-            | 1 = py
-            | 2 = pz
-            | 3 = px
-            | 4 = dxy
-            | 5 = dyz
-            | 6 = dz2
-            | 7 = dxz
-            | 8 = dx2-y2
-            | 9 = fy3x2
-            | 10 = fxyz
-            | 11 = fyz2
-            | 12 = fz3
-            | 13 = fxz2
-            | 14 = fzx3
-            | 15 = fx3
-
-            """
-atoms_doc_string = """
-        atoms (list): List of atoms to project onto. The indices should be zero indexed (first atom is 0)
-            and the atoms are in the same order as they are in the POSCAR
-            """
-
-atom_orbitals_doc_string = """
-        atom_orbital_dict (dict[int:list]): A dictionary that contains the individual atoms and the
-            corresponding orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
-            of the first atom and the s orbital of the second atom then the dictionary would be {0:[0,1,2,3], 1:[0]}
-            """
-
-atom_spd_doc_string = """
-        atom_spd_dict (dict[int:str]): A dictionary that contains the individual atoms and the corresponding 
-            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals
-            of the first atom and the p orbitals of the second atom then the dictionary would be {0:'spd', 1:'p'}
-            """
-
-elements_doc_string = """
-        elements (list): List of elements to project onto. The list should countain the corresponding element symbols
-"""
-
-elements_orbitals_doc_string = """
-        element_orbital_dict (dict[str:list]): A dictionary that contains the individual elements and the corresponding 
-            orbitals to project onto. For example, if the user wants to project onto the s, py, pz, and px orbitals
-            of In and the s orbital of As for and InAs structure then the dictionary would be {'In':[0,1,2,3], 'As':[0]}
-            """
-
-elements_spd_doc_string = """
-        element_spd_dict (dict[str:str]): A dictionary that contains the individual atoms and the corresponding 
-            orbitals to project onto. For example, if the user wants to project onto the s, p, d orbitals
-            of In and the p orbitals of As for an InAs structure then the dictionary would be {'In':'spd', 'As':'p'}
-            """
-spd = """
-color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-    orbitals to be specified. Should be in the form of:
-    {'s': <s color>, 'p': <p color>, 'd': <d color>}
-"""
-
-band_dos_sp = """
-    Parameters:
-        band_folder (str): This is the folder that contains the VASP files for the band structure
-        dos_folder (str): This is the folder that contains the VASP files for the density of states
-        output (str): File name of the resulting plot.
-        scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        order (list): This determines the order in which the points are plotted on the
-            graph. This is an option because sometimes certain orbitals can be hidden
-            under others because they have a larger weight. For example, if the
-            weights of the d orbitals are greater than that of the s orbitals, it
-            might be smart to choose ['d', 'p', 's'] as the order so the s orbitals are
-            plotted over the d orbitals.
-        color_dict (dict[str][str]): This option allow the colors of the s, p, and d
-            orbitals to be specified. Should be in the form of:
-            {'s': <s color>, 'p': <p color>, 'd': <d color>}
-        legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        unprojected_band_color (str): Color of the unprojected band
-        unprojected_linewidth (float): Line width of the unprojected bands
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
-        erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
-            information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
-        n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
-            known by the user, as it was used to generate the KPOINTS file.
-        fontsize (float): Font size of the text in the figure.
-        annotations (list): Annotations to put on the top and bottom (left and right) figures.
-            By default it will show the spin up and spin down arrows.
-        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        save (bool): Determines whether to automatically save the figure or not. If not 
-            the figure and axis are return for further manipulation.
-        fill (bool): Determines wether or not to fill underneath the plot
-        alpha (float): Alpha value for the fill
-        sigma (float): Standard deviation for gaussian filter
-
-    Returns:
-        If save == True, this function will return nothing and directly save the image as
-        the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
-"""
-
-band_dos =  """
-    Parameters:
-        band_folder (str): This is the folder that contains the VASP files for the band structure
-        dos_folder (str): This is the folder that contains the VASP files for the density of states
-        ----------------------------------------------------------------
-        output (str): File name of the resulting plot.
-        scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot
-        display_order (str / None): If None, the projections will be displayed in the same order
-            the user inputs them. If 'all' the projections will be plotted from largest to smallest
-            so every point is visable. If 'dominant' the projections will be plotted from smallest 
-            to largest so only the dominant projection is shown.
-        color_list (list): List of colors that is the same length as the number of projections
-            in the plot.
-        legend (bool): Determines if the legend should be included or not.
-        linewidth (float): Line width of the plain band structure plotted in the background
-        band_color (string): Color of the plain band structure
-        unprojected_band_color (str): Color of the unprojected band
-        unprojected_linewidth (float): Line width of the unprojected bands
-        figsize (list / tuple): Desired size of the image in inches (width, height)
-        width_ratios (list / tuple): Width ration of the band plot and dos plot. 
-        erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
-        kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
-            information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
-        n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
-            known by the user, as it was used to generate the KPOINTS file.
-        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
-        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
-            Only required for a band unfolding calculation.
-        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
-            the band structure path. Only required for a band unfolding calculation.
-        fontsize (float): Font size of the text in the figure.
-        annotations (list): Annotations to put on the top and bottom (left and right) figures.
-            By default it will show the spin up and spin down arrows.
-        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        fill (bool): Determines wether or not to fill underneath the plot
-        alpha (float): Alpha value for the fill
-        sigma (float): Standard deviation for gaussian filter
-        save (bool): Determines whether to automatically save the figure or not. If not 
-            the figure and axis are return for further manipulation.
-
-    Returns:
-        If save == True, this function will return nothing and directly save the image as
-        the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. 
-    """
-
-def _band_docstring(projected_str):
-    doc_str = f"""    
-    Parameters:
-        folder (str): This is the folder that contains the VASP files
-        ----------------------------------------------------------------
-        output (str): File name of the resulting plot.
-        scale_factor (float): Factor to scale weights. This changes the size of the
-            points in the scatter plot.
-        display_order (str / None): If None, the projections will be displayed in the same order
-            the user inputs them. If 'all' the projections will be plotted from largest to smallest
-            so every point is visable. If 'dominant' the projections will be plotted from smallest 
-            to largest so only the dominant projection is shown.
-        color_list (list): List of colors that is the same length as the number of projections
-            in the plot.
-        legend (bool): Determines if the legend should be included or not.
-        unprojected_band_color (str): Color of the unprojected band
-        unprojected_linewidth (float): Line width of the unprojected bands
-        annotations (list): Annotations to put on the top and bottom (left and right) figures.
-            By default it will show the spin up and spin down arrows.
-        annotation_xy (list / tuple): Fractional (x, y) coordinated of the annotation location
-        stack (str): Determines how the plots are stacked (vertical or horizontal)
-        linewidth (float): Line width of the plain band structure plotted in the background.
-        band_color (string): Color of the plain band structure.
-        figsize (list / tuple): Desired size of the image in inches. (width, height)
-        erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
-        kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
-            information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
-        n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
-            known by the user, as it was used to generate the KPOINTS file.
-        unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
-        M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
-            Only required for a band unfolding calculation.
-        high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
-            the band structure path. Only required for a band unfolding calculation.
-        fontsize (float): Font size of the text in the figure.
-        save (bool): Determines whether to automatically save the figure or not. If not 
-            the figure and axis are return for further manipulation.
-
-    Returns:
-        If save == True, this function will return nothing and directly save the image as
-        the output name. If save == False, the function will return the matplotlib figure
-        and axis for further editing. (fig, ax1, ax2) 
-    """
-    return doc_str
-
-
 def band_plain(
     folder,
     output='band_plain.png',
@@ -304,7 +87,6 @@ def band_plain(
     linestyle='-',
     figsize=(4, 3),
     erange=[-6, 6],
-    #  hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -325,14 +107,13 @@ def band_plain(
         linestyle (str): Line style of the bands
         figsize (list / tuple): Desired size of the image in inches (width, height)
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for unfolded calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -352,7 +133,6 @@ def band_plain(
     band = Band(
         folder=folder,
         spin=spin,
-        #  hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -390,7 +170,6 @@ def band_spd(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -422,14 +201,13 @@ def band_spd(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -491,7 +269,6 @@ def band_atom_orbitals(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -523,14 +300,13 @@ def band_atom_orbitals(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -592,7 +368,6 @@ def band_orbitals(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -640,14 +415,13 @@ def band_orbitals(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -709,7 +483,6 @@ def band_atoms(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -740,14 +513,13 @@ def band_atoms(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -808,7 +580,6 @@ def band_atom_spd(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -840,14 +611,13 @@ def band_atom_spd(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -909,7 +679,6 @@ def band_elements(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -939,14 +708,13 @@ def band_elements(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1008,7 +776,6 @@ def band_element_orbitals(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -1040,14 +807,13 @@ def band_element_orbitals(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1109,7 +875,6 @@ def band_element_spd(
     band_color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -1141,14 +906,13 @@ def band_element_spd(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1207,7 +971,6 @@ def band_plain_spin_polarized(
     down_linestyle='-',
     figsize=(4, 3),
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -1235,14 +998,13 @@ def band_plain_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1262,7 +1024,6 @@ def band_plain_spin_polarized(
     band_up = Band(
         folder=folder,
         spin='up',
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1272,7 +1033,6 @@ def band_plain_spin_polarized(
     band_down = Band(
         folder=folder,
         spin='down',
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1353,7 +1113,6 @@ def band_spd_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -1391,14 +1150,13 @@ def band_spd_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1419,7 +1177,6 @@ def band_spd_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1431,7 +1188,6 @@ def band_spd_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1535,7 +1291,6 @@ def band_atom_orbitals_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -1573,14 +1328,13 @@ def band_atom_orbitals_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1601,7 +1355,6 @@ def band_atom_orbitals_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1613,7 +1366,6 @@ def band_atom_orbitals_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1713,7 +1465,6 @@ def band_orbitals_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -1768,14 +1519,13 @@ def band_orbitals_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1796,7 +1546,6 @@ def band_orbitals_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1808,7 +1557,6 @@ def band_orbitals_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1905,7 +1653,6 @@ def band_atoms_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -1943,14 +1690,13 @@ def band_atoms_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -1971,7 +1717,6 @@ def band_atoms_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -1983,7 +1728,6 @@ def band_atoms_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2084,7 +1828,6 @@ def band_atom_spd_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -2122,14 +1865,13 @@ def band_atom_spd_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -2150,7 +1892,6 @@ def band_atom_spd_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2162,7 +1903,6 @@ def band_atom_spd_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2262,7 +2002,6 @@ def band_elements_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -2299,14 +2038,13 @@ def band_elements_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -2327,7 +2065,6 @@ def band_elements_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2339,7 +2076,6 @@ def band_elements_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2440,7 +2176,6 @@ def band_element_orbital_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -2478,14 +2213,13 @@ def band_element_orbital_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -2506,7 +2240,6 @@ def band_element_orbital_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2518,7 +2251,6 @@ def band_element_orbital_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2622,7 +2354,6 @@ def band_element_spd_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     stack='vertical',
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -2660,14 +2391,13 @@ def band_element_spd_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -2688,7 +2418,6 @@ def band_element_spd_spin_polarized(
         folder=folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -2700,7 +2429,6 @@ def band_element_spd_spin_polarized(
         folder=folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -4344,7 +4072,6 @@ def band_dos_plain(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -4371,12 +4098,12 @@ def band_dos_plain(
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for unfolded calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
@@ -4408,7 +4135,6 @@ def band_dos_plain(
     band = Band(
         folder=band_folder,
         spin=spin,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -4464,7 +4190,6 @@ def band_dos_spd(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -4503,14 +4228,13 @@ def band_dos_spd(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -4611,7 +4335,6 @@ def band_dos_atom_orbitals(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -4650,14 +4373,13 @@ def band_dos_atom_orbitals(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -4696,7 +4418,6 @@ def band_dos_atom_orbitals(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -4759,7 +4480,6 @@ def band_dos_orbitals(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -4814,14 +4534,13 @@ def band_dos_orbitals(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -4860,7 +4579,6 @@ def band_dos_orbitals(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -4923,7 +4641,6 @@ def band_dos_atoms(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -4961,14 +4678,13 @@ def band_dos_atoms(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -5007,7 +4723,6 @@ def band_dos_atoms(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5069,7 +4784,6 @@ def band_dos_atom_spd(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -5108,14 +4822,13 @@ def band_dos_atom_spd(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -5154,7 +4867,6 @@ def band_dos_atom_spd(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5216,7 +4928,6 @@ def band_dos_elements(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -5253,14 +4964,13 @@ def band_dos_elements(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -5299,7 +5009,6 @@ def band_dos_elements(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5362,7 +5071,6 @@ def band_dos_element_spd(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -5401,14 +5109,13 @@ def band_dos_element_spd(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -5447,7 +5154,6 @@ def band_dos_element_spd(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5510,7 +5216,6 @@ def band_dos_element_orbitals(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -5549,14 +5254,13 @@ def band_dos_element_orbitals(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -5595,7 +5299,6 @@ def band_dos_element_orbitals(
         folder=band_folder,
         spin=spin,
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5656,7 +5359,6 @@ def band_dos_plain_spin_polarized(
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     unfold=False,
@@ -5684,12 +5386,12 @@ def band_dos_plain_spin_polarized(
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            This is also only required for unfolded calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         fontsize (float): Font size of the text in the figure.
         save (bool): Determines whether to automatically save the figure or not. If not 
@@ -5721,7 +5423,6 @@ def band_dos_plain_spin_polarized(
     band_up = Band(
         folder=band_folder,
         spin='up',
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5732,7 +5433,6 @@ def band_dos_plain_spin_polarized(
     band_down = Band(
         folder=band_folder,
         spin='down',
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5809,7 +5509,6 @@ def band_dos_spd_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -5851,14 +5550,13 @@ def band_dos_spd_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -5900,7 +5598,6 @@ def band_dos_spd_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -5912,7 +5609,6 @@ def band_dos_spd_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -6070,7 +5766,6 @@ def band_dos_atom_orbitals_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     display_order=None,
@@ -6114,14 +5809,13 @@ def band_dos_atom_orbitals_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -6163,7 +5857,6 @@ def band_dos_atom_orbitals_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -6175,7 +5868,6 @@ def band_dos_atom_orbitals_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         unfold=unfold,
         high_symm_points=high_symm_points,
         kpath=kpath,
@@ -6333,7 +6025,6 @@ def band_dos_orbitals_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     fontsize=8,
@@ -6388,14 +6079,13 @@ def band_dos_orbitals_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -6437,7 +6127,6 @@ def band_dos_orbitals_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -6446,7 +6135,6 @@ def band_dos_orbitals_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -6595,7 +6283,6 @@ def band_dos_atoms_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     fontsize=8,
@@ -6633,14 +6320,13 @@ def band_dos_atoms_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -6682,7 +6368,6 @@ def band_dos_atoms_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -6691,7 +6376,6 @@ def band_dos_atoms_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -6839,7 +6523,6 @@ def band_dos_atom_spd_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     fontsize=8,
@@ -6878,14 +6561,13 @@ def band_dos_atom_spd_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -6927,7 +6609,6 @@ def band_dos_atom_spd_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -6936,7 +6617,6 @@ def band_dos_atom_spd_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -7085,7 +6765,6 @@ def band_dos_elements_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     fontsize=8,
@@ -7122,14 +6801,13 @@ def band_dos_elements_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -7171,7 +6849,6 @@ def band_dos_elements_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -7180,7 +6857,6 @@ def band_dos_elements_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -7329,7 +7005,6 @@ def band_dos_element_orbitals_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     fontsize=8,
@@ -7368,14 +7043,13 @@ def band_dos_element_orbitals_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -7417,7 +7091,6 @@ def band_dos_element_orbitals_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -7426,7 +7099,6 @@ def band_dos_element_orbitals_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -7575,7 +7247,6 @@ def band_dos_element_spd_spin_polarized(
     figsize=(8, 6),
     width_ratios=[7, 3],
     erange=[-6, 6],
-    hse=False,
     kpath=None,
     n=None,
     fontsize=8,
@@ -7614,14 +7285,13 @@ def band_dos_element_spd_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        hse (bool): Determines if the band structure is from an HSE calculation or not.
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations and band unfolding. This number should be 
+            This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
         unfold (bool): Determines if the plotted band structure is from a band unfolding calculation.
         M (list[list]): Transformation matrix from the primitive bulk structure to the slab structure.
@@ -7663,7 +7333,6 @@ def band_dos_element_spd_spin_polarized(
         folder=band_folder,
         spin='up',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -7672,7 +7341,6 @@ def band_dos_element_spd_spin_polarized(
         folder=band_folder,
         spin='down',
         projected=True,
-        hse=hse,
         kpath=kpath,
         n=n,
     )
@@ -7946,13 +7614,6 @@ def _main():
     folder_hse = '../../vaspvis_data/hseInAs'
     band_spd(
         folder=folder,
-    )
-    band_spd(
-        folder=folder_hse,
-        #  hse=True,
-        kpath='GXWLGK',
-        n=20,
-        output='band_plain_hse.png'
     )
 
 

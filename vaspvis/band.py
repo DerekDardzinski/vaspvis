@@ -28,21 +28,18 @@ class Band:
 
     Parameters:
         folder (str): This is the folder that contains the VASP files
-        projected (bool): Determined wheter of not to parte the projected
-            eigenvalues from the vasprun.xml file. Making this true
+        projected (bool): Determines whether of not to parse the projected
+            eigenvalues from the PROCAR file. Making this true
             increases the computational time, so only use if a projected
             band structure is required.
-        hse (bool): Determines if the KPOINTS file is in the form of HSE
-            or not. Only make true if the band structure was calculated
-            using a hybrid functional.
         spin (str): Choose which spin direction to parse. ('up' or 'down')
         kpath (str): High symmetry k-point path of band structure calculation
-            Due to the nature of the KPOINTS file for HSE calculations this
+            Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
-            for HSE calculations. This information is extracted from the KPOINTS
-            files for non-HSE calculations. (G is automaticall converted to \\Gamma)
-        n (int): Number of points between each high symmetry points.
-            This is also only required for HSE calculations. This number should be 
+            for unfolded calculations. This information is extracted from the KPOINTS
+            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+        n (int): Number of points between each high symmetry point.
+            This is also only required for unfolded calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
     """
 
@@ -52,14 +49,19 @@ class Band:
 
         Parameters:
             folder (str): This is the folder that contains the VASP files
-            projected (bool): Determined wheter of not to parte the projected
-                eigenvalues from the vasprun.xml file. Making this true
+            projected (bool): Determines whether of not to parse the projected
+                eigenvalues from the PROCAR file. Making this true
                 increases the computational time, so only use if a projected
                 band structure is required.
-            hse (bool): Determines if the KPOINTS file is in the form of HSE
-                or not. Only make true if the band structure was calculated
-                using a hybrid functional.
             spin (str): Choose which spin direction to parse. ('up' or 'down')
+            kpath (str): High symmetry k-point path of band structure calculation
+                Due to the nature of the KPOINTS file for unfolded calculations this
+                information is a required input for proper labeling of the figure
+                for unfolded calculations. This information is extracted from the KPOINTS
+                files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            n (int): Number of points between each high symmetry point.
+                This is also only required for unfolded calculations. This number should be 
+                known by the user, as it was used to generate the KPOINTS file.
         """
 
         self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
@@ -162,7 +164,7 @@ class Band:
 
         spin = self.spin_dict[self.spin]
 
-        if not self.pre_loaded_bands:
+        if self.pre_loaded_bands:
             with open(os.path.join(self.folder, 'eigenvalues.npy'), 'rb') as eigenvals:
                 band_data = np.load(eigenvals)
 
@@ -248,7 +250,6 @@ class Band:
             parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
             projected_eigenvalues = np.transpose(parser.spd[:,:,spin,:-1, 1:-1], axes=(1,0,2,3))
             projected_eigenvalues = projected_eigenvalues 
-            #  / np.sum(np.sum(projected_eigenvalues, axis=3),axis=2)[:,:,np.newaxis,np.newaxis]
             np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
 
         if self.hse:
@@ -256,13 +257,11 @@ class Band:
             kpoint_weights = np.array(self.eigenval.kpoints_weights)
             zero_weight = np.where(kpoint_weights == 0)[0]
             projected_eigenvalues = projected_eigenvalues[:,zero_weight]
-            print(projected_eigenvalues.shape)
-            #  projected_eigenvalues = projected_eigenvalues[-kpoints_band:]
 
         if projected_eigenvalues.shape[-1] == 16:
             self.forbitals = True
 
-        #  projected_eigenvalues = np.square(projected_eigenvalues)
+        projected_eigenvalues = np.square(projected_eigenvalues)
 
         return projected_eigenvalues
 
@@ -468,7 +467,7 @@ class Band:
     def _get_kticks(self, ax):
         """
         This function extracts the kpoint labels and index locations for a regular
-        band structure calculation (non HSE).
+        band structure calculation (non unfolded).
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to append the tick labels
@@ -497,24 +496,26 @@ class Band:
         ax.set_xticks(kpoints_index)
         ax.set_xticklabels(kpts_labels)
 
-    def _get_kticks_hse(self, ax, kpath, n):
+    def _get_kticks_hse(self, ax, kpath):
         structure = self.poscar.structure
         kpath_obj = HighSymmKpath(structure)
         kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
         kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
-        rev_dict = {list(coord): label for coord, label in zip(kpath_coords, kpath_labels)}
-        index = (self.kpoints[:, None] == kpath_coords).all(-1).any(-1)
-        symbol_index = (kpath_coords[:, None] == self.kpoints[index]).all(-1).any(-1)
+        index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
+        index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
         kpoints_in_band = self.kpoints[index]
-        print([rev_dict[k] for k in kpoints_in_band])
 
-        kpoints_index = [(i*n) - 1 for i in range(len(kpath))
-                         if 0 < i < len(kpath)-1]
-        kpoints_index.append(n*(len(kpath) - 1)-1)
-        kpoints_index.insert(0, 0)
+        label_index = []
+        for i in range(kpoints_in_band.shape[0]):
+            for j in range(kpath_coords.shape[0]):
+                if (kpoints_in_band[i] == kpath_coords[j]).all():
+                    label_index.append(j)
+
+        kpoints_index = index
+        kpath = kpath_labels[label_index]
         kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
-        kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath.upper().strip()]
+        kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath]
 
         for k in kpoints_index:
             ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
@@ -700,178 +701,6 @@ class Band:
             s=s,
             zorder=100,
         )
-
-    #  def _pie_scatter(self, ax, x, y, s, fractions, colors):
-        #  #  patches = []
-        #  fractions = np.c_[np.zeros(fractions.shape[0]), fractions]
-        #  for i in range(len(x)):
-            #  indv_fraction = fractions[i]
-            #  indv_color = colors
-            #  if not np.isclose(np.sum(indv_fraction), 1, atol=0.01):
-                #  indv_fraction = np.append(indv_fraction, 1 - np.sum(indv_fraction))
-                #  indv_color = np.append(indv_color, 'black')
-            #  transform = (fig.dpi_scale_trans + transforms.ScaledTranslation(x[i], y[i], ax.transData))
-            #  wedges = [
-                #  Wedge(
-                    #  (0,0),
-                    #  np.sqrt(s[i] / 1.5) / 72,
-                    #  360 * np.sum(indv_fraction[:j+1]),
-                    #  360 * np.sum(indv_fraction[:j+2]),
-                    #  color=indv_color[j],
-                    #  zorder=150,
-                    #  ec=None,
-                    #  #  transform=transform,
-                #  ) for j in range(len(indv_color))
-            #  ]
-            #  #  patches.extend(wedges)
-#
-            #  collection = PatchCollection(wedges, transform=transform, match_original=True)
-            #  ax.add_collection(collection)
-        #  #  [ax.add_patch(patch) for patch in patches]
-        #  #  plt.axis('equal', adjustable='datalim')
-        #  #  ax.set_xlim(-0.5,0.5)
-#
-    #  def _plot_projected_general_unfold(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black'):
-        #  """
-        #  This is a general method for plotting projected data
-#
-        #  Parameters:
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  color_dict (dict[str][str]): This option allow the colors of each orbital
-                #  specified. Should be in the form of:
-                #  {'orbital index': <color>, 'orbital index': <color>, ...}
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  #  self.plot_plain(ax=ax, linewidth=linewidth, scale_factor=scale_factor, color=band_color, erange=erange)
-        #  scale_factor = scale_factor + (scale_factor * 0.5)
-        #  bands_in_plot = self._filter_bands(erange=erange)
-        #  K_indices = np.array(self.K_indices[0], dtype=int)
-        #  projected_data = projected_data[bands_in_plot]
-        #  projected_data = projected_data[:, K_indices, :]
-        #  wave_vectors = self._get_k_distance()
-        #  eigenvalues = self.eigenvalues[bands_in_plot]
-        #  spectral_weights = self.spectral_weights[bands_in_plot]
-#
-        #  projected_data_ravel = np.square(np.ravel(projected_data))
-        #  wave_vectors_tile = np.tile(
-            #  np.repeat(wave_vectors, projected_data.shape[-1]), projected_data.shape[0]
-        #  )
-        #  eigenvalues_ravel = np.repeat(np.ravel(eigenvalues), projected_data.shape[-1])
-        #  colors_tile = np.tile(colors, np.prod(projected_data.shape[:-1]))
-        #  spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
-#
-        #  if display_order is None:
-            #  pass
-        #  else:
-            #  sort_index = np.argsort(projected_data_ravel)
-#
-            #  if display_order == 'all':
-                #  sort_index = sort_index[::-1]
-#
-            #  wave_vectors_tile = wave_vectors_tile[sort_index]
-            #  eigenvalues_ravel = eigenvalues_ravel[sort_index]
-            #  colors_tile = colors_tile[sort_index]
-            #  projected_data_ravel = projected_data_ravel[sort_index]
-            #  spectral_weights_ravel = spectral_weights_ravel[sort_index]
-#
-        #  ax.scatter(
-            #  wave_vectors_tile,
-            #  eigenvalues_ravel,
-            #  c=colors_tile,
-            #  s=scale_factor * projected_data_ravel * spectral_weights_ravel,
-            #  zorder=100,
-        #  )
-#
-#
-        #  if self.hse:
-            #  self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
-        #  elif self.unfold:
-            #  self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
-        #  else:
-            #  self._get_kticks(ax=ax)
-#
-        #  ax.set_xlim(0, np.max(wave_vectors))
-#
-    #  def _plot_projected_general_unfold_old(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black'):
-        #  """
-        #  This is a general method for plotting projected data
-#
-        #  Parameters:
-            #  scale_factor (float): Factor to scale weights. This changes the size of the
-                #  points in the scatter plot
-            #  color_dict (dict[str][str]): This option allow the colors of each orbital
-                #  specified. Should be in the form of:
-                #  {'orbital index': <color>, 'orbital index': <color>, ...}
-            #  legend (bool): Determines if the legend should be included or not.
-            #  linewidth (float): Line width of the plain band structure plotted in the background
-            #  band_color (string): Color of the plain band structure
-        #  """
-        #  #  self.plot_plain(ax=ax, linewidth=linewidth, scale_factor=0.1, color=band_color, erange=erange)
-        #  scale_factor = scale_factor + (scale_factor * 0.5)
-        #  bands_in_plot = self._filter_bands(erange=erange)
-        #  K_indices = np.array(self.K_indices[0], dtype=int)
-        #  projected_data = projected_data[bands_in_plot]
-        #  projected_data = projected_data[:, K_indices, :]
-        #  wave_vectors = self._get_k_distance()
-        #  eigenvalues = self.eigenvalues[bands_in_plot]
-        #  spectral_weights = self.spectral_weights[bands_in_plot]
-#
-        #  if display_order is None or display_order == 'all':
-            #  projected_data_reshape = np.reshape(
-                #  projected_data, (np.prod(projected_data.shape[:2]), np.prod(projected_data.shape[2:]))
-            #  )
-#
-            #  wave_vectors_tile = np.tile(wave_vectors, projected_data.shape[0])
-            #  eigenvalues_ravel = np.ravel(eigenvalues)
-            #  spectral_weights_ravel = np.ravel(spectral_weights)
-#
-            #  self._pie_scatter(
-                #  ax=ax,
-                #  x=wave_vectors_tile,
-                #  y=eigenvalues_ravel,
-                #  colors=colors,
-                #  s=scale_factor*spectral_weights_ravel,
-                #  fractions=projected_data_reshape,
-            #  )
-        #  elif display_order == 'dominant':
-            #  projected_data_ravel = np.square(np.ravel(projected_data))
-            #  wave_vectors_tile = np.tile(
-                #  np.repeat(wave_vectors, projected_data.shape[-1]), projected_data.shape[0]
-            #  )
-            #  eigenvalues_ravel = np.repeat(np.ravel(eigenvalues), projected_data.shape[-1])
-            #  colors_tile = np.tile(colors, np.prod(projected_data.shape[:-1]))
-            #  spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
-#
-            #  sort_index = np.argsort(projected_data_ravel)
-            #  sort_index = sort_index[::-1]
-#
-            #  wave_vectors_tile = wave_vectors_tile[sort_index]
-            #  eigenvalues_ravel = eigenvalues_ravel[sort_index]
-            #  colors_tile = colors_tile[sort_index]
-            #  projected_data_ravel = projected_data_ravel[sort_index]
-            #  spectral_weights_ravel = spectral_weights_ravel[sort_index]
-#
-            #  ax.scatter(
-                #  wave_vectors_tile,
-                #  eigenvalues_ravel,
-                #  c=colors_tile,
-                #  ec=None,
-                #  s=scale_factor * projected_data_ravel * spectral_weights_ravel,
-                #  zorder=100,
-            #  )
-#
-#
-        #  if self.hse:
-            #  self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
-        #  elif self.unfold:
-            #  self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
-        #  else:
-            #  self._get_kticks(ax=ax)
-#
-        #  ax.set_xlim(0, np.max(wave_vectors))
         
     def plot_orbitals(self, ax, orbitals, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
         """
