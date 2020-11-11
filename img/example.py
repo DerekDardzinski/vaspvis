@@ -4,8 +4,6 @@ from vaspvis import standard
 band_folder = '../../vaspvis_data/band_InAs'
 dos_folder = '../../vaspvis_data/dos_InAs'
 
-band_folder_hse = '../../vaspvis_data/band_InAs_hse'
-
 # ==================================================
 # -------------- Plain Band Structure --------------
 # ==================================================
@@ -16,24 +14,11 @@ standard.band_plain(
 
 
 # ==================================================
-# ----------- HSE Plain Band Structure -------------
-# ==================================================
-
-standard.band_plain(
-    folder=band_folder_hse,
-    output='band_plain_hse.png',
-    hse=True,
-    kpath='GXWLGK',
-    n=20,
-)
-
-
-# ==================================================
 # --------------- SPD Band Structure ---------------
 # ==================================================
 
 standard.band_spd(
-    folder=band_folder,
+    folder=band_folder
 )
 
 
@@ -63,7 +48,16 @@ standard.band_atoms(
 
 standard.band_atom_orbitals(
     folder=band_folder,
-    atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]],
+    atom_orbital_dict={0:[1,3], 1:[1,7]},
+)
+
+# ==================================================
+# ---------- Element SPD Band Structure ------------
+# ==================================================
+
+standard.band_atom_spd(
+    folder=band_folder,
+    atom_spd_dict={0:'spd'},
 )
 
 
@@ -83,7 +77,7 @@ standard.band_elements(
 
 standard.band_element_spd(
     folder=band_folder,
-    elements=['As'],
+    element_spd_dict={'As':'spd'},
 )
 
 
@@ -93,7 +87,7 @@ standard.band_element_spd(
 
 standard.band_element_orbitals(
     folder=band_folder,
-    element_orbital_pairs=[['As', 2], ['In', 3]],
+    element_orbital_dict={'As':[2], 'In':[3]},
 )
 
 
@@ -145,7 +139,7 @@ standard.dos_atoms(
 
 standard.dos_atom_orbitals(
     folder=dos_folder,
-    atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]],
+    atom_orbital_dict={0:[1,3], 1:[1,7]},
     energyaxis='x',
 )
 
@@ -167,7 +161,7 @@ standard.dos_elements(
 
 standard.dos_element_spd(
     folder=dos_folder,
-    elements=['As'],
+    element_spd_dict={'As':'spd'},
     energyaxis='x',
 )
 
@@ -178,7 +172,7 @@ standard.dos_element_spd(
 
 standard.dos_element_orbitals(
     folder=dos_folder,
-    element_orbital_pairs=[['As', 0], ['In', 3], ['As', 8]],
+    element_orbital_dict={'As':[0,8], 'In':[3]},
     energyaxis='x',
 )
 
@@ -199,7 +193,7 @@ standard.band_dos_plain(
 
 standard.band_dos_spd(
     band_folder=band_folder,
-    dos_folder=dos_folder,
+    dos_folder=dos_folder
 )
 
 
@@ -232,7 +226,7 @@ standard.band_dos_atoms(
 standard.band_dos_atom_orbitals(
     band_folder=band_folder,
     dos_folder=dos_folder,
-    atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]],
+    atom_orbital_dict={0:[1,3], 1:[1,7]},
 )
 
 
@@ -254,7 +248,7 @@ standard.band_dos_elements(
 standard.band_dos_element_spd(
     band_folder=band_folder,
     dos_folder=dos_folder,
-    elements=['As'],
+    element_spd_dict={'As':'spd'},
 )
 
 
@@ -265,7 +259,7 @@ standard.band_dos_element_spd(
 standard.band_dos_element_orbitals(
     band_folder=band_folder,
     dos_folder=dos_folder,
-    element_orbital_pairs=[['As', 2], ['In', 3]],
+    element_orbital_dict={'As':[2], 'In':[3]},
 )
 
 

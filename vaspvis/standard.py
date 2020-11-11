@@ -7610,9 +7610,8 @@ def dos_layers(
 
 
 def _main():
-    folder = '../../vaspvis_data/band'
-    folder_hse = '../../vaspvis_data/hseInAs'
-    band_spd(
+    folder = '../../vaspvis_data/dos_InAs'
+    dos_spd(
         folder=folder,
     )
 

@@ -896,7 +896,7 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(atom_indices, orbital_symbols_long)],
                 colors=colors
             )
 
@@ -953,7 +953,7 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(atom_indices, orbital_symbols_long)],
                 colors=colors
             )
 
@@ -1043,7 +1043,7 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(element_symbols_long, orbital_symbols_long)],
                 colors=colors
             )
 
@@ -1102,7 +1102,7 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(element_symbols_long, orbital_symbols_long)],
                 colors=colors
             )
 

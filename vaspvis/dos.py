@@ -109,6 +109,14 @@ class Dos:
         else:
             self.lsorbit = False
 
+        if 'ISPIN' in self.incar:
+            if self.incar['ISPIN'] == 2:
+                self.ispin = True
+            else:
+                self.ispin = False
+        else:
+            self.ispin = False
+
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
         self.tdos_array = self._load_tdos()
         self.pdos_array = self._load_pdos()
@@ -159,8 +167,10 @@ class Dos:
             if not self.forbitals:
                 if self.lsorbit:
                     pdos = pdos[:,:,[(j*4) + 1 for j in range(9)]]
-                else:
+                elif self.ispin and not self.lsorbit:
                     pdos = pdos[:,:,[(j*2) + 1 for j in range(9)]]
+                else:
+                    pdos = pdos[:,:,1:]
             else:
                 if self.lsorbit:
                     pdos = pdos[:,:,[(j*4) + 1 for j in range(16)]]
@@ -751,7 +761,7 @@ class Dos:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(atom_indices, orbital_symbols_long)],
                 colors=colors
             )
 
@@ -911,7 +921,7 @@ class Dos:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(atom_indices, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(atom_indices, orbital_symbols_long)],
                 colors=colors
             )
 
@@ -1022,7 +1032,7 @@ class Dos:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(element_symbols_long, orbital_symbols_long)],
                 colors=colors
             )
 
@@ -1088,7 +1098,7 @@ class Dos:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}, {i[1]}' for i in zip(element_symbols_long, orbital_symbols_long)],
+                names=[f'{i[0]}({i[1]})' for i in zip(element_symbols_long, orbital_symbols_long)],
                 colors=colors
             )
 
