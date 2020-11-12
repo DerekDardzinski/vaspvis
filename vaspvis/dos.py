@@ -136,7 +136,7 @@ class Dos:
         if self.spin == 'up':
             tdos = tdos[:,:2]
         elif self.spin == 'down':
-            tdos = tdos[:,1:3]
+            tdos = tdos[:,[0,2]]
             tdos[:,1] = -tdos[:,1]
         elif self.spin == 'both':
             tdos_up = tdos[:,1]

@@ -82,6 +82,15 @@ class Band:
         else:
             self.lsorbit = False
 
+        if 'ISPIN' in self.incar:
+            if self.incar['ISPIN'] == 2:
+                self.ispin = True
+            else:
+                self.ispin = False
+        else:
+            self.ispin = False
+
+
         self.kpoints_file = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
 
         self.wavecar = os.path.join(folder, 'WAVECAR')
@@ -162,16 +171,32 @@ class Band:
                 the eigenvalues for each band
         """
 
-        spin = self.spin_dict[self.spin]
+        if self.spin == 'up':
+            spin = 0
+        if self.spin == 'down':
+            spin = 1
 
         if self.pre_loaded_bands:
             with open(os.path.join(self.folder, 'eigenvalues.npy'), 'rb') as eigenvals:
                 band_data = np.load(eigenvals)
 
-            eigenvalues = band_data[:,:,0]
-            kpoints = band_data[0,:,1:]
+            if self.ispin and not self.lsorbit:
+                eigenvalues = band_data[:,:,:2]
+                kpoints = band_data[0,:,2:]
+            else:
+                eigenvalues = band_data[:,:,0]
+                kpoints = band_data[0,:,1:]
         else:
-            eigenvalues = np.transpose(self.eigenval.eigenvalues[spin][:,:,0]) - self.efermi
+            if len(self.eigenval.eigenvalues.keys()) > 1:
+                eigenvalues_up = np.transpose(self.eigenval.eigenvalues[Spin.up][:,:,0]) - self.efermi
+                eigenvalues_down = np.transpose(self.eigenval.eigenvalues[Spin.down][:,:,0]) - self.efermi
+                eigenvalues = np.concatenate(
+                    [eigenvalues_up[:,:,np.newaxis], eigenvalues_down[:,:,np.newaxis]],
+                    axis=2
+                )
+            else:
+                eigenvalues = np.transpose(self.eigenval.eigenvalues[Spin.up][:,:,0]) - self.efermi
+
             kpoints = np.array(self.eigenval.kpoints)
 
             if self.hse:
@@ -180,12 +205,24 @@ class Band:
                 eigenvalues = eigenvalues[:,zero_weight]
                 kpoints = kpoints[zero_weight]
 
-            band_data = np.append(
-                eigenvalues[:,:,np.newaxis],
-                np.tile(kpoints, (eigenvalues.shape[0],1,1)),
-                axis=2,
-            )
+            if len(self.eigenval.eigenvalues.keys()) > 1:
+                band_data = np.append(
+                    eigenvalues,
+                    np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+                    axis=2,
+                )
+            else:
+                band_data = np.append(
+                    eigenvalues[:,:,np.newaxis],
+                    np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+                    axis=2,
+                )
+
             np.save(os.path.join(self.folder, 'eigenvalues.npy'), band_data)
+
+        if len(self.eigenval.eigenvalues.keys()) > 1:
+            eigenvalues = eigenvalues[:,:,spin]
+
 
         return eigenvalues, kpoints
 
@@ -248,12 +285,24 @@ class Band:
         else:
             parser = ProcarParser()
             parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
-            projected_eigenvalues = np.transpose(parser.spd[:,:,spin,:-1, 1:-1], axes=(1,0,2,3))
-            projected_eigenvalues = projected_eigenvalues 
+            if self.ispin and not self.lsorbit and np.sum(self.poscar.natoms) == 1:
+                shape = int(parser.spd.shape[1] / 2)
+                projected_eigenvalues_up = np.transpose(parser.spd[:,:shape,0,:,1:-1], axes=(1,0,2,3))
+                projected_eigenvalues_down = np.transpose(parser.spd[:,shape:,0,:,1:-1], axes=(1,0,2,3))
+                projected_eigenvalues = np.concatenate(
+                    [projected_eigenvalues_up[:,:,:,:,np.newaxis], projected_eigenvalues_down[:,:,:,:,np.newaxis]],
+                    axis=4
+                )
+                projected_eigenvalues = np.transpose(projected_eigenvalues, axes=(0,1,4,2,3))
+            else:
+                projected_eigenvalues = np.transpose(parser.spd[:,:,:,:-1, 1:-1], axes=(1,0,2,3,4))
+
             np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
 
+
+        projected_eigenvalues = projected_eigenvalues[:,:,spin,:,:]
+
         if self.hse:
-            print(projected_eigenvalues.shape)
             kpoint_weights = np.array(self.eigenval.kpoints_weights)
             zero_weight = np.where(kpoint_weights == 0)[0]
             projected_eigenvalues = projected_eigenvalues[:,zero_weight]

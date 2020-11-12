@@ -968,7 +968,7 @@ def band_plain_spin_polarized(
     down_color='red',
     linewidth=1.25,
     up_linestyle='-',
-    down_linestyle='-',
+    down_linestyle=':',
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
@@ -5355,7 +5355,7 @@ def band_dos_plain_spin_polarized(
     down_color='red',
     linewidth=1.25,
     up_linestyle='-',
-    down_linestyle='--',
+    down_linestyle=':',
     figsize=(6, 3),
     width_ratios=[7, 3],
     erange=[-6, 6],
@@ -7610,10 +7610,15 @@ def dos_layers(
 
 
 def _main():
-    folder = '../../vaspvis_data/dos_InAs'
-    dos_spd(
-        folder=folder,
-    )
+    dos_folder = '../../vaspvis_data/Fe-sp/dos'
+    band_folder_sp = '../../vaspvis_data/Fe-sp/band'
+    band_folder = '../../vaspvis_data/band_InAs'
+    band_spd(folder=band_folder)
+    #  band_dos_spd_spin_polarized(
+        #  band_folder=band_folder_sp,
+        #  dos_folder=dos_folder,
+        #  display_order='all',
+    #  )
 
 
 if __name__ == "__main__":

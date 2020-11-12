@@ -166,6 +166,19 @@ standard.band_orbitals(
 
 <img src="./img/band_orbital.png"  width="650" height="450">
 
+### Atom Projected Band Structure
+
+```python
+from vaspvis import standard
+
+standard.band_atoms(
+    folder=band_folder,
+    atoms=[0, 1],
+)
+```
+
+<img src="./img/band_atoms.png"  width="650" height="450">
+
 ### Atom-Orbtial Projected Band Structure
 
 ```python
@@ -179,18 +192,18 @@ standard.band_atom_orbitals(
 
 <img src="./img/band_atom_orbitals.png"  width="650" height="450">
 
-### Atom Projected Band Structure
+### Atom s, p, d Projected Band Structure
 
 ```python
 from vaspvis import standard
 
-standard.band_atoms(
+standard.band_atom_spd(
     folder=band_folder,
-    atoms=[0, 1],
+    atom_spd_dict={0:'spd'},
 )
 ```
 
-<img src="./img/band_atoms.png"  width="650" height="450">
+<img src="./img/band_atom_spd.png"  width="650" height="450">
 
 ### Element Projected Band Structure
 
@@ -273,6 +286,20 @@ standard.dos_orbitals(
 
 <img src="./img/dos_orbitals.png"  width="650" height="450">
 
+### Atom Projected Density of States
+
+```python
+from vaspvis import standard
+
+standard.dos_atoms(
+    folder=dos_folder,
+    atoms=[0, 1],
+    energyaxis='x',
+)
+```
+
+<img src="./img/dos_atoms.png"  width="650" height="450">
+
 ### Atom-Orbtial Projected Density of States
 
 ```python
@@ -287,19 +314,19 @@ standard.dos_atom_orbital(
 
 <img src="./img/dos_atom_orbitals.png"  width="650" height="450">
 
-### Atom Projected Density of States
+### Atom s, p, d Projected Density of States
 
 ```python
 from vaspvis import standard
 
-standard.dos_atoms(
+standard.dos_atom_orbital(
     folder=dos_folder,
-    atoms=[0, 1],
+    atom_orbital_pairs=[[0,1], [0,3], [1, 1], [1,7]],
     energyaxis='x',
 )
 ```
 
-<img src="./img/dos_atoms.png"  width="650" height="450">
+<img src="./img/dos_atom_spd.png"  width="650" height="450">
 
 ### Element Projected Density of States
 

@@ -143,6 +143,16 @@ standard.dos_atom_orbitals(
     energyaxis='x',
 )
 
+# ==================================================
+# ---------- Atom SPD Dos Structure ------------
+# ==================================================
+
+standard.dos_atom_spd(
+    folder=dos_folder,
+    atom_spd_dict={0:'spd'},
+    energyaxis='x',
+)
+
 
 # ==================================================
 # ------------ Element Dos Structure --------------
