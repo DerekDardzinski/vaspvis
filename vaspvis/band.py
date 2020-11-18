@@ -98,6 +98,10 @@ class Band:
         self.forbitals = False
         self.hse = str(self.kpoints_file._style) != 'Line_mode'
         self.unfold = unfold
+
+        if self.hse and self.unfold:
+            self.hse = False
+
         self.kpath = kpath
         self.n = n
         self.M = M
@@ -673,7 +677,7 @@ class Band:
             )
 
         if self.hse:
-            self._get_kticks_hse(ax=ax, kpath=self.kpath, n=self.n)
+            self._get_kticks_hse(ax=ax, kpath=self.kpath)
         elif self.unfold:
             self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
         else:
