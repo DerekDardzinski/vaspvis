@@ -43,7 +43,7 @@ class Band:
             known by the user, as it was used to generate the KPOINTS file.
     """
 
-    def __init__(self, folder, projected=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None):
+    def __init__(self, folder, projected=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None, bandgap=False, printbg=True):
         """
         Initialize parameters upon the generation of this class
 
@@ -64,6 +64,9 @@ class Band:
                 known by the user, as it was used to generate the KPOINTS file.
         """
 
+        self.bandgap = bandgap
+        self.printbg = printbg
+        self.bg = None
         self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
         self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
         self.poscar = Poscar.from_file(
@@ -163,6 +166,24 @@ class Band:
             self.pre_loaded_projections = os.path.isfile(os.path.join(folder, 'projected_eigenvalues.npy'))
             self.projected_eigenvalues = self._load_projected_bands()
 
+    def _get_bandgap(self, eigenvalues):
+        if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
+            occupied = eigenvalues[np.where(eigenvalues[:,:,-1] > 1e-8)]
+            unoccupied = eigenvalues[np.where(eigenvalues[:,:,-1] < 1e-8)]
+
+            vbm = np.max(occupied[:,0])
+            cbm = np.min(unoccupied[:,0])
+
+            bg = cbm - vbm
+        else:
+            bg = 0
+
+        if self.printbg:
+            print(f'Bandgap = {np.round(bg, 3)} eV')
+
+        self.bg = bg
+
+
 
     def _load_bands(self):
         """
@@ -185,21 +206,42 @@ class Band:
                 band_data = np.load(eigenvals)
 
             if self.ispin and not self.lsorbit:
-                eigenvalues = band_data[:,:,:2]
-                kpoints = band_data[0,:,2:]
+                eigenvalues = band_data[:,:,[0,2]]
+                kpoints = band_data[0,:,4:]
+                if self.bandgap:
+                    eigenvalues_up = band_data[:,:,[0,1]]
+                    eigenvalues_down = band_data[:,:,[2,3]]
+                    eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
             else:
                 eigenvalues = band_data[:,:,0]
-                kpoints = band_data[0,:,1:]
+                kpoints = band_data[0,:,2:]
+                if self.bandgap:
+                    eigenvalues_bg = band_data[:,:,[0,1]]
+            
+            if self.bandgap:
+                self._get_bandgap(eigenvalues=eigenvalues_bg)
         else:
             if len(self.eigenval.eigenvalues.keys()) > 1:
-                eigenvalues_up = np.transpose(self.eigenval.eigenvalues[Spin.up][:,:,0]) - self.efermi
-                eigenvalues_down = np.transpose(self.eigenval.eigenvalues[Spin.down][:,:,0]) - self.efermi
+                eigenvalues_up = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
+                eigenvalues_down = np.transpose(self.eigenval.eigenvalues[Spin.down], axes=(1,0,2))
+                eigenvalues_up[:,:,0] = eigenvalues_up[:,:,0] - self.efermi
+                eigenvalues_down[:,:,0] = eigenvalues_down[:,:,0] - self.efermi
                 eigenvalues = np.concatenate(
-                    [eigenvalues_up[:,:,np.newaxis], eigenvalues_down[:,:,np.newaxis]],
+                    [eigenvalues_up, eigenvalues_down],
                     axis=2
                 )
+                print(eigenvalues.shape)
+                #  eigenvalues = np.concatenate(
+                    #  [eigenvalues_up[:,:,np.newaxis], eigenvalues_down[:,:,np.newaxis]],
+                    #  axis=2
+                #  )
+                if self.bandgap:
+                    eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
             else:
-                eigenvalues = np.transpose(self.eigenval.eigenvalues[Spin.up][:,:,0]) - self.efermi
+                eigenvalues = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
+                eigenvalues[:,:,0] = eigenvalues[:,:,0] - self.efermi
+                if self.bandgap:
+                    eigenvalues_bg = eigenvalues
 
             kpoints = np.array(self.eigenval.kpoints)
 
@@ -207,20 +249,25 @@ class Band:
                 kpoint_weights = np.array(self.eigenval.kpoints_weights)
                 zero_weight = np.where(kpoint_weights == 0)[0]
                 eigenvalues = eigenvalues[:,zero_weight]
+                if self.bandgap:
+                    eigenvalues_bg = eigenvalues_bg[:, zero_weight]
                 kpoints = kpoints[zero_weight]
 
-            if len(self.eigenval.eigenvalues.keys()) > 1:
-                band_data = np.append(
-                    eigenvalues,
-                    np.tile(kpoints, (eigenvalues.shape[0],1,1)),
-                    axis=2,
-                )
-            else:
-                band_data = np.append(
-                    eigenvalues[:,:,np.newaxis],
-                    np.tile(kpoints, (eigenvalues.shape[0],1,1)),
-                    axis=2,
-                )
+            if self.bandgap:
+                self._get_bandgap(eigenvalues=eigenvalues_bg)
+
+            #  if len(self.eigenval.eigenvalues.keys()) > 1:
+            band_data = np.append(
+                eigenvalues,
+                np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+                axis=2,
+            )
+            #  else:
+                #  band_data = np.append(
+                    #  eigenvalues[:,:,np.newaxis],
+                    #  np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+                    #  axis=2,
+                #  )
 
             np.save(os.path.join(self.folder, 'eigenvalues.npy'), band_data)
 

@@ -1,6 +1,10 @@
 import numpy as np
 from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
 from vaspvis.unfold import convert
+from pymatgen.io.vasp.outputs import Eigenval
+from pymatgen.electronic_structure.core import Spin, Orbital
+from band import Band
+import os
 
 def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
     """
@@ -48,19 +52,38 @@ def generate_kpoints(M, high_symmetry_points, n, output='KPOINTS'):
 
     save2VaspKPOINTS(reducedK, output)
 
+
+def get_bandgap(folder, printbg=True):
+    """
+    This function get the band gap from a bandstructure. If the structure is metallic it will
+    return zero.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        printbg (bool): If True, it will print the value of the bandgap. If False,
+            the value of the bandgap will be returned without printing.
+
+    Returns:
+        Bandgap value in eV
+    """
+    band = Band(folder=folder, bandgap=True, printbg=printbg)
+
+    return band.bg
+
 if __name__ == "__main__":
-    high_symmetry_points = [
-        [0.5,0,0.5],
-        [0,0,0],
-        [0.5,0,0.5],
-    ]
-    M = convert_slab(
-        bulk_path='./unfold/POSCAR_bulk',
-        slab_path='./unfold/POSCAR_sub_9_0_orientation_0',
-        index=[1,1,1],
-    )
-    generate_kpoints(
-        M=M,
-        high_symmetry_points=high_symmetry_points,
-        n=50,
-    )
+    get_bandgap(folder='../../vaspvis_data/hseInAs')
+    #  high_symmetry_points = [
+        #  [0.5,0,0.5],
+        #  [0,0,0],
+        #  [0.5,0,0.5],
+    #  ]
+    #  M = convert_slab(
+        #  bulk_path='./unfold/POSCAR_bulk',
+        #  slab_path='./unfold/POSCAR_sub_9_0_orientation_0',
+        #  index=[1,1,1],
+    #  )
+    #  generate_kpoints(
+        #  M=M,
+        #  high_symmetry_points=high_symmetry_points,
+        #  n=50,
+    #  )

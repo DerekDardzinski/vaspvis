@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -7610,31 +7610,32 @@ def dos_layers(
 
 
 def _main():
-    band_folder = '../../vaspvis_data/InSb111_band'
-
-    # Transformation matrix generated from convert_slab
-    M = [
-        [0,1,-1],
-        [1,-1,0],
-        [-8,-8,-8]
-    ]
-
-    high_symm_points = [
-        [0.5, 0.0, 0.5], # X
-        [0.0, 0.0, 0.0], # Gamma
-        [0.5, 0.0, 0.5]  # X
-    ]
-
-    # All other functions in the standard library work with band unfolding too.
-    band_plain(
-        folder=band_folder,
-        erange=[-4,0],
-        unfold=True,
-        kpath='XGX',
-        high_symm_points=high_symm_points,
-        n=50,
-        M=M,
-    )
+    band_spd(folder='../../vaspvis_data/band')
+    #  band_folder = '../../vaspvis_data/InSb111_band'
+#
+    #  # Transformation matrix generated from convert_slab
+    #  M = [
+        #  [0,1,-1],
+        #  [1,-1,0],
+        #  [-8,-8,-8]
+    #  ]
+#
+    #  high_symm_points = [
+        #  [0.5, 0.0, 0.5], # X
+        #  [0.0, 0.0, 0.0], # Gamma
+        #  [0.5, 0.0, 0.5]  # X
+    #  ]
+#
+    #  # All other functions in the standard library work with band unfolding too.
+    #  band_plain(
+        #  folder=band_folder,
+        #  erange=[-4,0],
+        #  unfold=True,
+        #  kpath='XGX',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+    #  )
 
 
 if __name__ == "__main__":
