@@ -3,7 +3,7 @@ from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, sav
 from vaspvis.unfold import convert
 from pymatgen.io.vasp.outputs import Eigenval
 from pymatgen.electronic_structure.core import Spin, Orbital
-from band import Band
+from vaspvis.band import Band
 import os
 
 def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
