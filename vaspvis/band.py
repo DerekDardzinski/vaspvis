@@ -259,12 +259,13 @@ class Band:
 
             np.save(os.path.join(self.folder, 'eigenvalues.npy'), band_data)
 
-        if len(self.eigenval.eigenvalues.keys()) > 1:
-            eigenvalues = eigenvalues[:,:,[0,2]]
-            eigenvalues = eigenvalues[:,:,spin]
-        else:
-            eigenvalues =  eigenvalues[:,:,0]
+            if len(self.eigenval.eigenvalues.keys()) > 1:
+                eigenvalues = eigenvalues[:,:,[0,2]]
+            else:
+                eigenvalues =  eigenvalues[:,:,0]
 
+        if len(self.eigenval.eigenvalues.keys()) > 1:
+            eigenvalues = eigenvalues[:,:,spin]
 
         return eigenvalues, kpoints
 
