@@ -7610,7 +7610,9 @@ def dos_layers(
 
 
 def _main():
-    band_spd(folder='../../vaspvis_data/band')
+    band_spd(
+        folder='../../vaspvis_data/band_nosoc'
+    )
     #  band_folder = '../../vaspvis_data/InSb111_band'
 #
     #  # Transformation matrix generated from convert_slab

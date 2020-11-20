@@ -230,11 +230,6 @@ class Band:
                     [eigenvalues_up, eigenvalues_down],
                     axis=2
                 )
-                print(eigenvalues.shape)
-                #  eigenvalues = np.concatenate(
-                    #  [eigenvalues_up[:,:,np.newaxis], eigenvalues_down[:,:,np.newaxis]],
-                    #  axis=2
-                #  )
                 if self.bandgap:
                     eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
             else:
@@ -256,23 +251,19 @@ class Band:
             if self.bandgap:
                 self._get_bandgap(eigenvalues=eigenvalues_bg)
 
-            #  if len(self.eigenval.eigenvalues.keys()) > 1:
             band_data = np.append(
                 eigenvalues,
                 np.tile(kpoints, (eigenvalues.shape[0],1,1)),
                 axis=2,
             )
-            #  else:
-                #  band_data = np.append(
-                    #  eigenvalues[:,:,np.newaxis],
-                    #  np.tile(kpoints, (eigenvalues.shape[0],1,1)),
-                    #  axis=2,
-                #  )
 
             np.save(os.path.join(self.folder, 'eigenvalues.npy'), band_data)
 
         if len(self.eigenval.eigenvalues.keys()) > 1:
+            eigenvalues = eigenvalues[:,:,[0,2]]
             eigenvalues = eigenvalues[:,:,spin]
+        else:
+            eigenvalues =  eigenvalues[:,:,0]
 
 
         return eigenvalues, kpoints
