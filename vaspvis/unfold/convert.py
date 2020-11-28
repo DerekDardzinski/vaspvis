@@ -140,6 +140,8 @@ def convert(bulk, slab, index, output):
     for atom in refSlab:
         newSlab.append(atom.specie, atom.frac_coords[:])
 
+    Poscar(newSlab.get_sorted_structure()).write_file(output, direct=True)
+
     transformMat = newSlab.lattice.matrix.dot(
         np.linalg.inv(primitiveCell.lattice.matrix))
     transformMat = transformMat.round().astype(int)
