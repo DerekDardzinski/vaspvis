@@ -1102,7 +1102,22 @@ class Dos:
                 colors=colors
             )
 
-    def plot_layers(self, ax, cmap='magma', sigma=5, energyaxis='y', erange=[-6, 6], antialiased=False, fontsize=6, interface_layer=None, interface_line_color='white', interface_line_width=2, interface_line_style='--', log_scale=False):
+    def plot_layers(
+            self,
+            ax,
+            cmap='magma',
+            sigma=5,
+            energyaxis='y',
+            erange=[-6, 6],
+            lrange=None,
+            antialiased=False,
+            fontsize=6,
+            interface_layer=None,
+            interface_line_color='white',
+            interface_line_width=2,
+            interface_line_style='--',
+            log_scale=False
+    ):
         import matplotlib.colors as colors
         """
         This function plots a layer by layer heat map of the density
@@ -1132,7 +1147,6 @@ class Dos:
             norm = colors.LogNorm(vmin=np.min(densities), vmax=np.max(densities))
         else:
             norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
-
 
         if energyaxis == 'y':
             im = ax.pcolormesh(
