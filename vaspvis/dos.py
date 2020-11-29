@@ -1136,7 +1136,7 @@ class Dos:
                 (erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5)
         )
         groups, group_heights = self._group_layers()
-        atom_index = group_heights
+        atom_index = range(len(group_heights))
         energies = energy[ind]
         atom_densities = self._sum_atoms(atoms=None)[ind]
         densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
@@ -1148,6 +1148,10 @@ class Dos:
         else:
             norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
 
+        if lrange is not None:
+            atom_index = atom_index[lrange[0]:lrange[1]+1]
+            densities = densities[:, lrange[0]:lrange[1]+1]
+
         if energyaxis == 'y':
             im = ax.pcolormesh(
                 atom_index,
@@ -1158,19 +1162,12 @@ class Dos:
                 norm=norm,
                 antialiased=antialiased,
             )
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-            if len(group_heights) <= 12:
-                ax.set_xticks(group_heights)
-                ax.set_xticklabels(range(len(group_heights)))
-            else:
-                idx = np.round(np.linspace(0, len(group_heights) - 1, 12)).astype(int)
-                group_heights_new = group_heights[idx] 
-                ax.set_xticks(group_heights_new)
-                ax.set_xticklabels(idx)
 
             if interface_layer is not None:
                 ax.axvline(
-                    x=group_heights[interface_layer],
+                    x=interface_layer,
                     color=interface_line_color,
                     linestyle=interface_line_style,
                     linewidth=interface_line_width,
@@ -1186,18 +1183,11 @@ class Dos:
                 norm=norm,
                 antialiased=antialiased,
             )
-            if len(group_heights) <= 12:
-                ax.set_yticks(group_heights)
-                ax.set_yticklabels(range(len(group_heights)))
-            else:
-                idx = np.round(np.linspace(0, len(group_heights) - 1, 12)).astype(int)
-                group_heights_new = group_heights[idx] 
-                ax.set_yticks(group_heights_new)
-                ax.set_yticklabels(idx)
+            ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
             if interface_layer is not None:
                 ax.axhline(
-                    y=group_heights[interface_layer],
+                    y=interface_layer,
                     color=interface_line_color,
                     linestyle=interface_line_style,
                     linewidth=interface_line_width,

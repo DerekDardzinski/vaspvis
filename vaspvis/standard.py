@@ -5,7 +5,7 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from dos import Dos
+from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import time
@@ -7480,6 +7480,7 @@ def dos_layers(
     energyaxis='y',
     figsize=(5, 3),
     erange=[-3, 3],
+    lrange=None,
     spin='up',
     combination_method='add',
     fontsize=7,
@@ -7578,6 +7579,7 @@ def dos_layers(
         sigma=sigma,
         cmap=cmap,
         erange=erange,
+        lrange=lrange,
         antialiased=antialiased,
         fontsize=fontsize,
         energyaxis=energyaxis,
@@ -7613,6 +7615,7 @@ def _main():
     dos_layers(
         folder='../../vaspvis_data/slabdos',
         erange=[-1,1],
+        lrange=[0,3]
     )
     #  band_folder = '../../vaspvis_data/InSb111_band'
 #
