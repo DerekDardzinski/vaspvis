@@ -7612,10 +7612,8 @@ def dos_layers(
 
 
 def _main():
-    dos_layers(
-        folder='../../vaspvis_data/slabdos',
-        erange=[-1,1],
-        lrange=[0,3]
+    band_spd(
+        folder='../../vaspvis_data/band',
     )
     #  band_folder = '../../vaspvis_data/InSb111_band'
 #

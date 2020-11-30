@@ -338,7 +338,10 @@ class Band:
                 )
                 projected_eigenvalues = np.transpose(projected_eigenvalues, axes=(0,1,4,2,3))
             else:
-                projected_eigenvalues = np.transpose(parser.spd[:,:,:,:-1, 1:-1], axes=(1,0,2,3,4))
+                if np.sum(self.poscar.natoms) == 1:
+                    projected_eigenvalues = np.transpose(parser.spd[:,:,:,:, 1:-1], axes=(1,0,2,3,4))
+                else:
+                    projected_eigenvalues = np.transpose(parser.spd[:,:,:,:-1, 1:-1], axes=(1,0,2,3,4))
 
             np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
 
