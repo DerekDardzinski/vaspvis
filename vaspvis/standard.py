@@ -7612,12 +7612,16 @@ def dos_layers(
 
 
 def _main():
-    band_spd(
-        folder='../../vaspvis_data/band',
+    #  band_spd(
+        #  folder='../../vaspvis_data/band',
+        #  erange=[-12,12]
+    #  )
+    dos_layers(
+        folder='../../vaspvis_data/slabdos',
     )
     #  band_folder = '../../vaspvis_data/InSb111_band'
 #
-    #  # Transformation matrix generated from convert_slab
+    # Transformation matrix generated from convert_slab
     #  M = [
         #  [0,1,-1],
         #  [1,-1,0],
@@ -7631,14 +7635,15 @@ def _main():
     #  ]
 #
     #  # All other functions in the standard library work with band unfolding too.
-    #  band_plain(
-        #  folder=band_folder,
+    #  band_spd(
+        #  folder='../../vaspvis_data/InSb111_band',
         #  erange=[-4,0],
         #  unfold=True,
         #  kpath='XGX',
         #  high_symm_points=high_symm_points,
         #  n=50,
         #  M=M,
+        #  #  scale_factor=20,
     #  )
 
 

@@ -699,6 +699,7 @@ class Band:
 
         if self.unfold:
             spectral_weights = self.spectral_weights[bands_in_plot]
+            spectral_weights = spectral_weights / np.max(spectral_weights)
             spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
             ax.scatter(
                 wave_vectors_tile,
@@ -744,16 +745,19 @@ class Band:
         """
         if self.unfold:
             band_color = [(0.9,0.9,0.9)]
+            scale_factor = scale_factor * 4
 
         self.plot_plain(ax=ax, linewidth=linewidth, color=band_color, erange=erange)
 
         bands_in_plot = self._filter_bands(erange=erange)
         projected_data = projected_data[bands_in_plot]
+        projected_data = projected_data / np.max(projected_data)
         wave_vectors = self._get_k_distance()
         eigenvalues = self.eigenvalues[bands_in_plot]
 
         if self.unfold:
             spectral_weights = self.spectral_weights[bands_in_plot]
+            spectral_weights = spectral_weights / np.max(spectral_weights)
             K_indices = np.array(self.K_indices[0], dtype=int)
             projected_data = projected_data[:, K_indices, :]
             spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])

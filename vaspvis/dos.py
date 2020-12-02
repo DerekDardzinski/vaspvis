@@ -467,7 +467,7 @@ class Dos:
             else:
                 grouped = True
 
-        return np.array(groups), np.array(group_heights)
+        return groups, np.array(group_heights)
 
     def _add_legend(self, ax, names, colors):
         legend_lines = []
@@ -1144,7 +1144,11 @@ class Dos:
         densities = gaussian_filter(densities, sigma=sigma)
 
         if log_scale:
-            norm = colors.LogNorm(vmin=np.min(densities), vmax=np.max(densities))
+            if np.min(densities) == 0:
+                 min_val = 0.00001
+            else:
+                 min_val = np.min(densities)
+            norm = colors.LogNorm(vmin=min_val, vmax=np.max(densities))
         else:
             norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
 

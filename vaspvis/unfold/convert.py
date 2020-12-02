@@ -152,9 +152,8 @@ def convert(bulk, slab, index, output):
     return transformMat
 
 if __name__ == "__main__":
-    bulk = './POSCAR_bulk'
-    slab = './POSCAR_conv'
-    index = [1,1,1]
+    bulk = './POSCAR_HgTe_ept'
+    slab = './POSCAR_18'
+    index = [1,0,0]
     output = 'POSCAR_conv2'
     M = convert(bulk, slab, index, output)
-    print(M)
