@@ -119,12 +119,14 @@ def convert(bulk, slab, index, output):
     slab = surface(bulk, index, layers=2, vacuum=10)
     lattice, _, _ = spglib.standardize_cell(cell=(slab.get_cell(
     ), slab.get_scaled_positions(), slab.get_atomic_numbers()), no_idealize=True)
+    lattice_params = np.linalg.norm(lattice, axis=1)[:2]
+    scales = np.round(np.array([refSlab.lattice.a, refSlab.lattice.b] / lattice_params), 2)
     newLattice = []
     oldLattice = refSlab.lattice
-    for length in [oldLattice.a, oldLattice.b]:
+    for length, scale in zip([oldLattice.a, oldLattice.b], scales):
         for j in range(len(lattice)):
-            if abs(np.linalg.norm(lattice[j]) - length) < 1e-1:
-                newLattice.append(copy.copy(lattice[j][:]))
+            if abs((np.linalg.norm(lattice[j]) * scale) - length) < 1e-1:
+                newLattice.append(copy.copy(scale * lattice[j][:]))
                 lattice[j] = [0, 0, 0]
                 break
     for i in range(len(lattice)):
@@ -152,8 +154,11 @@ def convert(bulk, slab, index, output):
     return transformMat
 
 if __name__ == "__main__":
-    bulk = './POSCAR_HgTe_ept'
-    slab = './POSCAR_18'
-    index = [1,0,0]
+    bulk = './POSCAR_InAs_pri'
+    slab = './POSCAR_int'
+    index = [1,1,1]
+    #  bulk = './POSCAR_HgTe_ept'
+    #  slab = './POSCAR_18'
+    #  index = [1,0,0]
     output = 'POSCAR_conv2'
     M = convert(bulk, slab, index, output)
