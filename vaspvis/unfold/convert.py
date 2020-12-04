@@ -108,7 +108,7 @@ def ext_gcd(a, b):
         return y, x - y * (a // b)
 
 
-def convert(bulk, slab, index, output):
+def convert(bulk, slab, index, output, generate=True, print_M=True):
     primitiveCell = mg.Structure.from_file(bulk)
     refSlab = mg.Structure.from_file(slab)
     sa = SpacegroupAnalyzer(primitiveCell)
@@ -142,14 +142,18 @@ def convert(bulk, slab, index, output):
     for atom in refSlab:
         newSlab.append(atom.specie, atom.frac_coords[:])
 
-    Poscar(newSlab.get_sorted_structure()).write_file(output, direct=True)
+    if generate:
+        Poscar(newSlab.get_sorted_structure()).write_file(output, direct=True)
 
     transformMat = newSlab.lattice.matrix.dot(
         np.linalg.inv(primitiveCell.lattice.matrix))
     transformMat = transformMat.round().astype(int)
-    print('Your Transformtaion Matrix is:')
-    print(' ')
-    print(transformMat)
+    if print_M:
+        print('-------------------------------------------')
+        print('Your Transformtaion Matrix is:')
+        print(' ')
+        print(transformMat)
+        print('-------------------------------------------')
 
     return transformMat
 

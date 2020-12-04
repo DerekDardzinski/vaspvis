@@ -6,7 +6,7 @@ from pymatgen.electronic_structure.core import Spin, Orbital
 from vaspvis.band import Band
 import os
 
-def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
+def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold', generate=True, print_M=True):
     """
     This function rotates a slab structure so its transformation matrix
     (M) to the primitive bulk structure becomes an integer matrix
@@ -25,6 +25,8 @@ def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold'):
         slab=slab_path,
         index=index,
         output=output,
+        generate=generate,
+        print_M=print_M,
     )
 
     return M

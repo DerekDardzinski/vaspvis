@@ -7612,39 +7612,44 @@ def dos_layers(
 
 
 def _main():
+    band_folder = '../../vaspvis_data/InAsAl'
     #  band_spd(
         #  folder='../../vaspvis_data/band',
         #  erange=[-12,12]
     #  )
-    dos_layers(
-        folder='../../vaspvis_data/slabdos',
-    )
+    #  dos_layers(
+        #  folder='../../vaspvis_data/slabdos',
+    #  )
     #  band_folder = '../../vaspvis_data/InSb111_band'
 #
-    # Transformation matrix generated from convert_slab
-    #  M = [
-        #  [0,1,-1],
-        #  [1,-1,0],
-        #  [-8,-8,-8]
-    #  ]
-#
-    #  high_symm_points = [
-        #  [0.5, 0.0, 0.5], # X
-        #  [0.0, 0.0, 0.0], # Gamma
-        #  [0.5, 0.0, 0.5]  # X
-    #  ]
-#
-    #  # All other functions in the standard library work with band unfolding too.
-    #  band_spd(
-        #  folder='../../vaspvis_data/InSb111_band',
-        #  erange=[-4,0],
-        #  unfold=True,
-        #  kpath='XGX',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-        #  #  scale_factor=20,
-    #  )
+    #  Transformation matrix generated from convert_slab
+    M = [
+        [0,0,-2],
+        [0,-2,2],
+        [-25,8,8]
+    ]
+
+    high_symm_points = [
+        [0.3333,0.3333,0.6666], # X
+        [0.0,0.0,0.0], # Gamma
+        [0.3333,0.3333,0.6666]  # X
+    ]
+
+    # All other functions in the standard library work with band unfolding too.
+    band_elements(
+        folder=band_folder,
+        elements=['Al'],
+        color_list=['blue'],
+        erange=[-6,6],
+        figsize=(3,4),
+        unfold=True,
+        kpath='AGA',
+        high_symm_points=high_symm_points,
+        n=50,
+        M=M,
+        scale_factor=20,
+        output='band_elements_Al.png'
+    )
 
 
 if __name__ == "__main__":

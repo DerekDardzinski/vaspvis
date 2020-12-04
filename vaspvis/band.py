@@ -337,6 +337,15 @@ class Band:
                     axis=4
                 )
                 projected_eigenvalues = np.transpose(projected_eigenvalues, axes=(0,1,4,2,3))
+            elif self.ispin and not self.lsorbit and np.sum(self.poscar.natoms) != 1:
+                shape = int(parser.spd.shape[1] / 2)
+                projected_eigenvalues_up = np.transpose(parser.spd[:,:shape,0,:-1,1:-1], axes=(1,0,2,3))
+                projected_eigenvalues_down = np.transpose(parser.spd[:,shape:,0,:-1,1:-1], axes=(1,0,2,3))
+                projected_eigenvalues = np.concatenate(
+                    [projected_eigenvalues_up[:,:,:,:,np.newaxis], projected_eigenvalues_down[:,:,:,:,np.newaxis]],
+                    axis=4
+                )
+                projected_eigenvalues = np.transpose(projected_eigenvalues, axes=(0,1,4,2,3))
             else:
                 if np.sum(self.poscar.natoms) == 1:
                     projected_eigenvalues = np.transpose(parser.spd[:,:,:,:, 1:-1], axes=(1,0,2,3,4))
