@@ -5,7 +5,7 @@ with open('./README.md', 'r') as fh:
 
 setup(
     name='vaspvis',
-    version='0.2.24',
+    version='0.2.25',
     description='A highly flexible and customizable library for visualizing electronic structure data from VASP calculations',
     long_description=long_description,
     long_description_content_type='text/markdown',
