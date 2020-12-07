@@ -5,7 +5,7 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from vaspvis.dos import Dos
+from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import time
@@ -7494,6 +7494,8 @@ def dos_layers(
     interface_line_style='--',
     interface_line_width=2,
     log_scale=True,
+    contour=False,
+    levels=10,
 ):
     """
     This function is used to plot a layer by layer density of states heat map for slab structures. It is useful for
@@ -7588,6 +7590,8 @@ def dos_layers(
         interface_line_style=interface_line_style,
         interface_line_width=interface_line_width,
         log_scale=log_scale,
+        contour=contour,
+        levels=levels,
     )
 
     if energyaxis == 'y':
@@ -7612,44 +7616,50 @@ def dos_layers(
 
 
 def _main():
-    band_folder = '../../vaspvis_data/InAsAl'
+    #  band_folder = '../../vaspvis_data/InAsAl'
     #  band_spd(
         #  folder='../../vaspvis_data/band',
         #  erange=[-12,12]
     #  )
-    #  dos_layers(
-        #  folder='../../vaspvis_data/slabdos',
-    #  )
+    dos_layers(
+        folder='../../vaspvis_data/slabdos',
+        output='heat.png',
+    )
+    dos_layers(
+        folder='../../vaspvis_data/slabdos',
+        contour=True,
+        output='contour.png',
+    )
     #  band_folder = '../../vaspvis_data/InSb111_band'
 #
     #  Transformation matrix generated from convert_slab
-    M = [
-        [0,0,-2],
-        [0,-2,2],
-        [-25,8,8]
-    ]
-
-    high_symm_points = [
-        [0.3333,0.3333,0.6666], # X
-        [0.0,0.0,0.0], # Gamma
-        [0.3333,0.3333,0.6666]  # X
-    ]
-
-    # All other functions in the standard library work with band unfolding too.
-    band_elements(
-        folder=band_folder,
-        elements=['Al'],
-        color_list=['blue'],
-        erange=[-6,6],
-        figsize=(3,4),
-        unfold=True,
-        kpath='AGA',
-        high_symm_points=high_symm_points,
-        n=50,
-        M=M,
-        scale_factor=20,
-        output='band_elements_Al.png'
-    )
+    #  M = [
+        #  [0,0,-2],
+        #  [0,-2,2],
+        #  [-25,8,8]
+    #  ]
+#
+    #  high_symm_points = [
+        #  [0.3333,0.3333,0.6666], # X
+        #  [0.0,0.0,0.0], # Gamma
+        #  [0.3333,0.3333,0.6666]  # X
+    #  ]
+#
+    #  # All other functions in the standard library work with band unfolding too.
+    #  band_elements(
+        #  folder=band_folder,
+        #  elements=['Al'],
+        #  color_list=['blue'],
+        #  erange=[-6,6],
+        #  figsize=(3,4),
+        #  unfold=True,
+        #  kpath='AGA',
+        #  high_symm_points=high_symm_points,
+        #  n=50,
+        #  M=M,
+        #  scale_factor=20,
+        #  output='band_elements_Al.png'
+    #  )
 
 
 if __name__ == "__main__":

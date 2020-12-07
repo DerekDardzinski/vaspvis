@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import MaxNLocator, LogLocator
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Poscar, Incar
 from pymatgen.electronic_structure.core import Spin, Orbital
@@ -1116,7 +1116,9 @@ class Dos:
             interface_line_color='white',
             interface_line_width=2,
             interface_line_style='--',
-            log_scale=False
+            log_scale=False,
+            contour=False,
+            levels=10,
     ):
         import matplotlib.colors as colors
         """
@@ -1157,15 +1159,25 @@ class Dos:
             densities = densities[:, lrange[0]:lrange[1]+1]
 
         if energyaxis == 'y':
-            im = ax.pcolormesh(
-                atom_index,
-                energies,
-                densities,
-                cmap=cmap,
-                shading='gouraud',
-                norm=norm,
-                antialiased=antialiased,
-            )
+            if contour:
+                im = ax.contourf(
+                    atom_index, 
+                    energies,
+                    densities,
+                    cmap=cmap,
+                    levels=levels,
+                    norm=norm,
+                )
+            else:
+                im = ax.pcolormesh(
+                    atom_index,
+                    energies,
+                    densities,
+                    cmap=cmap,
+                    shading='gouraud',
+                    norm=norm,
+                    antialiased=antialiased,
+                )
             ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
@@ -1178,15 +1190,25 @@ class Dos:
                 )
 
         if energyaxis == 'x':
-            im = ax.pcolormesh(
-                energies,
-                atom_index,
-                np.transpose(densities),
-                cmap=cmap,
-                shading='gouraud',
-                norm=norm,
-                antialiased=antialiased,
-            )
+            if contour:
+                im = ax.contourf(
+                    energies,
+                    atom_index, 
+                    densities,
+                    cmap=cmap,
+                    levels=levels,
+                    norm=norm,
+                )
+            else:
+                im = ax.pcolormesh(
+                    energies,
+                    atom_index,
+                    np.transpose(densities),
+                    cmap=cmap,
+                    shading='gouraud',
+                    norm=norm,
+                    antialiased=antialiased,
+                )
             ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
             if interface_layer is not None:
