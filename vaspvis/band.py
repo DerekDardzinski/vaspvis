@@ -648,7 +648,7 @@ class Band:
 
         return bands_in_plot
 
-    def _add_legend(self, ax, names, colors):
+    def _add_legend(self, ax, names, colors, fontsize=5, markersize=2):
         legend_lines = []
         legend_labels = []
         for name, color in zip(names, colors):
@@ -656,7 +656,7 @@ class Band:
                 [0],
                 [0],
                 marker='o',
-                markersize=2,
+                markersize=markersize,
                 linestyle='',
                 color=color
             ))
@@ -680,7 +680,7 @@ class Band:
             labels,
             ncol=1,
             loc='upper left',
-            fontsize=5,
+            fontsize=fontsize,
             bbox_to_anchor=(1, 1),
             borderaxespad=0,
             frameon=False,
