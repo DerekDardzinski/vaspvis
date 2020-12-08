@@ -1158,7 +1158,31 @@ class Dos:
             atom_index = atom_index[lrange[0]:lrange[1]+1]
             densities = densities[:, lrange[0]:lrange[1]+1]
 
+
+        if log_scale:
+            lev_exp = np.arange(
+                np.floor(np.log10(densities.min())-1),
+                np.ceil(np.log10(densities.max())+1),
+            )
+            if len(lev_exp) >= levels:
+                pass
+            else:
+                if int(levels / len(lev_exp)) >= 3:
+                    lev_exp = np.arange(
+                        np.floor(np.log10(densities.min())-1),
+                        np.ceil(np.log10(densities.max())+1),
+                        0.25,
+                    )
+                else:
+                    lev_exp = np.arange(
+                        np.floor(np.log10(densities.min())-1),
+                        np.ceil(np.log10(densities.max())+1),
+                        0.5,
+                    )
+            levels = np.power(10, lev_exp)
+
         if energyaxis == 'y':
+
             if contour:
                 im = ax.contourf(
                     atom_index, 
