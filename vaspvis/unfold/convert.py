@@ -119,7 +119,7 @@ def convert(bulk, slab, index, output, generate=True, print_M=True):
     slab = surface(bulk, index, layers=2, vacuum=10)
     lattice, _, _ = spglib.standardize_cell(cell=(slab.get_cell(
     ), slab.get_scaled_positions(), slab.get_atomic_numbers()), no_idealize=True)
-    lattice_params = np.linalg.norm(lattice, axis=1)[:2]
+    lattice_params = np.sort(np.linalg.norm(lattice, axis=1))[:2]
     scales = np.round(np.array([refSlab.lattice.a, refSlab.lattice.b] / lattice_params), 2)
     newLattice = []
     oldLattice = refSlab.lattice
@@ -158,9 +158,9 @@ def convert(bulk, slab, index, output, generate=True, print_M=True):
     return transformMat
 
 if __name__ == "__main__":
-    bulk = './POSCAR_InAs_pri'
-    slab = './POSCAR_int'
-    index = [1,1,1]
+    bulk = './POSCAR_bulk'
+    slab = './POSCAR_slab'
+    index = [1,1,0]
     #  bulk = './POSCAR_HgTe_ept'
     #  slab = './POSCAR_18'
     #  index = [1,0,0]
