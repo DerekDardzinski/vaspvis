@@ -1,7 +1,7 @@
 import numpy as np
 from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
 from vaspvis.unfold import convert
-from pymatgen.io.vasp.outputs import Eigenval
+from pymatgen.io.vasp.outputs import Eigenval, BSVasprun
 from pymatgen.io.vasp.inputs import Incar, Kpoints
 from pymatgen.electronic_structure.core import Spin, Orbital
 from vaspvis.band import Band
@@ -77,8 +77,8 @@ def get_bandgap(folder, printbg=True):
 
     def _get_bandgap(eigenvalues, printbg=printbg):
         if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
-            occupied = eigenvalues[np.where(eigenvalues[:,:,-1] > 1e-8)]
-            unoccupied = eigenvalues[np.where(eigenvalues[:,:,-1] < 1e-8)]
+            occupied = eigenvalues[np.where(eigenvalues[:,:,0] < 0)]
+            unoccupied = eigenvalues[np.where(eigenvalues[:,:,0] > 0)]
 
             vbm = np.max(occupied[:,0])
             cbm = np.min(unoccupied[:,0])
@@ -180,6 +180,11 @@ def get_bandgap(folder, printbg=True):
 
 if __name__ == "__main__":
     get_bandgap(folder='../../vaspvis_data/band_InAs')
+    run = BSVasprun('../../vaspvis_data/band_InAs/vasprun.xml')
+    bs = run.get_band_structure('../../vaspvis_data/band_InAs/KPOINTS')
+    print(bs.get_vbm()['energy'] - bs.efermi)
+    print(bs.get_cbm()['energy'] - bs.efermi)
+    print(bs.get_band_gap())
     #  get_bandgap2(folder='../../vaspvis_data/hseInAs')
     #  high_symmetry_points = [
         #  [0.5,0,0.5],
