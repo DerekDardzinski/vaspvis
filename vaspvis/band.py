@@ -43,7 +43,7 @@ class Band:
             known by the user, as it was used to generate the KPOINTS file.
     """
 
-    def __init__(self, folder, projected=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None, bandgap=False, printbg=True):
+    def __init__(self, folder, projected=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None, bandgap=False, printbg=True, shift_efermi=0):
         """
         Initialize parameters upon the generation of this class
 
@@ -68,7 +68,7 @@ class Band:
         self.printbg = printbg
         self.bg = None
         self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
-        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
+        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2]) + shift_efermi
         self.poscar = Poscar.from_file(
             os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,
@@ -93,13 +93,19 @@ class Band:
         else:
             self.ispin = False
 
+        if 'LHFCALC' in self.incar:
+            if self.incar['LHFCALC']:
+                self.hse = True
+            else:
+                self.hse = False
+        else:
+            self.hse = False
 
         self.kpoints_file = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
 
         self.wavecar = os.path.join(folder, 'WAVECAR')
         self.projected = projected
         self.forbitals = False
-        self.hse = str(self.kpoints_file._style) != 'Line_mode'
         self.unfold = unfold
 
         if self.hse and self.unfold:

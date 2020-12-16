@@ -7617,20 +7617,20 @@ def dos_layers(
 
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
-    #  band_spd(
-        #  folder='../../vaspvis_data/band',
-        #  erange=[-12,12]
-    #  )
+    band_spd(
+        folder='../../vaspvis_data/band',
+        erange=[-12,12]
+    )
     #  dos_layers(
         #  folder='../../vaspvis_data/slabdos',
         #  output='heat.png',
     #  )
-    dos_layers(
-        folder='../../vaspvis_data/slabdos',
-        contour=True,
-        output='contour.png',
-        #  levels=25,
-    )
+    #  dos_layers(
+        #  folder='../../vaspvis_data/slabdos',
+        #  contour=True,
+        #  output='contour.png',
+        #  #  levels=25,
+    #  )
     #  band_folder = '../../vaspvis_data/InSb111_band'
 #
     #  Transformation matrix generated from convert_slab
