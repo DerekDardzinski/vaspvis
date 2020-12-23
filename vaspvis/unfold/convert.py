@@ -159,8 +159,8 @@ def convert(bulk, slab, index, output, generate=True, print_M=True):
 
 if __name__ == "__main__":
     bulk = './POSCAR_bulk'
-    slab = './POSCAR_slab'
-    index = [1,1,0]
+    slab = './POSCAR_10_100_22'
+    index = [1,0,0]
     #  bulk = './POSCAR_HgTe_ept'
     #  slab = './POSCAR_18'
     #  index = [1,0,0]

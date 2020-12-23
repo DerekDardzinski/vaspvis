@@ -93,6 +93,7 @@ def band_plain(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    scale_factor=20,
     save=True,
 ):
     """
@@ -148,6 +149,7 @@ def band_plain(
         linewidth=linewidth,
         linestyle=linestyle,
         erange=erange,
+        scale_factor=scale_factor,
     )
     plt.tight_layout(pad=0.2)
 
