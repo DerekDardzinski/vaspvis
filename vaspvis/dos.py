@@ -469,6 +469,15 @@ class Dos:
 
         return groups, np.array(group_heights)
 
+    def _sum_layers(self, layers):
+        groups, _ = self._group_layers()
+        #  atom_index = range(len(group_heights))
+        atom_densities = self._sum_atoms(atoms=None)
+        densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
+        summed_layers = np.sum(densities[layers], axis=0)
+
+        return summed_layers
+
     def _add_legend(self, ax, names, colors, fontsize=5, markersize=2):
         legend_lines = []
         legend_labels = []
@@ -603,6 +612,78 @@ class Dos:
             )
         else:
             tdensity = tdos_array[:,1]
+
+        self._set_density_lims(
+            ax=ax,
+            tdensity=tdensity,
+            tenergy=tdos_array[:,0],
+            erange=erange,
+            energyaxis=energyaxis,
+            spin=self.spin,
+        )
+
+        if energyaxis == 'y':
+            ax.plot(
+                tdensity,
+                tdos_array[:,0],
+                linewidth=linewidth,
+                color=color,
+                alpha=alpha_line
+            )
+
+            if fill:
+                ax.fill_betweenx(
+                    tdos_array[:,0],
+                    tdensity,
+                    0,
+                    alpha=alpha,
+                    color=color,
+                )
+
+        if energyaxis == 'x':
+            ax.plot(
+                tdos_array[:,0],
+                tdensity,
+                linewidth=linewidth,
+                color=color,
+                alpha=alpha_line
+            )
+
+            if fill:
+                ax.fill_between(
+                    tdos_array[:,0],
+                    tdensity,
+                    0,
+                    color=color,
+                    alpha=alpha,
+                )
+
+    def plot_ldos(self, ax, layers, linewidth=1.5, fill=False, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='x', color='black', erange=[-6, 6]):
+        """
+        This function plots the total density of states
+
+        Parameters:
+            ax (matplotlib.pyplot.axis): Axis to append the tick labels
+            linewidth (float): Linewidth of lines
+            fill (bool): Determines wether or not to fill underneath the plot
+            alpha (float): Alpha value for the fill
+            alpha_line (float): Alpha value for the line
+            sigma (float): Standard deviation for gaussian filter
+            energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+            color (str): Color of line
+            erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        """
+
+        #  tdos_array = self._sum_layers(layers=layers)
+        tdos_array = self.tdos_array
+
+        if sigma > 0:
+            tdensity = self._smear(
+                self._sum_layers(layers=layers),
+                sigma=sigma
+            )
+        else:
+            tdensity = self._sum_layers(layers=layers)
 
         self._set_density_lims(
             ax=ax,
@@ -1259,3 +1340,10 @@ class Dos:
             show_unit_cell=0
         )
 
+
+if __name__ == '__main__':
+    dos = Dos(folder='../../vaspvis_data/slabdos')
+    #  dos._sum_layers(layers=[0,1,2,3])
+    fig, ax = plt.subplots(figsize=(4,3), dpi=100)
+    dos.plot_ldos(ax=ax, layers=range(10), erange=[-2,2], fill=False)
+    plt.show()

@@ -5,7 +5,7 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from vaspvis.dos import Dos
+from dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import time
@@ -2571,6 +2571,77 @@ def dos_plain(
 
     dos.plot_plain(
         ax=ax,
+        linewidth=linewidth,
+        fill=fill,
+        alpha=alpha,
+        sigma=sigma,
+        energyaxis=energyaxis,
+        color=color,
+        erange=erange,
+    )
+
+    plt.tight_layout(pad=0.2)
+
+    if save:
+        plt.savefig(output)
+    else:
+        return fig, ax
+
+def dos_ldos(
+    folder,
+    layers,
+    output='dos_ldos.png',
+    linewidth=1.5,
+    fill=True,
+    alpha=0.3,
+    sigma=0.05,
+    energyaxis='x',
+    color='black',
+    figsize=(4, 3),
+    erange=[-6, 6],
+    spin='up',
+    combination_method='add',
+    fontsize=7,
+    save=True,
+):
+    """
+    This function plots the local density of states for atomic layers. Useful for comparing 
+    to STS measurments.
+
+    Parameters:
+        folder (str): This is the folder that contains the VASP files
+        layers (list): List of atomic layers to include in the ldos plot. 0 = first layer 
+        output (str): File name of the resulting plot.
+        fill (bool): Determines wether or not to fill underneath the plot
+        alpha (float): Alpha value for the fill
+        linewidth (float): Linewidth of lines
+        sigma (float): Standard deviation for gaussian filter
+        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
+        color (list): Color of plot and fill.
+        spin (str): Which spin direction to parse ('up' or 'down')
+        figsize (list / tuple): Desired size of the image in inches (width, height)
+        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
+        combination_method (str): If spin == 'both', this determines if the spin up and spin down
+            desnities are added or subtracted. ('add' or 'sub')
+        fontsize (float): Font size of the text in the figure.
+        save (bool): Determines whether to automatically save the figure or not. If not 
+            the figure and axis are return for further manipulation.
+
+    Returns:
+        If save == True, this function will return nothing and directly save the image as
+        the output name. If save == False, the function will return the matplotlib figure
+        and axis for further editing. 
+    """
+
+    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+
+    fig = plt.figure(figsize=figsize, dpi=400)
+    ax = fig.add_subplot(111)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+
+    dos.plot_ldos(
+        ax=ax,
+        layers=layers,
         linewidth=linewidth,
         fill=fill,
         alpha=alpha,
@@ -7619,14 +7690,15 @@ def dos_layers(
 
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
-    band_spd(
-        folder='../../vaspvis_data/band',
-        erange=[-12,12]
-    )
-    #  dos_layers(
-        #  folder='../../vaspvis_data/slabdos',
-        #  output='heat.png',
+    #  band_spd(
+        #  folder='../../vaspvis_data/band',
+        #  erange=[-12,12]
     #  )
+    dos_ldos(
+        folder='../../vaspvis_data/slabdos',
+        layers=[0,1,2,3,4],
+        fill=False,
+    )
     #  dos_layers(
         #  folder='../../vaspvis_data/slabdos',
         #  contour=True,
