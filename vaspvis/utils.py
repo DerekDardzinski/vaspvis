@@ -69,6 +69,16 @@ def generate_kpoints(M, high_symmetry_points, n, output='KPOINTS'):
 
 
 def get_bandgap(folder, printbg=True):
+    """
+    Determines the band gap from a band structure calculation
+
+    Parameters:
+        folder (str): Folder that contains the VASP input and outputs files
+        printbg (bool): Determines if the band gap value is printed out or not.
+
+    Returns:
+        Bandgap in eV
+    """
     def _get_bandgap(eigenvalues, printbg=printbg):
         if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
             occupied = eigenvalues[np.where(eigenvalues[:,:,0] < 0)]
@@ -415,19 +425,51 @@ def get_periodic_vacuum(
         write_file=False,
         output='POSCAR_good_vacuum',
 ):
+    """
+    Creates a slab with a vacuum that is an integer multiple of unit cell length in the direction of the
+    miller index. This is necessary for proper band unfolding.
+
+    Parameters:
+        slab (str or pymatgen.core.structure.Structure): File path to a slab structure or a pymatgen Structure
+        bulk (str or pymatgen.core.structure.Structure): File path to a bulk structure or a pymatgen Structure
+        miller_index (list): 3 element list for the miller index of the surface
+        vacuum (float): Size of the vacuum. This will be rounded to the closest integer multiple of the unit
+            cell length in the direction of the given miller index
+        write_file (bool): Determines if a POSCAR is written
+        output (str): File name of output POSCAR
+
+    Returns:
+        slab structure that has a vacuum with the correct size for band unfolding
+    """
+    if type(slab) == str:
+        slab = Structure.from_file(slab)
+    if type(bulk) == str:
+        bulk = Structure.from_file(bulk)
+
     index = np.array(miller_index).reshape(1,-1)
     metric_tensor = bulk.lattice.metric_tensor
     unit_cell_len = np.sqrt(np.squeeze(np.matmul(index,np.matmul(metric_tensor, index.T))))
-    min_z = np.min(slab.cart_coords[:,-1])
-    slab.translate_sites(
-        range(len(slab)),
-        [0,0,-min_z],
-        frac_coords=False
-    )
+
+    if np.isin(np.array(slab.species, dtype=str), 'H').any():
+        inds = np.isin(np.array(slab.species, dtype=str), 'H', invert=True)
+        min_z = np.min(slab.cart_coords[inds,-1])
+        slab.translate_sites(
+            range(len(slab)),
+            [0,0,(unit_cell_len - min_z)],
+            frac_coords=False
+        )
+    else:
+        min_z = np.min(slab.cart_coords[:,-1])
+        slab.translate_sites(
+            range(len(slab)),
+            [0,0, -min_z],
+            frac_coords=False
+        )
+
     max_z2 = np.max(slab.cart_coords[:,-1])
     min_z2 = np.min(slab.cart_coords[:,-1])
-    slab_height_in_unit_cells = int((max_z2 - min_z2) / unit_cell_len)
-    vacuum_height_in_unit_cells = int(vacuum / unit_cell_len)
+    slab_height_in_unit_cells = np.round((max_z2 - min_z2) / unit_cell_len, 0)
+    vacuum_height_in_unit_cells = np.round(vacuum / unit_cell_len, 0)
     new_lattice = copy.deepcopy(slab.lattice.matrix)
     new_lattice[-1,-1] = (slab_height_in_unit_cells + vacuum_height_in_unit_cells) * unit_cell_len
 
@@ -445,17 +487,30 @@ def get_periodic_vacuum(
         return new_structure
 
 def make_supercell(slab, scaling_matrix):
+    """
+    Generates a supercell given a scaling matrix
+
+    Parameters:
+        slab (str or pymatgen.core.structure.Structure): File path to a slab structure or a pymatgen Structure
+        scaling_matrix (list): 3 element scaling matrix
+
+    Returns:
+        Super cell slab
+    """
+    if type(slab) == str:
+        slab = Structure.from_file(slab)
+
     supercell_slab = copy.deepcopy(slab)
     supercell_slab.make_supercell(scaling_matrix=scaling_matrix)
 
     return supercell_slab
 
-def generate_surface(
+def generate_slab(
         bulk,
         miller_index,
         layers,
         vacuum,
-        supercell=None,
+        scaling_matrix=None,
         write_file=True,
         output=None,
         passivate=False,
@@ -463,6 +518,7 @@ def generate_surface(
         passivate_top=True,
         passivate_bot=True,
         symmetrize=False,
+        tol=0.3,
 ):
     """
     This function generates a slab structure.
@@ -473,19 +529,28 @@ def generate_surface(
         miller_index (list): Three element list to define the miller indices
         layers (int): Number of unit layers in the slab structure
         vacuum (float): Size of the vacuum in Angstoms.
+        scaling_matrix (list): 3 element scaling matrix
+        write_file (bool): Determines if a POSCAR is written
+        output (str): File name of output POSCAR
+        passivated_file (pymatgen.core.Structure): path to structure whos passivation layer has already been relaxed
+        top (bool): Determines if the top of the slab is passivated
+        bot (bool): Determines if the bottom of the slab is passivated
+        symmetrize (bool): Determines if the slab is symmetrized (top and bottom have the same termination) or not
+        tol (float): Numerical tolerence for determining the atoms that get grouped
+            into an atomic layer.
 
-    Returns: POSCAR_slab file
+    Returns: 
+        Slab structure 
     """
 
     bulk_pmg = Structure.from_file(bulk)
     bulk_sg = SpacegroupAnalyzer(bulk_pmg)
     bulk_structure_conv = bulk_sg.get_conventional_standard_structure()
     bulk_structure_prim = bulk_sg.get_primitive_standard_structure()
-    bulk_structure = AseAtomsAdaptor().get_atoms(bulk_structure_conv)
+    bulk_structure_ase = AseAtomsAdaptor().get_atoms(bulk_structure_conv)
 
-    struc = read(bulk_structure)
     ase_slab = surface(
-        struc,
+        bulk_structure_ase,
         miller_index,
         layers,
         vacuum=vacuum,
@@ -503,9 +568,6 @@ def generate_surface(
         vacuum=vacuum,
     )
 
-    if supercell is not None:
-        slab_primitive.make_supercell(scaling_matrix=supercell)
-
     if passivate:
         if passivated_file is not None:
             passivated_file = Poscar.from_file(passivated_file).structure
@@ -516,8 +578,11 @@ def generate_surface(
             top=passivate_top,
             bot=passivate_bot,
             symmetrize=symmetrize,
-            tol=0.3
+            tol=tol,
         )
+
+    if scaling_matrix is not None:
+        slab_primitive.make_supercell(scaling_matrix=scaling_matrix)
 
     if write_file:
         if output is None:
@@ -529,10 +594,35 @@ def generate_surface(
 
 
 
-if __name__ == "__main__":
-    get_bandgap(folder='../../vaspvis_data/band_InAs')
-    run = BSVasprun('../../vaspvis_data/band_InAs/vasprun.xml')
-    bs = run.get_band_structure('../../vaspvis_data/band_InAs/KPOINTS')
-    print(bs.get_vbm()['energy'] - bs.efermi)
-    print(bs.get_cbm()['energy'] - bs.efermi)
-    print(bs.get_band_gap())
+#  if __name__ == "__main__":
+    #  slab = generate_slab(
+        #  bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
+        #  miller_index=[1,1,1],
+        #  layers=30,
+        #  vacuum=40,
+        #  passivate=True,
+        #  passivated_file='../../../../projects/unfold_test/CONTCAR_test',
+    #  )
+    #  M = convert_slab(
+        #  bulk_path='../../../../projects/unfold_test/POSCAR_bulk',
+        #  slab_path=slab,
+        #  index=[1,1,1],
+    #  )
+    #  high_symmetry_points = [
+        #  [0.1, 0.1, 0.0],
+        #  [0.0, 0.0, 0.0],
+        #  [0.1, 0.1, 0.0],
+    #  ]
+    #  generate_kpoints(
+        #  M=M,
+        #  high_symmetry_points=high_symmetry_points,
+        #  n=40,
+        #  output='KPOINTS_AGA',
+    #  )
+    #  get_periodic_vacuum(
+        #  slab='./POSCAR_30',
+        #  bulk='../../../../projects/unfold_test/POSCAR_bulk',
+        #  miller_index=[1,1,1],
+        #  vacuum=40,
+        #  write_file=True
+    #  )

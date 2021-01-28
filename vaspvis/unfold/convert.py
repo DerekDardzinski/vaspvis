@@ -109,8 +109,15 @@ def ext_gcd(a, b):
 
 
 def convert(bulk, slab, index, output, generate=True, print_M=True):
-    primitiveCell = mg.Structure.from_file(bulk)
-    refSlab = mg.Structure.from_file(slab)
+    if type(bulk) == str:
+        primitiveCell = mg.Structure.from_file(bulk)
+    else:
+        primitiveCell = bulk
+    if type(slab) == str:
+        refSlab = mg.Structure.from_file(slab)
+    else:
+        refSlab = slab
+
     sa = SpacegroupAnalyzer(primitiveCell)
     conventionalCell = sa.get_conventional_standard_structure()
     conventionalCell.to(filename='POSCAR.conventional')
