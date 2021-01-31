@@ -10,12 +10,14 @@ from functools import reduce
 import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
 from matplotlib.collections import PatchCollection
+import matplotlib.colors as colors
 import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
 import time
 from copy import deepcopy
 import os
+from scipy.ndimage import gaussian_filter
 
 import matplotlib as mpl
 mpl.rcParams.update(mpl.rcParamsDefault)
@@ -574,7 +576,7 @@ class Band:
         return kdist
 
 
-    def _get_kticks(self, ax):
+    def _get_kticks(self, ax, wave_vectors, vlinecolor):
         """
         This function extracts the kpoint labels and index locations for a regular
         band structure calculation (non unfolded).
@@ -598,15 +600,15 @@ class Band:
 
         kpts_labels = kpts_labels[index]
         kpoints_index = list(kpoints_index[index])
-        kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
+        #  kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
         for k in kpoints_index:
-            ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
+            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
         
-        ax.set_xticks(kpoints_index)
+        ax.set_xticks([wave_vectors[k] for k in kpoints_index])
         ax.set_xticklabels(kpts_labels)
 
-    def _get_kticks_hse(self, ax, kpath):
+    def _get_kticks_hse(self, ax, kpath, vlinecolor):
         structure = self.poscar.structure
         kpath_obj = HighSymmKpath(structure)
         kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
@@ -628,19 +630,22 @@ class Band:
         kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath]
 
         for k in kpoints_index:
-            ax.axvline(x=k, color='black', alpha=0.7, linewidth=0.5)
+            ax.axvline(x=k, color=vlinecolor, alpha=0.7, linewidth=0.5)
 
         plt.xticks(kpoints_index, kpath)
 
-    def _get_kticks_unfold(self, ax, wave_vectors):
-        kpath = [
-            f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpath.upper().strip()
-        ]
+    def _get_kticks_unfold(self, ax, wave_vectors, vlinecolor):
+        if type(self.kpath) == str:
+            kpath = [
+                f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpath.upper().strip()
+            ]
+        elif type(self.kpath) == list:
+            kpath = self.kpath
 
         kpoints_index = [0] + [(self.n * i) for i in range(1, len(self.kpath))]
 
         for k in kpoints_index:
-            ax.axvline(x=wave_vectors[k], color='black', alpha=0.7, linewidth=0.5)
+            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
 
         ax.set_xticks(wave_vectors[kpoints_index])
         ax.set_xticklabels(kpath)
@@ -648,7 +653,7 @@ class Band:
 
     def _filter_bands(self, erange):
         eigenvalues = self.eigenvalues
-        where = (eigenvalues >= np.min(erange)) & (eigenvalues <= np.max(erange))
+        where = (eigenvalues >= np.min(erange) - 1) & (eigenvalues <= np.max(erange) + 1)
         is_true = np.sum(np.isin(where, True), axis=1)
         bands_in_plot = is_true > 0
 
@@ -693,7 +698,7 @@ class Band:
             handletextpad=0.1,
         )
 
-    def plot_plain(self, ax, color='black', erange=[-6,6], linewidth=1.25, scale_factor=20, linestyle='-'):
+    def plot_plain(self, ax, color='black', erange=[-6,6], linewidth=1.25, scale_factor=20, linestyle='-', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots a plain band structure.
 
@@ -707,24 +712,74 @@ class Band:
         bands_in_plot = self._filter_bands(erange=erange)
         eigenvalues = self.eigenvalues[bands_in_plot]
         wave_vectors = self._get_k_distance()
-        #  if self.unfold:
-            #  wave_vectors = (wave_vectors / np.max(wave_vectors)) * 5
-        eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
-        wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
+
+        if heatmap:
+            eigenvalues_ravel = np.ravel(eigenvalues)
+            wave_vectors_tile = np.tile(wave_vectors, eigenvalues.shape[0])
+        else:
+            eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
+            wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
 
         if self.unfold:
             spectral_weights = self.spectral_weights[bands_in_plot]
             spectral_weights = spectral_weights / np.max(spectral_weights)
-            spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
-            ax.scatter(
-                wave_vectors_tile,
-                eigenvalues_ravel,
-                c=color,
-                ec=None,
-                s=scale_factor * spectral_weights_ravel,
-                zorder=0,
-            )
+
+            if heatmap:
+                spectral_weights_ravel = np.ravel(spectral_weights)
+            else:
+                spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
+
+            normed_spectral_weights = (spectral_weights_ravel - np.min(spectral_weights_ravel)) / np.max(spectral_weights_ravel - np.min(spectral_weights_ravel))
+
+            if heatmap:
+                data = np.histogram2d(
+                    wave_vectors_tile,
+                    eigenvalues_ravel,
+                    bins=bins,
+                    weights=normed_spectral_weights
+                )[0]
+
+                data = gaussian_filter(data, sigma=sigma)
+                norm = colors.Normalize(vmin=np.min(data), vmax=np.max(data))
+
+                ax.pcolormesh(
+                    np.linspace(np.min(wave_vectors), np.max(wave_vectors), bins),
+                    np.linspace(np.min(eigenvalues), np.max(eigenvalues), bins),
+                    data.T,
+                    shading='gouraud',
+                    cmap=cmap,
+                    norm=norm,
+                )
+                #  fig = plt.gcf()
+                #  cbar = fig.colorbar(im, orientation='horizontal', pad=0.05, ax=ax)
+                #  cbar.ax.tick_params(labelsize=fontsize)
+                #  cbar.set_label('Spectral Function', fontsize=fontsize)
+            else:
+                ax.scatter(
+                    wave_vectors_tile,
+                    eigenvalues_ravel,
+                    c=color,
+                    ec=None,
+                    s=scale_factor * spectral_weights_ravel,
+                    zorder=0,
+                )
         else:
+            #  if heatmap:
+                #  data = np.histogram2d(
+                    #  wave_vectors_tile,
+                    #  eigenvalues_ravel,
+                    #  bins=bins,
+                #  )[0]
+                #  data = gaussian_filter(data, sigma=sigma)
+#
+                #  ax.pcolormesh(
+                    #  np.linspace(np.min(wave_vectors), np.max(wave_vectors), bins),
+                    #  np.linspace(np.min(eigenvalues), np.max(eigenvalues), bins),
+                    #  data.T,
+                    #  shading='gouraud',
+                    #  cmap=cmap,
+                #  )
+            #  else:
             ax.plot(
                 wave_vectors_tile,
                 eigenvalues_ravel,
@@ -735,11 +790,11 @@ class Band:
             )
 
         if self.hse:
-            self._get_kticks_hse(ax=ax, kpath=self.kpath)
+            self._get_kticks_hse(ax=ax, kpath=self.kpath, vlinecolor=vlinecolor)
         elif self.unfold:
-            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors)
+            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors, vlinecolor=vlinecolor)
         else:
-            self._get_kticks(ax=ax)
+            self._get_kticks(ax=ax, wave_vectors=wave_vectors, vlinecolor=vlinecolor)
 
         ax.set_xlim(0, np.max(wave_vectors))
 
@@ -1222,19 +1277,31 @@ class Band:
 
 
 if __name__ == "__main__":
-    M = [[-1,1,0],[-1,-1,1],[0,0,1]]
+    M = [
+        [0,1,-1],
+        [1,-1,0],
+        [-14,-14,-14]
+    ]
+
     high_symm_points = [
-        [0.5, 0.5, 0],
+        [2/3, 1/3, 1/3],
         [0.0, 0.0, 0],
-        [0.5, 0.5, 0]
-    ] 
+        [2/3, 1/3, 1/3],
+    ]
+
+    #  high_symm_points = [
+        #  [0.1, 0.1, 0],
+        #  [0.0, 0.0, 0],
+        #  [0.1, 0.1, 0],
+    #  ]
+
     band = Band(
-        folder="../../vaspvis_data/band-unfold",
-        projected=True,
+        folder="../../vaspvis_data/bandMGM",
+        projected=False,
         unfold=True,
-        kpath='XGX',
-        high_symm_points=high_symm_points, 
-        n=30,
+        kpath='AGA',
+        high_symm_points=high_symm_points,
+        n=40,
         M=M,
     )
     fig, ax = plt.subplots(figsize=(3,4), dpi=300)
@@ -1242,12 +1309,14 @@ if __name__ == "__main__":
     #  band.plot_plain(ax=ax, color=[(0.9,0.9,0.9)])
     #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
     #  band.plot_orbitals(ax=ax, scale_factor=35, orbitals=range(8), display_order=None)
-    band.plot_atoms( 
+    band.plot_plain( 
         ax=ax,
-        atoms=[0,1],
-        display_order='dominant',
         scale_factor=20,
-        erange=[-5,0],
+        erange=[-4,0.5],
+        heatmap=True,
+        cmap='hot',
+        bins=400,
+        vlinecolor='white'
     )
     #  ax.set_aspect(3, adjustable='datalim')
     end = time.time()
@@ -1255,9 +1324,9 @@ if __name__ == "__main__":
     ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
     ax.tick_params(labelsize=6, length=2.5)
     ax.tick_params(axis='x', length=0)
-    ax.set_ylim(-5,0)
+    ax.set_ylim(-4, 0.5)
     plt.tight_layout(pad=0.2)
-    plt.savefig('unfold_spd_dominant.png')
+    plt.savefig('heatmap_test.png')
         
         
 

@@ -94,6 +94,13 @@ def band_plain(
     high_symm_points=None,
     fontsize=7,
     scale_factor=20,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -122,6 +129,13 @@ def band_plain(
         high_symm_points (list[list]): List of fractional coordinated for each high symmetry point in 
             the band structure path. Only required for a band unfolding calculation.
         fontsize (float): Font size of the text in the figure.
+        scale_factor (float): Factor to scale scatter points in unfolded plots.
+        heatmap (bool): Determines if an unfolded plot is plotted as a heat map. Only valid from unfolded plots.
+        bins (int): number of bins included in the histogram. More bin will result in higher resolution.
+        sigma (float): Value used to smooth the heatmap.
+        cmap (str): Matplotlib colormap for the unfolded heatmap.
+        vlinecolor (str): Color of the vertical lines in the band structure
+            useful for heatmaps when there is a dark background color.
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
 
@@ -140,9 +154,36 @@ def band_plain(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
+
     band.plot_plain(
         ax=ax,
         color=color,
@@ -150,8 +191,24 @@ def band_plain(
         linestyle=linestyle,
         erange=erange,
         scale_factor=scale_factor,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -7694,11 +7751,11 @@ def _main():
         #  folder='../../vaspvis_data/band',
         #  erange=[-12,12]
     #  )
-    dos_ldos(
-        folder='../../vaspvis_data/slabdos',
-        layers=[0,1,2,3,4],
-        fill=False,
-    )
+    #  dos_ldos(
+        #  folder='../../vaspvis_data/slabdos',
+        #  layers=[0,1,2,3,4],
+        #  fill=False,
+    #  )
     #  dos_layers(
         #  folder='../../vaspvis_data/slabdos',
         #  contour=True,
@@ -7735,6 +7792,39 @@ def _main():
         #  scale_factor=20,
         #  output='band_elements_Al.png'
     #  )
+
+    M = [
+        [0,1,-1],
+        [1,-1,0],
+        [-14,-14,-14]
+    ]
+
+    high_symm_points = [
+        [2/3, 1/3, 1/3],
+        [0.0, 0.0, 0],
+        [2/3, 1/3, 1/3],
+    ]
+
+    band_plain(
+        folder="../../vaspvis_data/bandMGM",
+        unfold=True,
+        figsize=(3,4),
+        fontsize=12,
+        kpath='AGA',
+        high_symm_points=high_symm_points,
+        n=40,
+        M=M,
+        scale_factor=20,
+        erange=[-4,0.5],
+        heatmap=True,
+        cmap='jet',
+        bins=500,
+        vlinecolor='white',
+        #  cbar=False,
+        cbar_orientation='horizontal',
+        sigma=3,
+    )
+
 
 
 if __name__ == "__main__":
