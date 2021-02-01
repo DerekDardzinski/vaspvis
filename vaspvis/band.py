@@ -698,7 +698,19 @@ class Band:
             handletextpad=0.1,
         )
 
-    def _heatmap(self, ax, wave_vectors, eigenvalues, weights, sigma, cmap, bins, projection=None):
+    def _heatmap(
+        self,
+        ax,
+        wave_vectors,
+        eigenvalues,
+        weights,
+        sigma,
+        cmap,
+        bins,
+        projection=None,
+        powernorm=True,
+        gamma=0.5
+    ):
         eigenvalues_ravel = np.ravel(eigenvalues)
         wave_vectors_tile = np.tile(wave_vectors, eigenvalues.shape[0])
 
@@ -709,18 +721,19 @@ class Band:
                 weights *= np.sum(np.squeeze(projection), axis=2)
 
         weights_ravel = np.ravel(weights)
-        normed_weights = (weights_ravel - np.min(weights_ravel)) / np.max(weights_ravel - np.min(weights_ravel))
-
 
         data = np.histogram2d(
             wave_vectors_tile,
             eigenvalues_ravel,
             bins=bins,
-            weights=normed_weights
+            weights=weights_ravel,
         )[0]
 
         data = gaussian_filter(data, sigma=sigma)
-        norm = colors.Normalize(vmin=np.min(data), vmax=np.max(data))
+        if powernorm:
+            norm = colors.PowerNorm(gamma=gamma, vmin=np.min(data), vmax=np.max(data))
+        else:
+            norm = colors.Normalize(vmin=np.min(data), vmax=np.max(data))
 
         ax.pcolormesh(
             np.linspace(np.min(wave_vectors), np.max(wave_vectors), bins),
@@ -732,7 +745,23 @@ class Band:
         )
 
 
-    def plot_plain(self, ax, color='black', erange=[-6,6], linewidth=1.25, scale_factor=20, linestyle='-', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black', projection=None):
+    def plot_plain(
+        self,
+        ax,
+        color='black',
+        erange=[-6,6],
+        linewidth=1.25,
+        scale_factor=20,
+        linestyle='-',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+        projection=None,
+    ):
         """
         This function plots a plain band structure.
 
@@ -763,6 +792,8 @@ class Band:
                     cmap=cmap,
                     bins=bins,
                     projection=projection,
+                    powernorm=powernorm,
+                    gamma=gamma,
                 )
             else:
                 ax.scatter(
@@ -793,7 +824,24 @@ class Band:
         ax.set_xlim(0, np.max(wave_vectors))
 
 
-    def _plot_projected_general(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def _plot_projected_general(
+        self,
+        ax,
+        projected_data,
+        colors,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This is a general method for plotting projected data
 
@@ -882,7 +930,25 @@ class Band:
                 zorder=100,
             )
         
-    def plot_orbitals(self, ax, orbitals, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_orbitals(
+        self,
+        ax,
+        orbitals,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        color_list=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This function plots the projected band structure of given orbitals summed across all atoms on a given axis.
 
@@ -944,7 +1010,25 @@ class Band:
             self._add_legend(ax, names=[self.orbital_labels[i] for i in orbitals], colors=colors)
 
 
-    def plot_spd(self, ax, scale_factor=5, orbitals='spd', erange=[-6,6], display_order=None, color_dict=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_spd(
+        self,
+        ax,
+        scale_factor=5,
+        orbitals='spd',
+        erange=[-6,6],
+        display_order=None,
+        color_dict=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This function plots the s, p, d projected band structure onto a given axis
 
@@ -998,7 +1082,25 @@ class Band:
 
 
 
-    def plot_atoms(self, ax, atoms, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_atoms(
+        self,
+        ax,
+        atoms,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        color_list=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This function plots the projected band structure of given atoms summed across all orbitals on a given axis.
 
@@ -1039,7 +1141,25 @@ class Band:
             self._add_legend(ax, names=atoms, colors=colors)
 
 
-    def plot_atom_orbitals(self, ax, atom_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_atom_orbitals(
+        self,
+        ax,
+        atom_orbital_dict,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        color_list=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This function plots the projected band structure of individual orbitals on a given axis.
 
@@ -1100,7 +1220,25 @@ class Band:
                 colors=colors
             )
 
-    def plot_atom_spd(self, ax, atom_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_atom_spd(
+        self,
+        ax,
+        atom_spd_dict,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        color_list=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This function plots the projected band structure on the s, p, and d orbitals for each specified atom in the calculated structure.
 
@@ -1164,7 +1302,25 @@ class Band:
 
 
 
-    def plot_elements(self, ax, elements, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_elements(
+        self,
+        ax,
+        elements,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        color_list=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This function plots the projected band structure on specified elements in the calculated structure
 
@@ -1205,7 +1361,25 @@ class Band:
             self._add_legend(ax, names=elements, colors=colors)
 
 
-    def plot_element_orbitals(self, ax, element_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_element_orbitals(
+        self,
+        ax,
+        element_orbital_dict,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        color_list=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         this function plots the projected band structure on chosen orbitals for each specified element in the calculated structure.
 
@@ -1262,7 +1436,25 @@ class Band:
                 colors=colors
             )
 
-    def plot_element_spd(self, ax, element_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def plot_element_spd(
+        self,
+        ax,
+        element_spd_dict,
+        scale_factor=5,
+        erange=[-6,6],
+        display_order=None,
+        color_list=None,
+        legend=True,
+        linewidth=0.75,
+        band_color='black',
+        heatmap=False,
+        bins=400,
+        sigma=3,
+        cmap='hot',
+        vlinecolor='black',
+        powernorm=False,
+        gamma=0.5,
+    ):
         """
         This function plots the projected band structure on the s, p, and d orbitals for each specified element in the calculated structure.
 
@@ -1366,7 +1558,10 @@ if __name__ == "__main__":
         erange=[-4,0.5],
         heatmap=True,
         cmap='hot',
-        bins=400,
+        bins=800,
+        sigma=3,
+        powernorm=False,
+        gamma=0.5,
         vlinecolor='white'
     )
     #  ax.set_aspect(3, adjustable='datalim')
@@ -1377,7 +1572,7 @@ if __name__ == "__main__":
     ax.tick_params(axis='x', length=0)
     ax.set_ylim(-4, 0.5)
     plt.tight_layout(pad=0.2)
-    plt.savefig('heatmap_test.png')
+    plt.savefig('heatmap_powernorm.png')
         
         
 

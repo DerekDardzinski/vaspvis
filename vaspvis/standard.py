@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -101,6 +101,8 @@ def band_plain(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -196,6 +198,8 @@ def band_plain(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -242,6 +246,8 @@ def band_spd(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -345,6 +351,8 @@ def band_spd(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -391,6 +399,8 @@ def band_atom_orbitals(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -494,6 +504,8 @@ def band_atom_orbitals(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -540,6 +552,8 @@ def band_orbitals(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -659,6 +673,8 @@ def band_orbitals(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -705,6 +721,8 @@ def band_atoms(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -806,6 +824,8 @@ def band_atoms(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -851,6 +871,8 @@ def band_atom_spd(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -954,6 +976,8 @@ def band_atom_spd(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -1000,6 +1024,8 @@ def band_elements(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -1101,6 +1127,8 @@ def band_elements(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -1147,6 +1175,8 @@ def band_element_orbitals(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -1250,6 +1280,8 @@ def band_element_orbitals(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -1296,6 +1328,8 @@ def band_element_spd(
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
+    powernorm=False,
+    gamma=0.5,
     save=True,
 ):
     """
@@ -1399,6 +1433,8 @@ def band_element_spd(
         sigma=sigma,
         cmap=cmap,
         vlinecolor=vlinecolor,
+        powernorm=powernorm,
+        gamma=gamma,
     )
 
     if heatmap:
@@ -8217,11 +8253,11 @@ def _main():
         erange=[-4,0.5],
         heatmap=True,
         cmap='jet',
-        bins=500,
+        bins=900,
         vlinecolor='white',
-        #  cbar=False,
         cbar_orientation='horizontal',
         sigma=3,
+        powernorm=True,
     )
 
 
