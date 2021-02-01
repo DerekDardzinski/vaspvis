@@ -698,7 +698,41 @@ class Band:
             handletextpad=0.1,
         )
 
-    def plot_plain(self, ax, color='black', erange=[-6,6], linewidth=1.25, scale_factor=20, linestyle='-', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
+    def _heatmap(self, ax, wave_vectors, eigenvalues, weights, sigma, cmap, bins, projection=None):
+        eigenvalues_ravel = np.ravel(eigenvalues)
+        wave_vectors_tile = np.tile(wave_vectors, eigenvalues.shape[0])
+
+        if projection is not None:
+            if len(np.squeeze(projection).shape) == 2:
+                weights *= np.squeeze(projection)
+            else:
+                weights *= np.sum(np.squeeze(projection), axis=2)
+
+        weights_ravel = np.ravel(weights)
+        normed_weights = (weights_ravel - np.min(weights_ravel)) / np.max(weights_ravel - np.min(weights_ravel))
+
+
+        data = np.histogram2d(
+            wave_vectors_tile,
+            eigenvalues_ravel,
+            bins=bins,
+            weights=normed_weights
+        )[0]
+
+        data = gaussian_filter(data, sigma=sigma)
+        norm = colors.Normalize(vmin=np.min(data), vmax=np.max(data))
+
+        ax.pcolormesh(
+            np.linspace(np.min(wave_vectors), np.max(wave_vectors), bins),
+            np.linspace(np.min(eigenvalues), np.max(eigenvalues), bins),
+            data.T,
+            shading='gouraud',
+            cmap=cmap,
+            norm=norm,
+        )
+
+
+    def plot_plain(self, ax, color='black', erange=[-6,6], linewidth=1.25, scale_factor=20, linestyle='-', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black', projection=None):
         """
         This function plots a plain band structure.
 
@@ -708,52 +742,28 @@ class Band:
             linewidth (float): Line width of the band structure lines
             linestyle (str): Line style of the bands
         """
-
         bands_in_plot = self._filter_bands(erange=erange)
         eigenvalues = self.eigenvalues[bands_in_plot]
         wave_vectors = self._get_k_distance()
-
-        if heatmap:
-            eigenvalues_ravel = np.ravel(eigenvalues)
-            wave_vectors_tile = np.tile(wave_vectors, eigenvalues.shape[0])
-        else:
-            eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
-            wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
+        eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
+        wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
 
         if self.unfold:
             spectral_weights = self.spectral_weights[bands_in_plot]
             spectral_weights = spectral_weights / np.max(spectral_weights)
+            spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
 
             if heatmap:
-                spectral_weights_ravel = np.ravel(spectral_weights)
-            else:
-                spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
-
-            normed_spectral_weights = (spectral_weights_ravel - np.min(spectral_weights_ravel)) / np.max(spectral_weights_ravel - np.min(spectral_weights_ravel))
-
-            if heatmap:
-                data = np.histogram2d(
-                    wave_vectors_tile,
-                    eigenvalues_ravel,
-                    bins=bins,
-                    weights=normed_spectral_weights
-                )[0]
-
-                data = gaussian_filter(data, sigma=sigma)
-                norm = colors.Normalize(vmin=np.min(data), vmax=np.max(data))
-
-                ax.pcolormesh(
-                    np.linspace(np.min(wave_vectors), np.max(wave_vectors), bins),
-                    np.linspace(np.min(eigenvalues), np.max(eigenvalues), bins),
-                    data.T,
-                    shading='gouraud',
+                self._heatmap(
+                    ax=ax,
+                    wave_vectors=wave_vectors,
+                    eigenvalues=eigenvalues,
+                    weights=spectral_weights,
+                    sigma=sigma,
                     cmap=cmap,
-                    norm=norm,
+                    bins=bins,
+                    projection=projection,
                 )
-                #  fig = plt.gcf()
-                #  cbar = fig.colorbar(im, orientation='horizontal', pad=0.05, ax=ax)
-                #  cbar.ax.tick_params(labelsize=fontsize)
-                #  cbar.set_label('Spectral Function', fontsize=fontsize)
             else:
                 ax.scatter(
                     wave_vectors_tile,
@@ -764,22 +774,6 @@ class Band:
                     zorder=0,
                 )
         else:
-            #  if heatmap:
-                #  data = np.histogram2d(
-                    #  wave_vectors_tile,
-                    #  eigenvalues_ravel,
-                    #  bins=bins,
-                #  )[0]
-                #  data = gaussian_filter(data, sigma=sigma)
-#
-                #  ax.pcolormesh(
-                    #  np.linspace(np.min(wave_vectors), np.max(wave_vectors), bins),
-                    #  np.linspace(np.min(eigenvalues), np.max(eigenvalues), bins),
-                    #  data.T,
-                    #  shading='gouraud',
-                    #  cmap=cmap,
-                #  )
-            #  else:
             ax.plot(
                 wave_vectors_tile,
                 eigenvalues_ravel,
@@ -799,7 +793,7 @@ class Band:
         ax.set_xlim(0, np.max(wave_vectors))
 
 
-    def _plot_projected_general(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black'):
+    def _plot_projected_general(self, ax, projected_data, colors, scale_factor=5, erange=[-6,6], display_order=None, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This is a general method for plotting projected data
 
@@ -817,61 +811,78 @@ class Band:
             band_color = [(0.9,0.9,0.9)]
             scale_factor = scale_factor * 4
 
-        self.plot_plain(ax=ax, linewidth=linewidth, color=band_color, erange=erange)
-
         bands_in_plot = self._filter_bands(erange=erange)
         projected_data = projected_data[bands_in_plot]
         projected_data = projected_data / np.max(projected_data)
         wave_vectors = self._get_k_distance()
         eigenvalues = self.eigenvalues[bands_in_plot]
 
-        if self.unfold:
-            spectral_weights = self.spectral_weights[bands_in_plot]
-            spectral_weights = spectral_weights / np.max(spectral_weights)
-            K_indices = np.array(self.K_indices[0], dtype=int)
-            projected_data = projected_data[:, K_indices, :]
-            spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
+        if heatmap:
+            if self.unfold:
+                K_indices = np.array(self.K_indices[0], dtype=int)
+                projected_data = projected_data[:, K_indices, :]
 
-        projected_data_ravel = np.ravel(projected_data)
-        wave_vectors_tile = np.tile(
-            np.repeat(wave_vectors, projected_data.shape[-1]), projected_data.shape[0]
+        self.plot_plain(
+            ax=ax,
+            linewidth=linewidth,
+            color=band_color,
+            erange=erange,
+            heatmap=heatmap,
+            sigma=sigma,
+            cmap=cmap,
+            bins=bins,
+            vlinecolor=vlinecolor,
+            projection=projected_data,
         )
-        eigenvalues_tile = np.repeat(np.ravel(eigenvalues), projected_data.shape[-1])
-        colors_tile = np.tile(colors, np.prod(projected_data.shape[:-1]))
 
-        if display_order is None:
-            pass
-        else:
-            sort_index = np.argsort(projected_data_ravel)
+        if not heatmap:
+            if self.unfold:
+                spectral_weights = self.spectral_weights[bands_in_plot]
+                spectral_weights = spectral_weights / np.max(spectral_weights)
+                K_indices = np.array(self.K_indices[0], dtype=int)
+                projected_data = projected_data[:, K_indices, :]
+                spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
 
-            if display_order == 'all':
-                sort_index = sort_index[::-1]
+            projected_data_ravel = np.ravel(projected_data)
+            wave_vectors_tile = np.tile(
+                np.repeat(wave_vectors, projected_data.shape[-1]), projected_data.shape[0]
+            )
+            eigenvalues_tile = np.repeat(np.ravel(eigenvalues), projected_data.shape[-1])
+            colors_tile = np.tile(colors, np.prod(projected_data.shape[:-1]))
 
-            wave_vectors_tile = wave_vectors_tile[sort_index]
-            eigenvalues_tile = eigenvalues_tile[sort_index]
-            colors_tile = colors_tile[sort_index]
-            projected_data_ravel = projected_data_ravel[sort_index]
+            if display_order is None:
+                pass
+            else:
+                sort_index = np.argsort(projected_data_ravel)
+
+                if display_order == 'all':
+                    sort_index = sort_index[::-1]
+
+                wave_vectors_tile = wave_vectors_tile[sort_index]
+                eigenvalues_tile = eigenvalues_tile[sort_index]
+                colors_tile = colors_tile[sort_index]
+                projected_data_ravel = projected_data_ravel[sort_index]
+
+                if self.unfold:
+                    spectral_weights_ravel = spectral_weights_ravel[sort_index]
 
             if self.unfold:
-                spectral_weights_ravel = spectral_weights_ravel[sort_index]
+                s = scale_factor * projected_data_ravel * spectral_weights_ravel
+                ec = None
+            else:
+                s = scale_factor * projected_data_ravel
+                ec = colors_tile
 
-        if self.unfold:
-            s = scale_factor * projected_data_ravel * spectral_weights_ravel
-            ec = None
-        else:
-            s = scale_factor * projected_data_ravel
-            ec = colors_tile
-
-        ax.scatter(
-            wave_vectors_tile,
-            eigenvalues_tile,
-            c=colors_tile,
-            ec=ec,
-            s=s,
-            zorder=100,
-        )
+            ax.scatter(
+                wave_vectors_tile,
+                eigenvalues_tile,
+                c=colors_tile,
+                ec=ec,
+                s=s,
+                zorder=100,
+            )
         
-    def plot_orbitals(self, ax, orbitals, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_orbitals(self, ax, orbitals, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots the projected band structure of given orbitals summed across all atoms on a given axis.
 
@@ -921,14 +932,19 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:
             self._add_legend(ax, names=[self.orbital_labels[i] for i in orbitals], colors=colors)
 
 
-    def plot_spd(self, ax, scale_factor=5, orbitals='spd', erange=[-6,6], display_order=None, color_dict=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_spd(self, ax, scale_factor=5, orbitals='spd', erange=[-6,6], display_order=None, color_dict=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots the s, p, d projected band structure onto a given axis
 
@@ -969,7 +985,12 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:
@@ -977,7 +998,7 @@ class Band:
 
 
 
-    def plot_atoms(self, ax, atoms, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_atoms(self, ax, atoms, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots the projected band structure of given atoms summed across all orbitals on a given axis.
 
@@ -1006,14 +1027,19 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:
             self._add_legend(ax, names=atoms, colors=colors)
 
 
-    def plot_atom_orbitals(self, ax, atom_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_atom_orbitals(self, ax, atom_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots the projected band structure of individual orbitals on a given axis.
 
@@ -1059,7 +1085,12 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:
@@ -1069,7 +1100,7 @@ class Band:
                 colors=colors
             )
 
-    def plot_atom_spd(self, ax, atom_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_atom_spd(self, ax, atom_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots the projected band structure on the s, p, and d orbitals for each specified atom in the calculated structure.
 
@@ -1116,7 +1147,12 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:
@@ -1128,7 +1164,7 @@ class Band:
 
 
 
-    def plot_elements(self, ax, elements, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_elements(self, ax, elements, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots the projected band structure on specified elements in the calculated structure
 
@@ -1157,14 +1193,19 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:
             self._add_legend(ax, names=elements, colors=colors)
 
 
-    def plot_element_orbitals(self, ax, element_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_element_orbitals(self, ax, element_orbital_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         this function plots the projected band structure on chosen orbitals for each specified element in the calculated structure.
 
@@ -1206,7 +1247,12 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:
@@ -1216,7 +1262,7 @@ class Band:
                 colors=colors
             )
 
-    def plot_element_spd(self, ax, element_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black'):
+    def plot_element_spd(self, ax, element_spd_dict, scale_factor=5, erange=[-6,6], display_order=None, color_list=None, legend=True, linewidth=0.75, band_color='black', heatmap=False, bins=400, sigma=3, cmap='hot', vlinecolor='black'):
         """
         This function plots the projected band structure on the s, p, and d orbitals for each specified element in the calculated structure.
 
@@ -1265,7 +1311,12 @@ class Band:
             erange=erange,
             display_order=display_order,
             linewidth=linewidth,
-            band_color=band_color
+            band_color=band_color,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            cmap=cmap,
+            vlinecolor=vlinecolor,
         )
 
         if legend:

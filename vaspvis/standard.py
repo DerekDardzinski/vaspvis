@@ -235,6 +235,13 @@ def band_spd(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -293,8 +300,35 @@ def band_spd(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_spd(
         ax=ax,
@@ -306,8 +340,24 @@ def band_spd(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -334,6 +384,13 @@ def band_atom_orbitals(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -392,8 +449,35 @@ def band_atom_orbitals(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_atom_orbitals(
         ax=ax,
@@ -405,8 +489,24 @@ def band_atom_orbitals(
         linewidth=linewidth,
         band_color=band_color,
         erange=erange,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -433,6 +533,13 @@ def band_orbitals(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -507,8 +614,35 @@ def band_orbitals(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_orbitals(
         ax=ax,
@@ -520,8 +654,24 @@ def band_orbitals(
         legend=legend,
         linewidth=linewidth,
         band_color=band_color,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -548,6 +698,13 @@ def band_atoms(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -594,7 +751,6 @@ def band_atoms(
         the output name. If save == False, the function will return the matplotlib figure
         and axis for further editing.
     """
-
     band = Band(
         folder=folder,
         spin=spin,
@@ -605,8 +761,35 @@ def band_atoms(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_atoms(
         ax=ax,
@@ -618,8 +801,24 @@ def band_atoms(
         linewidth=linewidth,
         band_color=band_color,
         erange=erange,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -645,6 +844,13 @@ def band_atom_spd(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -703,8 +909,35 @@ def band_atom_spd(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_atom_spd(
         ax=ax,
@@ -716,8 +949,24 @@ def band_atom_spd(
         linewidth=linewidth,
         band_color=band_color,
         erange=erange,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -744,6 +993,13 @@ def band_elements(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -800,8 +1056,35 @@ def band_elements(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_elements(
         ax=ax,
@@ -813,8 +1096,24 @@ def band_elements(
         linewidth=linewidth,
         band_color=band_color,
         erange=erange,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -841,6 +1140,13 @@ def band_element_orbitals(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -899,8 +1205,35 @@ def band_element_orbitals(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_orbitals(
         ax=ax,
@@ -912,8 +1245,24 @@ def band_element_orbitals(
         linewidth=linewidth,
         band_color=band_color,
         erange=erange,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -940,6 +1289,13 @@ def band_element_spd(
     M=None,
     high_symm_points=None,
     fontsize=7,
+    heatmap=False,
+    bins=400,
+    sigma=3,
+    cmap='hot',
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
     save=True,
 ):
     """
@@ -998,8 +1354,35 @@ def band_element_spd(
         n=n,
         M=M,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        legend = False
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
     band.plot_element_spd(
         ax=ax,
@@ -1011,8 +1394,24 @@ def band_element_spd(
         linewidth=linewidth,
         band_color=band_color,
         erange=erange,
+        heatmap=heatmap,
+        bins=bins,
+        sigma=sigma,
+        cmap=cmap,
+        vlinecolor=vlinecolor,
     )
-    plt.tight_layout(pad=0.2)
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[0]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['min', 'max'])
+
+    if not cbar:
+        fig.tight_layout(pad=0.2)
 
     if save:
         plt.savefig(output)
@@ -7748,8 +8147,7 @@ def dos_layers(
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
     #  band_spd(
-        #  folder='../../vaspvis_data/band',
-        #  erange=[-12,12]
+        #  folder='../../vaspvis_data/band_InAs',
     #  )
     #  dos_ldos(
         #  folder='../../vaspvis_data/slabdos',
@@ -7805,8 +8203,9 @@ def _main():
         [2/3, 1/3, 1/3],
     ]
 
-    band_plain(
+    band_spd(
         folder="../../vaspvis_data/bandMGM",
+        orbitals='pd',
         unfold=True,
         figsize=(3,4),
         fontsize=12,
