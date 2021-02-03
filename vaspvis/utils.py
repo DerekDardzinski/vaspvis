@@ -1,6 +1,6 @@
 from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
 from vaspvis.unfold import convert
-from vaspvis.passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart
+from passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart
 from pymatgen.io.vasp.outputs import Eigenval, BSVasprun
 from pymatgen.io.vasp.inputs import Incar, Kpoints
 from pymatgen.electronic_structure.core import Spin, Orbital
@@ -378,7 +378,6 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
             else:
                 side = 'bot'
 
-
             _append_H(
                 struc=sorted_slab,
                 index=i,
@@ -399,7 +398,6 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
                 side = 'bot'
             else:
                 side = 'top'
-
 
             _append_H(
                 struc=sorted_slab,
@@ -594,15 +592,14 @@ def generate_slab(
 
 
 
-#  if __name__ == "__main__":
-    #  slab = generate_slab(
-        #  bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
-        #  miller_index=[1,1,1],
-        #  layers=30,
-        #  vacuum=40,
-        #  passivate=True,
-        #  passivated_file='../../../../projects/unfold_test/CONTCAR_test',
-    #  )
+if __name__ == "__main__":
+    slab = generate_slab(
+        bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
+        miller_index=[1,0,0],
+        layers=4,
+        vacuum=40,
+        passivate=True,
+    )
     #  M = convert_slab(
         #  bulk_path='../../../../projects/unfold_test/POSCAR_bulk',
         #  slab_path=slab,

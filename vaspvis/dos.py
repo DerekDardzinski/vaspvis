@@ -1228,9 +1228,11 @@ class Dos:
 
         if log_scale:
             if np.min(densities) == 0:
-                 min_val = 0.00001
+                zero_loc = np.isin(densities, 0)
+                min_val = np.min(densities[np.logical_not(zero_loc)])
+                densities[zero_loc] = min_val
             else:
-                 min_val = np.min(densities)
+                min_val = np.min(densities)
             norm = colors.LogNorm(vmin=min_val, vmax=np.max(densities))
         else:
             norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))

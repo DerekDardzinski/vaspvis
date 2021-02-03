@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from band import Band
+from vaspvis.band import Band
 from vaspvis.dos import Dos
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -211,7 +211,10 @@ def band_plain(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -364,7 +367,10 @@ def band_spd(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -517,7 +523,10 @@ def band_atom_orbitals(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -686,7 +695,10 @@ def band_orbitals(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -837,7 +849,10 @@ def band_atoms(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -989,7 +1004,10 @@ def band_atom_spd(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -1140,7 +1158,10 @@ def band_elements(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -1293,7 +1314,10 @@ def band_element_orbitals(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
@@ -1446,7 +1470,10 @@ def band_element_spd(
             cbar.set_ticks([min_val, max_val])
             cbar.set_ticklabels(['min', 'max'])
 
-    if not cbar:
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.2)
+    else:
         fig.tight_layout(pad=0.2)
 
     if save:
