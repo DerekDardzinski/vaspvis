@@ -228,4 +228,3 @@ def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
             coords_are_cartesian=True,
             properties={'to_delete': False},
         )
-

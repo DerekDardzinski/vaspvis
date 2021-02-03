@@ -658,7 +658,7 @@ class Dos:
                     alpha=alpha,
                 )
 
-    def plot_ldos(self, ax, layers, linewidth=1.5, fill=False, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='x', color='black', erange=[-6, 6]):
+    def plot_ldos(self, ax, layers, linewidth=1.5, fill=False, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='x', color='black', log_scale=False, erange=[-6, 6]):
         """
         This function plots the total density of states
 
@@ -684,6 +684,9 @@ class Dos:
             )
         else:
             tdensity = self._sum_layers(layers=layers)
+
+        if log_scale:
+            tdensity = np.log10(tdensity)
 
         self._set_density_lims(
             ax=ax,

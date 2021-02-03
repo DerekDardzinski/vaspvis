@@ -18,14 +18,21 @@ def _figure_setup(ax, fontsize=6, ylim=[-6, 6]):
     ax.tick_params(axis='x', length=0)
 
 
-def _figure_setup_dos(ax, fontsize=6, energyaxis='y'):
+def _figure_setup_dos(ax, fontsize=6, energyaxis='y', log_scale=False):
     ax.tick_params(labelsize=fontsize, length=2.5)
     if energyaxis == 'y':
         ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
-        ax.set_xlabel('Density of States', fontsize=fontsize)
+        if log_scale:
+            ax.set_xlabel('log(Density of States)', fontsize=fontsize)
+        else:
+            ax.set_xlabel('Density of States', fontsize=fontsize)
     if energyaxis == 'x':
         ax.set_xlabel('$E - E_{F}$ $(eV)$', fontsize=fontsize)
-        ax.set_ylabel('Density of States', fontsize=fontsize)
+        if log_scale:
+            ax.set_ylabel('log(Density of States)', fontsize=fontsize)
+        else:
+            ax.set_ylabel('Density of States', fontsize=fontsize)
+
 
 
 def _figure_setup_band_dos(ax, fontsize, ylim):
@@ -3122,6 +3129,7 @@ def dos_ldos(
     combination_method='add',
     fontsize=7,
     save=True,
+    log_scale=False,
 ):
     """
     This function plots the local density of states for atomic layers. Useful for comparing 
@@ -3156,7 +3164,7 @@ def dos_ldos(
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
-    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis)
+    _figure_setup_dos(ax=ax, fontsize=fontsize, energyaxis=energyaxis, log_scale=log_scale)
 
     dos.plot_ldos(
         ax=ax,
@@ -3168,6 +3176,7 @@ def dos_ldos(
         energyaxis=energyaxis,
         color=color,
         erange=erange,
+        log_scale=log_scale,
     )
 
     plt.tight_layout(pad=0.2)

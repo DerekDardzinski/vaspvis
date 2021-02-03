@@ -1,6 +1,11 @@
 from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
 from vaspvis.unfold import convert
 from passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart
+from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.analysis.local_env import JmolNN, CrystalNN, EconNN
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+from pymatgen.core.periodic_table import Element
 from pymatgen.io.vasp.outputs import Eigenval, BSVasprun
 from pymatgen.io.vasp.inputs import Incar, Kpoints
 from pymatgen.electronic_structure.core import Spin, Orbital
@@ -179,6 +184,7 @@ def get_bandgap(folder, printbg=True):
 
     return band_gap
 
+
 def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True, tol=0.3):
     """
     This function passivates the slabs with pseudohydrogen. The positions of the pseudo-
@@ -200,8 +206,6 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
         struc_pas (pymatgen.core.Structure): Passivated pymatgen structure
     """
 
-    lattice = struc.lattice.matrix
-
     sorted_slab, z_positions = _sort_by_z(struc)
 
     if passivated_struc is None:
@@ -215,130 +219,64 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
     for i in range(len(sorted_slab2)):
         sorted_slab2.sites[i].properties = {'to_delete': False}
 
-    if lattice[-1][-1] < 0:
-        flipped = True
-    else:
-        flipped = False
+    top_index = _get_top_index(z_positions, tol=tol)
 
-    if flipped:
-        top_index = _get_bot_index(z_positions, tol=tol)
+    second_top_index = _get_top_index(
+        z_positions, to_delete=top_index, tol=tol
+    )
 
-        second_top_index = _get_bot_index(
-            z_positions, to_delete=top_index, tol=tol
-        )
+    bot_index = _get_bot_index(z_positions, tol=tol)
 
-        bot_index = _get_top_index(z_positions, tol=tol)
+    if symmetrize:
+        z_positions = np.delete(z_positions, bot_index)
 
-        if symmetrize:
-            z_positions = np.delete(z_positions, bot_index)
-
-            for i in bot_index:
-                del sorted_slab[-1]
-
-            bot_index = _get_top_index(z_positions, tol=tol)
-
-        second_bot_index = _get_top_index(
-            z_positions, to_delete=bot_index, tol=tol
-        )
-
-        if passivated_struc is None:
-            top_index2 = _get_bot_index(z_positions2, tol=tol)
-
-            second_top_index2 = _get_bot_index(
-                z_positions2, to_delete=top_index2, tol=tol
-            )
-
-            bot_index2 = _get_top_index(z_positions2, tol=tol)
-
-            if symmetrize:
-                z_positions2 = np.delete(z_positions2, bot_index2)
-
-                for i in bot_index:
-                    del sorted_slab2[-1]
-
-                bot_index2 = _get_top_index(z_positions2, tol=tol)
-
-            second_bot_index2 = _get_top_index(
-                z_positions2, to_delete=bot_index2, tol=tol
-            )
-
-        else:
-            H_index = np.where(
-                np.array([str(i) for i in sorted_slab2.species]) == 'H'
-            )[0]
-
-            second_top_index2 = _get_bot_index(
-                z_positions2, to_delete=H_index, tol=tol
-            )
-
-            second_bot_index2 = _get_top_index(
-                z_positions2, to_delete=H_index, tol=tol
-            )
-
-            top_index2 = range(np.max(second_top_index2) +
-                               1, len(z_positions2))
-
-            bot_index2 = range(np.min(second_bot_index2))
-
-    else:
-        top_index = _get_top_index(z_positions, tol=tol)
-
-        second_top_index = _get_top_index(
-            z_positions, to_delete=top_index, tol=tol
-        )
+        for i in bot_index:
+            del sorted_slab[-1]
 
         bot_index = _get_bot_index(z_positions, tol=tol)
 
-        if symmetrize:
-            z_positions = np.delete(z_positions, bot_index)
+    second_bot_index = _get_bot_index(
+        z_positions, to_delete=bot_index, tol=tol
+    )
 
-            for i in bot_index:
-                del sorted_slab[-1]
+    if passivated_struc is None:
+        top_index2 = _get_top_index(z_positions2, tol=tol)
 
-            bot_index = _get_bot_index(z_positions, tol=tol)
-
-        second_bot_index = _get_bot_index(
-            z_positions, to_delete=bot_index, tol=tol
+        second_top_index2 = _get_top_index(
+            z_positions2, to_delete=top_index2, tol=tol
         )
 
-        if passivated_struc is None:
-            top_index2 = _get_top_index(z_positions2, tol=tol)
+        bot_index2 = _get_bot_index(z_positions2, tol=tol)
 
-            second_top_index2 = _get_top_index(
-                z_positions2, to_delete=top_index2, tol=tol
-            )
+        if symmetrize:
+            z_positions2 = np.delete(z_positions2, bot_index2)
+
+            for i in bot_index:
+                del sorted_slab2[-1]
 
             bot_index2 = _get_bot_index(z_positions2, tol=tol)
 
-            if symmetrize:
-                z_positions2 = np.delete(z_positions2, bot_index2)
+        second_bot_index2 = _get_bot_index(
+            z_positions2, to_delete=bot_index2, tol=tol
+        )
 
-                for i in bot_index:
-                    del sorted_slab2[-1]
+    else:
+        H_index = np.where(
+            np.array([str(i) for i in sorted_slab2.species]) == 'H'
+        )[0]
 
-                bot_index2 = _get_bot_index(z_positions2, tol=tol)
+        second_top_index2 = _get_top_index(
+            z_positions2, to_delete=H_index, tol=tol
+        )
 
-            second_bot_index2 = _get_bot_index(
-                z_positions2, to_delete=bot_index2, tol=tol
-            )
+        second_bot_index2 = _get_bot_index(
+            z_positions2, to_delete=H_index, tol=tol
+        )
 
-        else:
-            H_index = np.where(
-                np.array([str(i) for i in sorted_slab2.species]) == 'H'
-            )[0]
+        top_index2 = range(np.min(second_top_index2))
 
-            second_top_index2 = _get_top_index(
-                z_positions2, to_delete=H_index, tol=tol
-            )
-
-            second_bot_index2 = _get_bot_index(
-                z_positions2, to_delete=H_index, tol=tol
-            )
-
-            top_index2 = range(np.min(second_top_index2))
-
-            bot_index2 = range(np.max(second_bot_index2) +
-                               1, len(z_positions2))
+        bot_index2 = range(np.max(second_bot_index2) +
+                           1, len(z_positions2))
 
     if bot:
         for i in bot_index:
@@ -373,18 +311,16 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
                 covalent_radius=max_covalent_radius
             )
 
-            if flipped:
-                side = 'top'
-            else:
-                side = 'bot'
-
             _append_H(
                 struc=sorted_slab,
                 index=i,
                 neighbor_sph_coords=neighbor_sph_coords,
-                side=side,
+                side='bot',
                 new_radius=new_radius,
             )
+
+        sorted_slab, _ = _sort_by_z(sorted_slab)
+        sorted_slab2, _ = _sort_by_z(sorted_slab2)
 
     if top:
         for (i, j) in zip(second_top_index, second_top_index2):
@@ -394,26 +330,22 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
                 covalent_radius=max_covalent_radius
             )
 
-            if flipped:
-                side = 'bot'
-            else:
-                side = 'top'
-
             _append_H(
                 struc=sorted_slab,
                 index=i,
                 neighbor_sph_coords=neighbor_sph_coords,
-                side=side,
+                side='top',
                 new_radius=new_radius,
             )
 
-    sites_to_delete = [i for i in range(len(sorted_slab)) if sorted_slab.sites[i].properties['to_delete']]
+    sites_to_delete = [
+        i for i in range(len(sorted_slab)) if sorted_slab.sites[i].properties['to_delete']
+    ]
     sorted_slab.remove_sites(sites_to_delete)
 
     sorted_slab = sorted_slab.get_sorted_structure()
 
     return sorted_slab
-
 
 def get_periodic_vacuum(
         slab,
@@ -447,35 +379,36 @@ def get_periodic_vacuum(
     index = np.array(miller_index).reshape(1,-1)
     metric_tensor = bulk.lattice.metric_tensor
     unit_cell_len = np.sqrt(np.squeeze(np.matmul(index,np.matmul(metric_tensor, index.T))))
+    c_len = np.linalg.norm(slab.lattice.matrix[-1])
 
     if np.isin(np.array(slab.species, dtype=str), 'H').any():
         inds = np.isin(np.array(slab.species, dtype=str), 'H', invert=True)
-        min_z = np.min(slab.cart_coords[inds,-1])
+        min_z = np.min(slab.frac_coords[inds,-1])
         slab.translate_sites(
             range(len(slab)),
-            [0,0,(unit_cell_len - min_z)],
-            frac_coords=False
+            [0,0,((unit_cell_len / c_len) - min_z)],
         )
     else:
-        min_z = np.min(slab.cart_coords[:,-1])
+        min_z = np.min(slab.frac_coords[:,-1])
         slab.translate_sites(
             range(len(slab)),
             [0,0, -min_z],
-            frac_coords=False
         )
 
-    max_z2 = np.max(slab.cart_coords[:,-1])
-    min_z2 = np.min(slab.cart_coords[:,-1])
-    slab_height_in_unit_cells = np.round((max_z2 - min_z2) / unit_cell_len, 0)
+    max_z2 = np.max(slab.frac_coords[:,-1])
+    min_z2 = np.min(slab.frac_coords[:,-1])
+    slab_height_in_unit_cells = np.round(((max_z2 - min_z2) * c_len) / unit_cell_len, 0)
     vacuum_height_in_unit_cells = np.round(vacuum / unit_cell_len, 0)
     new_lattice = copy.deepcopy(slab.lattice.matrix)
-    new_lattice[-1,-1] = (slab_height_in_unit_cells + vacuum_height_in_unit_cells) * unit_cell_len
+    new_lattice[-1] = (new_lattice[-1] / np.linalg.norm(new_lattice[-1])) * (slab_height_in_unit_cells + vacuum_height_in_unit_cells) * unit_cell_len
+    new_c_len = np.linalg.norm(new_lattice[-1])
+    new_frac_coords = copy.deepcopy(slab.frac_coords)
+    new_frac_coords[:,-1] = new_frac_coords[:,-1] * (c_len / new_c_len)
 
     new_structure = Structure(
         lattice=Lattice(new_lattice),
         species=slab.species,
-        coords=slab.cart_coords,
-        coords_are_cartesian=True,
+        coords=new_frac_coords,
         to_unit_cell=True,
     )
 
@@ -483,6 +416,8 @@ def get_periodic_vacuum(
         Poscar(new_structure).write_file(output)
     else:
         return new_structure
+
+
 
 def make_supercell(slab, scaling_matrix):
     """
@@ -596,10 +531,14 @@ if __name__ == "__main__":
     slab = generate_slab(
         bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
         miller_index=[1,0,0],
-        layers=4,
-        vacuum=40,
+        layers=8,
+        vacuum=30,
         passivate=True,
     )
+    #  slab = passivator(
+        #  struc=Poscar.from_file('./POSCAR_100_test').structure
+    #  )
+    #  Poscar(slab).write_file('POSCAR_pas')
     #  M = convert_slab(
         #  bulk_path='../../../../projects/unfold_test/POSCAR_bulk',
         #  slab_path=slab,
