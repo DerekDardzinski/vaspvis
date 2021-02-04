@@ -388,7 +388,7 @@ class Dos:
 
         return _smeared_dos
 
-    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False, is_dict=False, idx=None, multiple=False):
+    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False, is_dict=False, idx=None, multiple=False, log_scale=True):
         energy_in_plot_index = np.where(
             (tenergy >= erange[0]) & (tenergy <= erange[1])
         )[0]
@@ -407,12 +407,19 @@ class Dos:
                 ax.set_ylim(erange)
                 if spin == 'up' or spin == 'both':
                     ax.set_xlim(0, np.max(density_in_plot) * 1.1)
+                    if log_scale:
+                         ax.set_xlim(np.min(density_in_plot), np.max(density_in_plot) + np.abs(np.max(density_in_plot) * 0.1))
+                    else:
+                        ax.set_xlim(0, np.max(density_in_plot) * 1.1)
                 elif spin == 'down':
                     ax.set_xlim(np.min(density_in_plot) * 1.1, 0)
             elif energyaxis == 'x':
                 ax.set_xlim(erange)
                 if spin == 'up' or spin == 'both':
-                    ax.set_ylim(0, np.max(density_in_plot) * 1.1)
+                    if log_scale:
+                         ax.set_ylim(np.min(density_in_plot), np.max(density_in_plot) + np.abs(np.max(density_in_plot) * 0.1))
+                    else:
+                        ax.set_ylim(0, np.max(density_in_plot) * 1.1)
                 elif spin == 'down':
                     ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
         elif len(ax.lines) > 0:
@@ -687,6 +694,10 @@ class Dos:
 
         if log_scale:
             tdensity = np.log10(tdensity)
+            tdensity = np.log10(tdensity)
+            neg_inf_loc = np.isin(tdensity, -np.inf)
+            min_val = np.min(tdensity[np.logical_not(neg_inf_loc)])
+            tdensity[neg_inf_loc] = min_val
 
         self._set_density_lims(
             ax=ax,

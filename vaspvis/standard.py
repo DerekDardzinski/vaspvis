@@ -99,17 +99,17 @@ def band_plain(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     scale_factor=20,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=700,
+    sigma=5.5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
-    gamma=0.5,
+    powernorm=True,
+    gamma=0.7,
     save=True,
 ):
     """
@@ -248,15 +248,15 @@ def band_spd(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -404,15 +404,15 @@ def band_atom_orbitals(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -560,15 +560,15 @@ def band_orbitals(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -732,15 +732,15 @@ def band_atoms(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -885,15 +885,15 @@ def band_atom_spd(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -1041,15 +1041,15 @@ def band_elements(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -1195,15 +1195,15 @@ def band_element_orbitals(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -1351,15 +1351,15 @@ def band_element_spd(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     heatmap=False,
-    bins=400,
-    sigma=3,
+    bins=800,
+    sigma=5,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
     cbar_orientation='horizontal',
-    powernorm=False,
+    powernorm=True,
     gamma=0.5,
     save=True,
 ):
@@ -1504,7 +1504,7 @@ def band_plain_spin_polarized(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -1635,7 +1635,7 @@ def band_spd_spin_polarized(
     band_color='black',
     unprojected_band_color='gray',
     unprojected_linewidth=0.6,
-    fontsize=7,
+    fontsize=12,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.02, 0.98),
     figsize=(4, 3),
@@ -1813,7 +1813,7 @@ def band_atom_orbitals_spin_polarized(
     band_color='black',
     unprojected_band_color='gray',
     unprojected_linewidth=0.6,
-    fontsize=7,
+    fontsize=12,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.02, 0.98),
     figsize=(4, 3),
@@ -1998,7 +1998,7 @@ def band_orbitals_spin_polarized(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -2186,7 +2186,7 @@ def band_atoms_spin_polarized(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -2350,7 +2350,7 @@ def band_atom_spd_spin_polarized(
     band_color='black',
     unprojected_band_color='gray',
     unprojected_linewidth=0.6,
-    fontsize=7,
+    fontsize=12,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.02, 0.98),
     figsize=(4, 3),
@@ -2535,7 +2535,7 @@ def band_elements_spin_polarized(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -2698,7 +2698,7 @@ def band_element_orbital_spin_polarized(
     band_color='black',
     unprojected_band_color='gray',
     unprojected_linewidth=0.6,
-    fontsize=7,
+    fontsize=12,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.02, 0.98),
     figsize=(4, 3),
@@ -2876,7 +2876,7 @@ def band_element_spd_spin_polarized(
     band_color='black',
     unprojected_band_color='gray',
     unprojected_linewidth=0.6,
-    fontsize=7,
+    fontsize=12,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.02, 0.98),
     figsize=(4, 3),
@@ -3059,7 +3059,7 @@ def dos_plain(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3127,7 +3127,7 @@ def dos_ldos(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
     log_scale=False,
 ):
@@ -3203,7 +3203,7 @@ def dos_spd(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3283,7 +3283,7 @@ def dos_atom_orbitals(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3363,7 +3363,7 @@ def dos_orbitals(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3459,7 +3459,7 @@ def dos_atoms(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3537,7 +3537,7 @@ def dos_atom_spd(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3617,7 +3617,7 @@ def dos_elements(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3695,7 +3695,7 @@ def dos_element_spd(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3775,7 +3775,7 @@ def dos_element_orbitals(
     erange=[-6, 6],
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3850,7 +3850,7 @@ def dos_plain_spin_polarized(
     color='black',
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -3928,7 +3928,7 @@ def dos_spd_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4018,7 +4018,7 @@ def dos_atom_orbitals_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4108,7 +4108,7 @@ def dos_orbitals_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4214,7 +4214,7 @@ def dos_atoms_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4302,7 +4302,7 @@ def dos_atom_spd_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4395,7 +4395,7 @@ def dos_elements_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4486,7 +4486,7 @@ def dos_element_spd_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4579,7 +4579,7 @@ def dos_element_orbitals_spin_polarized(
     total=True,
     figsize=(4, 3),
     erange=[-6, 6],
-    fontsize=7,
+    fontsize=12,
     save=True,
 ):
     """
@@ -4678,7 +4678,7 @@ def band_dos_plain(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -4797,7 +4797,7 @@ def band_dos_spd(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -4942,7 +4942,7 @@ def band_dos_atom_orbitals(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -5087,7 +5087,7 @@ def band_dos_orbitals(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -5248,7 +5248,7 @@ def band_dos_atoms(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -5391,7 +5391,7 @@ def band_dos_atom_spd(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -5535,7 +5535,7 @@ def band_dos_elements(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -5678,7 +5678,7 @@ def band_dos_element_spd(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -5823,7 +5823,7 @@ def band_dos_element_orbitals(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -5965,7 +5965,7 @@ def band_dos_plain_spin_polarized(
     unfold=False,
     M=None,
     high_symm_points=None,
-    fontsize=7,
+    fontsize=12,
     save=True,
     fill=True,
     alpha=0.3,
@@ -8084,7 +8084,7 @@ def dos_layers(
     lrange=None,
     spin='up',
     combination_method='add',
-    fontsize=7,
+    fontsize=12,
     save=True,
     cmap='magma',
     sigma=1.5,
@@ -8218,9 +8218,10 @@ def dos_layers(
 
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
-    #  band_spd(
-        #  folder='../../vaspvis_data/band_InAs',
-    #  )
+    band_orbitals(
+        folder='../../vaspvis_data/band_InAs',
+        orbitals=range(8),
+    )
     #  dos_ldos(
         #  folder='../../vaspvis_data/slabdos',
         #  layers=[0,1,2,3,4],
@@ -8263,38 +8264,37 @@ def _main():
         #  output='band_elements_Al.png'
     #  )
 
-    M = [
-        [0,1,-1],
-        [1,-1,0],
-        [-14,-14,-14]
-    ]
-
-    high_symm_points = [
-        [2/3, 1/3, 1/3],
-        [0.0, 0.0, 0],
-        [2/3, 1/3, 1/3],
-    ]
-
-    band_spd(
-        folder="../../vaspvis_data/bandMGM",
-        orbitals='pd',
-        unfold=True,
-        figsize=(3,4),
-        fontsize=12,
-        kpath='AGA',
-        high_symm_points=high_symm_points,
-        n=40,
-        M=M,
-        scale_factor=20,
-        erange=[-4,0.5],
-        heatmap=True,
-        cmap='jet',
-        bins=900,
-        vlinecolor='white',
-        cbar_orientation='horizontal',
-        sigma=3,
-        powernorm=True,
-    )
+    #  M = [
+        #  [0,1,-1],
+        #  [1,-1,0],
+        #  [-14,-14,-14]
+    #  ]
+#
+    #  high_symm_points = [
+        #  [2/3, 1/3, 1/3],
+        #  [0.0, 0.0, 0],
+        #  [2/3, 1/3, 1/3],
+    #  ]
+#
+    #  band_spd(
+        #  folder="../../vaspvis_data/bandMGM",
+        #  orbitals='pd',
+        #  unfold=True,
+        #  figsize=(3,4),
+        #  kpath='AGA',
+        #  high_symm_points=high_symm_points,
+        #  n=40,
+        #  M=M,
+        #  scale_factor=20,
+        #  erange=[-4,0.5],
+        #  #  heatmap=True,
+        #  #  cmap='jet',
+        #  #  bins=900,
+        #  #  vlinecolor='white',
+        #  #  cbar_orientation='horizontal',
+        #  #  sigma=5,
+        #  #  powernorm=True,
+    #  )
 
 
 
