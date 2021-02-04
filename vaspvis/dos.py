@@ -29,7 +29,7 @@ class Dos:
             by passing 'add' or 'sub'. It spin is passed as 'up' or 'down' this option is ignored.
     """
 
-    def __init__(self, folder, spin='up', combination_method="add"):
+    def __init__(self, folder, spin='up', combination_method="add", shift_efermi=0):
         self.folder = folder
         self.spin = spin
         self.combination_method = combination_method
@@ -49,7 +49,7 @@ class Dos:
             np.save(os.path.join(folder, 'dos.npy'), self.doscar['total'])
             np.save(os.path.join(folder, 'projected_dos.npy'), self.doscar['projected'])
 
-        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
+        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2]) + shift_efermi
         self.poscar = Poscar.from_file(
             os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,

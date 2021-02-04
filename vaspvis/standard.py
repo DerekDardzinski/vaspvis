@@ -111,6 +111,7 @@ def band_plain(
     powernorm=True,
     gamma=0.7,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a plain band structure
@@ -162,6 +163,7 @@ def band_plain(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -259,6 +261,7 @@ def band_spd(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a s, p, d projected band structure.
@@ -315,6 +318,7 @@ def band_spd(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -415,6 +419,7 @@ def band_atom_orbitals(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a projected band structure on specific [atom, orbital] pairs.
@@ -471,6 +476,7 @@ def band_atom_orbitals(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -571,6 +577,7 @@ def band_orbitals(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a projected band structure on specific orbitals.
@@ -643,6 +650,7 @@ def band_orbitals(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -743,6 +751,7 @@ def band_atoms(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a projected band structure on specific atoms in the POSCAR.
@@ -797,6 +806,7 @@ def band_atoms(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -896,6 +906,7 @@ def band_atom_spd(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a s, p, d projected band structure on specific atoms.
@@ -952,6 +963,7 @@ def band_atom_spd(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -1052,6 +1064,7 @@ def band_elements(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a projected band structure on specific elements.
@@ -1106,6 +1119,7 @@ def band_elements(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -1206,6 +1220,7 @@ def band_element_orbitals(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a projected band structure on orbitals of specific elements.
@@ -1262,6 +1277,7 @@ def band_element_orbitals(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -1362,6 +1378,7 @@ def band_element_spd(
     powernorm=True,
     gamma=0.5,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a s, p, d projected band structure on specific elements.
@@ -1418,6 +1435,7 @@ def band_element_spd(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if heatmap:
@@ -1506,6 +1524,7 @@ def band_plain_spin_polarized(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a plain spin polarized band structure.
@@ -1557,6 +1576,7 @@ def band_plain_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
     band_down = Band(
         folder=folder,
@@ -1566,6 +1586,7 @@ def band_plain_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
     fig = plt.figure(figsize=(figsize), dpi=400)
     ax = fig.add_subplot(111)
@@ -1647,6 +1668,7 @@ def band_spd_spin_polarized(
     M=None,
     high_symm_points=None,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a spin polarized s, p, d projected band structure. This will plot two plots
@@ -1710,6 +1732,7 @@ def band_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -1721,6 +1744,7 @@ def band_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -1825,6 +1849,7 @@ def band_atom_orbitals_spin_polarized(
     M=None,
     high_symm_points=None,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates an atom orbital spin polarized band structure. This will plot two plots
@@ -1888,6 +1913,7 @@ def band_atom_orbitals_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -1899,6 +1925,7 @@ def band_atom_orbitals_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -2000,6 +2027,7 @@ def band_orbitals_spin_polarized(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates an orbital spin polarized band structure. This will plot two plots
@@ -2079,6 +2107,7 @@ def band_orbitals_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -2090,6 +2119,7 @@ def band_orbitals_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -2188,6 +2218,7 @@ def band_atoms_spin_polarized(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates an atom spin polarized band structure. This will plot two plots
@@ -2250,6 +2281,7 @@ def band_atoms_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -2261,6 +2293,7 @@ def band_atoms_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -2362,6 +2395,7 @@ def band_atom_spd_spin_polarized(
     M=None,
     high_symm_points=None,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific atoms. This will plot two plots
@@ -2425,6 +2459,7 @@ def band_atom_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -2436,6 +2471,7 @@ def band_atom_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -2537,6 +2573,7 @@ def band_elements_spin_polarized(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates an element spin polarized band structure. This will plot two plots
@@ -2598,6 +2635,7 @@ def band_elements_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -2609,6 +2647,7 @@ def band_elements_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -2710,6 +2749,7 @@ def band_element_orbital_spin_polarized(
     M=None,
     high_symm_points=None,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates an element orbital spin polarized band structure. This will plot two plots
@@ -2773,6 +2813,7 @@ def band_element_orbital_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -2784,6 +2825,7 @@ def band_element_orbital_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -2888,6 +2930,7 @@ def band_element_spd_spin_polarized(
     M=None,
     high_symm_points=None,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific elements. This will plot two plots
@@ -2951,6 +2994,7 @@ def band_element_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -2962,6 +3006,7 @@ def band_element_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     if stack == 'vertical':
@@ -3061,6 +3106,7 @@ def dos_plain(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the total density of states.
@@ -3089,7 +3135,7 @@ def dos_plain(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3129,6 +3175,7 @@ def dos_ldos(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
     log_scale=False,
 ):
     """
@@ -3160,7 +3207,7 @@ def dos_ldos(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3205,6 +3252,7 @@ def dos_spd(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots an s, p, d projected density of states.
@@ -3239,7 +3287,7 @@ def dos_spd(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3285,6 +3333,7 @@ def dos_atom_orbitals(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the orbital projected density of states on specific atoms.
@@ -3319,7 +3368,7 @@ def dos_atom_orbitals(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3365,6 +3414,7 @@ def dos_orbitals(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the orbital projected density of states.
@@ -3415,7 +3465,7 @@ def dos_orbitals(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3461,6 +3511,7 @@ def dos_atoms(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the atom projected density of states.
@@ -3494,7 +3545,7 @@ def dos_atoms(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3539,6 +3590,7 @@ def dos_atom_spd(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the atom projected density of states of the s, p, and d orbitals.
@@ -3573,7 +3625,7 @@ def dos_atom_spd(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3619,6 +3671,7 @@ def dos_elements(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the element projected density of states.
@@ -3651,7 +3704,7 @@ def dos_elements(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3697,6 +3750,7 @@ def dos_element_spd(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the element projected density of states of the s, p, and d orbitals.
@@ -3731,7 +3785,7 @@ def dos_element_spd(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3777,6 +3831,7 @@ def dos_element_orbitals(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the element projected density of states on specific orbitals.
@@ -3811,7 +3866,7 @@ def dos_element_orbitals(
         and axis for further editing. 
     """
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3852,6 +3907,7 @@ def dos_plain_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots the spin polarized total density of states.
@@ -3877,8 +3933,8 @@ def dos_plain_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -3930,6 +3986,7 @@ def dos_spd_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized s, p, d projected density of states.
@@ -3961,8 +4018,8 @@ def dos_spd_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4020,6 +4077,7 @@ def dos_atom_orbitals_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized orbital projected density of states on specific atoms.
@@ -4051,8 +4109,8 @@ def dos_atom_orbitals_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4110,6 +4168,7 @@ def dos_orbitals_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized orbital projected density of states.
@@ -4157,8 +4216,8 @@ def dos_orbitals_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4216,6 +4275,7 @@ def dos_atoms_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized atom projected density of states.
@@ -4246,8 +4306,8 @@ def dos_atoms_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4304,6 +4364,7 @@ def dos_atom_spd_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized atom projected density of states of the s, p, and d orbitals.
@@ -4338,8 +4399,8 @@ def dos_atom_spd_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4397,6 +4458,7 @@ def dos_elements_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized element projected density of states.
@@ -4429,8 +4491,8 @@ def dos_elements_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4488,6 +4550,7 @@ def dos_element_spd_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized element projected density of states of the s, p, and d orbitals.
@@ -4522,8 +4585,8 @@ def dos_element_spd_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4581,6 +4644,7 @@ def dos_element_orbitals_spin_polarized(
     erange=[-6, 6],
     fontsize=12,
     save=True,
+    shift_efermi=0,
 ):
     """
     This function plots a spin polarized element projected density of states on specific orbitals.
@@ -4615,8 +4679,8 @@ def dos_element_orbitals_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(folder=folder, spin='up')
-    dos_down = Dos(folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4680,6 +4744,7 @@ def band_dos_plain(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -4741,9 +4806,10 @@ def band_dos_plain(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_plain(
         ax=ax1,
@@ -4799,6 +4865,7 @@ def band_dos_spd(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -4879,9 +4946,10 @@ def band_dos_spd(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_spd(
         ax=ax1,
@@ -4944,6 +5012,7 @@ def band_dos_atom_orbitals(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5024,9 +5093,10 @@ def band_dos_atom_orbitals(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_atom_orbitals(
         ax=ax1,
@@ -5089,6 +5159,7 @@ def band_dos_orbitals(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5185,9 +5256,10 @@ def band_dos_orbitals(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_orbitals(
         ax=ax1,
@@ -5250,6 +5322,7 @@ def band_dos_atoms(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5329,9 +5402,10 @@ def band_dos_atoms(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_atoms(
         ax=ax1,
@@ -5393,6 +5467,7 @@ def band_dos_atom_spd(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5473,9 +5548,10 @@ def band_dos_atom_spd(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_atom_spd(
         ax=ax1,
@@ -5537,6 +5613,7 @@ def band_dos_elements(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5615,9 +5692,10 @@ def band_dos_elements(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_elements(
         ax=ax1,
@@ -5680,6 +5758,7 @@ def band_dos_element_spd(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5760,9 +5839,10 @@ def band_dos_element_spd(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_element_spd(
         ax=ax1,
@@ -5825,6 +5905,7 @@ def band_dos_element_orbitals(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5905,9 +5986,10 @@ def band_dos_element_orbitals(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos = Dos(folder=dos_folder, spin=spin)
+    dos = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin=spin)
 
     band.plot_element_orbitals(
         ax=ax1,
@@ -5967,6 +6049,7 @@ def band_dos_plain_spin_polarized(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6029,6 +6112,7 @@ def band_dos_plain_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -6039,10 +6123,11 @@ def band_dos_plain_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     band_up.plot_plain(
         ax=ax1,
@@ -6120,6 +6205,7 @@ def band_dos_spd_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6204,6 +6290,7 @@ def band_dos_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -6215,10 +6302,11 @@ def band_dos_spd_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -6377,6 +6465,7 @@ def band_dos_atom_orbitals_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6463,6 +6552,7 @@ def band_dos_atom_orbitals_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
     band_down = Band(
@@ -6474,10 +6564,11 @@ def band_dos_atom_orbitals_spin_polarized(
         kpath=kpath,
         n=n,
         M=M,
+	shift_efermi=shift_efermi,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -6632,6 +6723,7 @@ def band_dos_orbitals_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6740,8 +6832,8 @@ def band_dos_orbitals_spin_polarized(
         n=n,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -6890,6 +6982,7 @@ def band_dos_atoms_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6981,8 +7074,8 @@ def band_dos_atoms_spin_polarized(
         n=n,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -7130,6 +7223,7 @@ def band_dos_atom_spd_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7222,8 +7316,8 @@ def band_dos_atom_spd_spin_polarized(
         n=n,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -7372,6 +7466,7 @@ def band_dos_elements_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7462,8 +7557,8 @@ def band_dos_elements_spin_polarized(
         n=n,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -7612,6 +7707,7 @@ def band_dos_element_orbitals_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7704,8 +7800,8 @@ def band_dos_element_orbitals_spin_polarized(
         n=n,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -7854,6 +7950,7 @@ def band_dos_element_spd_spin_polarized(
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
     annotation_xy=(0.0125, 0.98),
     save=True,
+    shift_efermi=0,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7946,8 +8043,8 @@ def band_dos_element_spd_spin_polarized(
         n=n,
     )
 
-    dos_up = Dos(folder=dos_folder, spin='up')
-    dos_down = Dos(folder=dos_folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='up')
+    dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     bbox = dict(boxstyle='round', fc='white',
                 edgecolor='gray', alpha=0.95, pad=0.3)
@@ -8086,6 +8183,7 @@ def dos_layers(
     combination_method='add',
     fontsize=12,
     save=True,
+    shift_efermi=0,
     cmap='magma',
     sigma=1.5,
     antialiased=False,
@@ -8176,7 +8274,7 @@ def dos_layers(
         
     _figure_setup_layer_dos(ax=dos_ax, fontsize=fontsize, energyaxis=energyaxis)
 
-    dos = Dos(folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
     dos.plot_layers(
         ax=dos_ax,
         sigma=sigma,
@@ -8260,6 +8358,7 @@ def _main():
         #  high_symm_points=high_symm_points,
         #  n=50,
         #  M=M,
+	#  shift_efermi=shift_efermi,
         #  scale_factor=20,
         #  output='band_elements_Al.png'
     #  )
@@ -8285,6 +8384,7 @@ def _main():
         #  high_symm_points=high_symm_points,
         #  n=40,
         #  M=M,
+	#  shift_efermi=shift_efermi,
         #  scale_factor=20,
         #  erange=[-4,0.5],
         #  #  heatmap=True,
