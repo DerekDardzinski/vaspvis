@@ -34,29 +34,49 @@ class Dos:
         self.spin = spin
         self.combination_method = combination_method
         self.forbitals = False
-        if os.path.isfile(os.path.join(folder, 'dos.npy')) and os.path.isfile(os.path.join(folder, 'projected_dos.npy')):
-            with open(os.path.join(folder, 'dos.npy'), 'rb') as dos_file:
-                dos = np.load(dos_file)
-            with open(os.path.join(folder, 'projected_dos.npy'), 'rb') as projected_dos_file:
-                projected_dos = np.load(projected_dos_file)
-
-            self.doscar = {
-                'total': dos,
-                'projected': projected_dos,
-            }
+        self.incar = Incar.from_file(
+            os.path.join(folder, 'INCAR')
+        )
+        if 'LORBIT' in self.incar:
+            if self.incar['LORBIT'] >= 11:
+                self.lorbit = True
+            else:
+                self.lorbit = False
         else:
-            self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
-            np.save(os.path.join(folder, 'dos.npy'), self.doscar['total'])
-            np.save(os.path.join(folder, 'projected_dos.npy'), self.doscar['projected'])
+            self.lorbit = False
+
+        if self.lorbit:
+            if os.path.isfile(os.path.join(folder, 'dos.npy')) and os.path.isfile(os.path.join(folder, 'projected_dos.npy')):
+                with open(os.path.join(folder, 'dos.npy'), 'rb') as dos_file:
+                    dos = np.load(dos_file)
+                with open(os.path.join(folder, 'projected_dos.npy'), 'rb') as projected_dos_file:
+                    projected_dos = np.load(projected_dos_file)
+
+                self.doscar = {
+                    'total': dos,
+                    'projected': projected_dos,
+                }
+            else:
+                self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
+                np.save(os.path.join(folder, 'dos.npy'), self.doscar['total'])
+                np.save(os.path.join(folder, 'projected_dos.npy'), self.doscar['projected'])
+        else:
+            if os.path.isfile(os.path.join(folder, 'dos.npy')):
+                with open(os.path.join(folder, 'dos.npy'), 'rb') as dos_file:
+                    dos = np.load(dos_file)
+
+                self.doscar = {
+                    'total': dos,
+                }
+            else:
+                self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
+                np.save(os.path.join(folder, 'dos.npy'), self.doscar['total'])
 
         self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2]) + shift_efermi
         self.poscar = Poscar.from_file(
             os.path.join(folder, 'POSCAR'),
             check_for_POTCAR=False,
             read_velocities=False
-        )
-        self.incar = Incar.from_file(
-            os.path.join(folder, 'INCAR')
         )
         self.color_dict = {
             0: '#FF0000',
@@ -119,7 +139,9 @@ class Dos:
 
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
         self.tdos_array = self._load_tdos()
-        self.pdos_array = self._load_pdos()
+
+        if self.lorbit:
+            self.pdos_array = self._load_pdos()
 
     def _load_tdos(self):
         """
@@ -388,7 +410,7 @@ class Dos:
 
         return _smeared_dos
 
-    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False, is_dict=False, idx=None, multiple=False, log_scale=True):
+    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False, is_dict=False, idx=None, multiple=False, log_scale=False):
         energy_in_plot_index = np.where(
             (tenergy >= erange[0]) & (tenergy <= erange[1])
         )[0]
