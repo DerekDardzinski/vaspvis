@@ -23,8 +23,9 @@ from ase.io import read, write
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
 import matplotlib.pyplot as plt
-import similaritymeasures as sm
+from fastdtw import fastdtw
 import numpy as np
+import time
 import copy
 import os
 
@@ -611,14 +612,14 @@ def compare_dos_to_bulk(
         x_data = [ax.lines[i].get_xdata() for i in range(4)]
         y_data = [ax.lines[i].get_ydata() for i in range(4)]
 
-        area_diff_up = sm.area_between_two_curves(
+        area_diff_up = fastdtw(
             np.c_[x_data[0], y_data[0]],
             np.c_[x_data[2], y_data[2]],
-        )
-        area_diff_down = sm.area_between_two_curves(
+        )[0]
+        area_diff_down = fastdtw(
             np.c_[x_data[1], y_data[1]],
             np.c_[x_data[3], y_data[3]],
-        )
+        )[0]
         area_diff = np.abs(area_diff_up) + np.abs(area_diff_down)
     else:
         ax.set_xlim(erange[0], erange[1])
@@ -653,10 +654,10 @@ def compare_dos_to_bulk(
         x_data = [ax.lines[i].get_xdata() for i in range(2)]
         y_data = [ax.lines[i].get_ydata() for i in range(2)]
 
-        area_diff = sm.area_between_two_curves(
+        area_diff = fastdtw(
             np.c_[x_data[0], y_data[0]],
             np.c_[x_data[1], y_data[1]],
-        )
+        )[0]
 
         area_diff = np.abs(area_diff)
 

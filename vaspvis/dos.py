@@ -6,6 +6,7 @@ from pymatgen.electronic_structure.core import Spin, Orbital
 from pychemia.code.vasp.doscar import VaspDoscar
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage import gaussian_filter
+from scipy.interpolate import interp2d
 from functools import reduce
 import numpy as np
 import pandas as pd
@@ -1247,7 +1248,7 @@ class Dos:
             self,
             ax,
             cmap='magma',
-            sigma=5,
+            sigma=0.05,
             energyaxis='y',
             erange=[-6, 6],
             lrange=None,
@@ -1284,7 +1285,21 @@ class Dos:
         atom_densities = self._sum_atoms(atoms=None)[ind]
         densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
         densities = np.transpose(densities)
-        densities = gaussian_filter(densities, sigma=sigma)
+
+        if lrange is not None:
+            atom_index = atom_index[lrange[0]:lrange[1]+1]
+            densities = densities[:, lrange[0]:lrange[1]+1]
+
+        if sigma > 0:
+            for i in range(densities.shape[-1]):
+                densities[:,i] = self._smear(
+                    densities[:,i],
+                    sigma=sigma,
+                )
+
+        f = interp2d(atom_index, energies, densities, kind='cubic')
+        atom_index = np.arange(np.min(atom_index), np.max(atom_index), 0.1)
+        densities = f(atom_index, energies)
 
         if log_scale:
             if np.min(densities) == 0:
@@ -1296,10 +1311,6 @@ class Dos:
             norm = colors.LogNorm(vmin=min_val, vmax=np.max(densities))
         else:
             norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
-
-        if lrange is not None:
-            atom_index = atom_index[lrange[0]:lrange[1]+1]
-            densities = densities[:, lrange[0]:lrange[1]+1]
 
 
         if log_scale:
@@ -1389,7 +1400,14 @@ class Dos:
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=ax)
         cbar.ax.tick_params(labelsize=fontsize)
-        cbar.set_label('Density of States', fontsize=fontsize)
+        if self.combination_method == "sub" and self.spin == "both":
+            cbar.set_label('Spin Polarization (arb. units)', fontsize=fontsize)
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['Down', 'Up'])
+        else:
+            cbar.set_label('Density of States', fontsize=fontsize)
 
     def plot_structure(self, ax, rotation=[90,90,90]):
         structure = self.poscar.structure

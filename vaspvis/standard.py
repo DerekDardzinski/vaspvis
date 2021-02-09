@@ -8185,7 +8185,7 @@ def dos_layers(
     save=True,
     shift_efermi=0,
     cmap='magma',
-    sigma=1.5,
+    sigma=0.05,
     antialiased=False,
     show_structure=False,
     interface_layer=None,
