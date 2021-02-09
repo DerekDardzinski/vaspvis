@@ -1,5 +1,7 @@
 from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
 from vaspvis.unfold import convert
+from vaspvis.dos import Dos
+from vaspvis.standard import _figure_setup_dos
 from vaspvis.passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import JmolNN, CrystalNN, EconNN
@@ -20,6 +22,8 @@ from ase.build import niggli_reduce, sort
 from ase.io import read, write
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+import matplotlib.pyplot as plt
+import similaritymeasures as sm
 import numpy as np
 import copy
 import os
@@ -526,15 +530,163 @@ def generate_slab(
     return slab_primitive
 
 
+def compare_dos_to_bulk(
+    bulk_folder,
+    slab_folder,
+    atoms,
+    erange=[-6,6],
+    sigma=0.05,
+    spin_polarized=False,
+    plot=True,
+    save_plot=True,
+    output='bulk_comparison.png',
+    bulk_color='black',
+    slab_color='green',
+    fill_bulk=True,
+    fill_slab=True,
+    figsize=(4,3),
+):
+    fig, ax = plt.subplots(figsize=figsize, dpi=300)
+    _figure_setup_dos(ax=ax, fontsize=12, energyaxis='x')
+
+    if spin_polarized:
+        dos_bulk_up = Dos(
+            folder=bulk_folder,
+            spin='up',
+        )
+        dos_bulk_down = Dos(
+            folder=bulk_folder,
+            spin='down',
+        )
+
+        dos_bulk_up.plot_plain(
+            ax=ax,
+            energyaxis='x',
+            color=bulk_color,
+            erange=erange,
+            fill=fill_bulk,
+        )
+        dos_bulk_down.plot_plain(
+            ax=ax,
+            energyaxis='x',
+            color=bulk_color,
+            erange=erange,
+            fill=fill_bulk,
+        )
+
+        dos_slab_up = Dos(
+            folder=slab_folder,
+            spin='up',
+        )
+
+        dos_slab_down = Dos(
+            folder=slab_folder,
+            spin='down',
+        )
+
+        dos_slab_up.plot_atoms(
+            ax=ax,
+            atoms=atoms,
+            legend=False,
+            energyaxis='x',
+            color_list=[slab_color for _ in range(len(atoms))],
+            total=False,
+            fill=fill_slab,
+            sum_atoms=True,
+            erange=erange,
+        )
+
+        dos_slab_down.plot_atoms(
+            ax=ax,
+            atoms=atoms,
+            legend=False,
+            energyaxis='x',
+            color_list=[slab_color for _ in range(len(atoms))],
+            total=False,
+            fill=fill_slab,
+            sum_atoms=True,
+            erange=erange,
+        )
+
+        x_data = [ax.lines[i].get_xdata() for i in range(4)]
+        y_data = [ax.lines[i].get_ydata() for i in range(4)]
+
+        area_diff_up = sm.area_between_two_curves(
+            np.c_[x_data[0], y_data[0]],
+            np.c_[x_data[2], y_data[2]],
+        )
+        area_diff_down = sm.area_between_two_curves(
+            np.c_[x_data[1], y_data[1]],
+            np.c_[x_data[3], y_data[3]],
+        )
+        area_diff = np.abs(area_diff_up) + np.abs(area_diff_down)
+    else:
+        ax.set_xlim(erange[0], erange[1])
+
+        dos_bulk = Dos(
+            folder=bulk_folder,
+        )
+
+        dos_bulk.plot_plain(
+            ax=ax,
+            energyaxis='x',
+            color=bulk_color,
+            erange=erange,
+            fill=fill_bulk,
+        )
+
+        dos = Dos(
+            folder=slab_folder,
+        )
+
+        dos.plot_atoms(
+            ax=ax,
+            atoms=atoms,
+            legend=False,
+            energyaxis='x',
+            color_list=[slab_color for _ in range(len(atoms))],
+            total=False,
+            fill=fill_slab,
+            sum_atoms=True,
+            erange=erange,
+        )
+        x_data = [ax.lines[i].get_xdata() for i in range(2)]
+        y_data = [ax.lines[i].get_ydata() for i in range(2)]
+
+        area_diff = sm.area_between_two_curves(
+            np.c_[x_data[0], y_data[0]],
+            np.c_[x_data[1], y_data[1]],
+        )
+
+        area_diff = np.abs(area_diff)
+
+    if plot:
+        fig.tight_layout()
+        if save_plot:
+            fig.savefig(output)
+
+            return area_diff
+        else:
+            return fig, ax, area_diff
+    else:
+        return area_diff
+
+
+
 
 if __name__ == "__main__":
-    slab = generate_slab(
-        bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
-        miller_index=[1,0,0],
-        layers=8,
-        vacuum=30,
-        passivate=True,
+    area_diff = compare_dos_to_bulk(
+        bulk_folder='../../vaspvis_data/dos_InAs/',
+        slab_folder='../../vaspvis_data/slabdos',
+        atoms=[17,50],
     )
+    #  slab = generate_slab(
+        #  bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
+        #  miller_index=[1,0,0],
+        #  layers=8,
+        #  vacuum=30,
+        #  passivate=True,
+    #  )
     #  slab = passivator(
         #  struc=Poscar.from_file('./POSCAR_100_test').structure
     #  )

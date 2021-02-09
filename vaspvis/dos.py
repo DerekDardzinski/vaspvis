@@ -216,6 +216,11 @@ class Dos:
             if self.combination_method == 'sub':
                 pdos = pdos_up - pdos_down
 
+        tdos = self.tdos_array[:,-1]
+        summed_pdos = np.sum(np.sum(pdos, axis=1), axis=1)
+        scale_factor = np.nan_to_num(np.divide(tdos, summed_pdos))
+        pdos = np.multiply(pdos, scale_factor[:,None,None])
+
         return pdos
 
 
@@ -417,12 +422,15 @@ class Dos:
 
         tdensity = tdensity[energy_in_plot_index]
 
-        if len(tdensity.shape) == 1:
-           density_in_plot = tdensity 
+        if len(np.squeeze(tdensity).shape) == 1:
+           density_in_plot = np.squeeze(tdensity) 
         else:
             if spin == 'up' or spin == 'both':
                 max_index = np.argmax(np.max(tdensity, axis=0))
                 density_in_plot = tdensity[:,max_index]
+            else:
+                min_index = np.argmin(np.min(tdensity, axis=0))
+                density_in_plot = tdensity[:,min_index]
 
         if len(ax.lines) == 0:
             if energyaxis == 'y':
@@ -548,6 +556,19 @@ class Dos:
 
 
     def _plot_projected_general(self, ax, energy, projected_data, colors, sigma, erange, linewidth, alpha_line, alpha, fill, energyaxis, total):
+        energy_in_plot_index = np.where(
+            (energy >= erange[0] - 0.5) & (energy <= erange[1] + 0.5)
+        )[0]
+        energy = energy[energy_in_plot_index]
+        projected_data = projected_data[energy_in_plot_index]
+
+        if sigma > 0:
+            for i in range(projected_data.shape[-1]):
+                projected_data[:,i] = self._smear(
+                    projected_data[:,i],
+                    sigma=sigma,
+                )
+
         if total:
             self.plot_plain(
                 ax=ax,
@@ -571,13 +592,8 @@ class Dos:
             )
 
         for i in range(projected_data.shape[-1]):
-            if sigma > 0:
-                pdensity = self._smear(
-                    projected_data[:,i],
-                    sigma=sigma,
-                )
-            else:
-                pdensity = projected_data[:,i]
+
+            pdensity = projected_data[:,i]
 
             if energyaxis == 'y':
                 ax.plot(
@@ -633,6 +649,10 @@ class Dos:
         """
 
         tdos_array = self.tdos_array
+        energy_in_plot_index = np.where(
+            (tdos_array[:,0] >= erange[0] - 0.5) & (tdos_array[:,0] <= erange[1] + 0.5)
+        )[0]
+        tdos_array = tdos_array[energy_in_plot_index]
 
         if sigma > 0:
             tdensity = self._smear(
@@ -930,7 +950,7 @@ class Dos:
             self._add_legend(ax, names=[self.orbital_labels[i] for i in orbitals], colors=colors)
 
 
-    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_atoms(self, ax, atoms, fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6], sum_atoms=False):
         """
         This function plots the total density of states with the projected density of states on the given atoms.
 
@@ -956,6 +976,10 @@ class Dos:
             colors = color_list
 
         projected_data = self._sum_atoms(atoms=atoms)
+
+        if sum_atoms:
+            projected_data = np.sum(projected_data, axis=1).reshape(-1,1)
+            colors = [colors[0]]
 
         self._plot_projected_general(
             ax=ax,
