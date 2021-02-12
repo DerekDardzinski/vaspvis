@@ -29,6 +29,50 @@ import time
 import copy
 import os
 
+
+def group_layers(structure, atol=None):
+    """
+    This function will find the atom indices belonging to each unique atomic layer.
+
+    Parameters:
+        structure (pymatgen.core.structure.Structure): Slab structure
+        atol (float or None): Tolarence used for grouping the layers. Useful for grouping
+            layers in a structure with relaxed atomic positions.
+
+    Returns:
+        A list containing the indices of each layers.
+        A list of heights of each layers in fractional coordinates.
+    """
+    sites = structure.sites
+    zvals = np.array([site.c for site in sites])
+    unique_values = np.sort(np.unique(np.round(zvals, 3)))
+    diff = np.mean(np.diff(unique_values)) * 0.2
+
+    grouped = False
+    groups = []
+    group_heights = []
+    zvals_copy = copy.deepcopy(zvals)
+    while not grouped:
+        if len(zvals_copy) > 0:
+            if atol is None:
+                group_index = np.where(
+                    np.isclose(zvals, np.min(zvals_copy), atol=diff)
+                )[0]
+            else:
+                group_index = np.where(
+                    np.isclose(zvals, np.min(zvals_copy), atol=atol)
+                )[0]
+
+            group_heights.append(np.min(zvals_copy))
+            zvals_copy = np.delete(zvals_copy, np.where(
+                np.isin(zvals_copy, zvals[group_index]))[0])
+            groups.append(group_index)
+        else:
+            grouped = True
+
+    return groups, np.array(group_heights)
+
+
 def convert_slab(bulk_path, slab_path, index, output='POSCAR_unfold', generate=True, print_M=True):
     """
     This function rotates a slab structure so its transformation matrix
@@ -78,16 +122,18 @@ def generate_kpoints(M, high_symmetry_points, n, output='KPOINTS'):
     save2VaspKPOINTS(reducedK, output)
 
 
-def get_bandgap(folder, printbg=True):
+def get_bandgap(folder, printbg=True, return_vbm_cbm=False):
     """
     Determines the band gap from a band structure calculation
 
     Parameters:
         folder (str): Folder that contains the VASP input and outputs files
         printbg (bool): Determines if the band gap value is printed out or not.
+        return_vbm_cbm (bool): Determines if the vbm and cbm are returned.
 
     Returns:
-        Bandgap in eV
+        if return_vbm_cbm is False: The band gap is returned in eV
+        if return_vbm_cbm is True: The band gap, vbm, and cbm are returned in eV in that order
     """
     def _get_bandgap(eigenvalues, printbg=printbg):
         if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
@@ -100,11 +146,19 @@ def get_bandgap(folder, printbg=True):
             bg = cbm - vbm
         else:
             bg = 0
+            vbm = np.nan
+            cbm = np.nan
 
         if printbg:
             print(f'Bandgap = {np.round(bg, 3)} eV')
+            if return_vbm_cbm:
+                print(f'VBM = {np.round(vbm, 3)} eV')
+                print(f'CBM = {np.round(cbm, 3)} eV')
 
-        return bg
+        if return_vbm_cbm:
+            return bg, vbm, cbm
+        else:
+            return bg
 
     pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
     eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
@@ -210,6 +264,11 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
     Returns:
         struc_pas (pymatgen.core.Structure): Passivated pymatgen structure
     """
+
+    if type(struc) == str:
+        struc = Structure.from_file(struc)
+    if type(passivated_struc) == str:
+        passivated_struc = Structure.from_file(passivated_struc)
 
     sorted_slab, z_positions = _sort_by_z(struc)
 

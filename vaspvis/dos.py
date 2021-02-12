@@ -7,6 +7,7 @@ from pychemia.code.vasp.doscar import VaspDoscar
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import interp2d
+from vaspvis.utils import get_bandgap, group_layers
 from functools import reduce
 import numpy as np
 import pandas as pd
@@ -482,34 +483,36 @@ class Dos:
                         ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
 
 
-    def _group_layers(self):
-        poscar = self.poscar
-        sites = poscar.structure.sites
-        zvals = np.array([site.c for site in sites])
-        unique_values = np.sort(np.unique(np.round(zvals, 3)))
-        diff = np.mean(np.diff(unique_values)) * 0.2
+    #  def _group_layers(self):
+        #  poscar = self.poscar
+        #  sites = poscar.structure.sites
+        #  zvals = np.array([site.c for site in sites])
+        #  unique_values = np.sort(np.unique(np.round(zvals, 3)))
+        #  diff = np.mean(np.diff(unique_values)) * 0.2
+#
+        #  grouped = False
+        #  groups = []
+        #  group_heights = []
+        #  zvals_copy = copy.deepcopy(zvals)
+        #  while not grouped:
+            #  if len(zvals_copy) > 0:
+                #  group_index = np.where(
+                    #  np.isclose(zvals, np.min(zvals_copy), atol=diff)
+                #  )[0]
+                #  group_heights.append(np.min(zvals_copy))
+                #  zvals_copy = np.delete(zvals_copy, np.where(
+                    #  np.isin(zvals_copy, zvals[group_index]))[0])
+                #  groups.append(group_index)
+            #  else:
+                #  grouped = True
+#
+        #  return groups, np.array(group_heights)
 
-        grouped = False
-        groups = []
-        group_heights = []
-        zvals_copy = copy.deepcopy(zvals)
-        while not grouped:
-            if len(zvals_copy) > 0:
-                group_index = np.where(
-                    np.isclose(zvals, np.min(zvals_copy), atol=diff)
-                )[0]
-                group_heights.append(np.min(zvals_copy))
-                zvals_copy = np.delete(zvals_copy, np.where(
-                    np.isin(zvals_copy, zvals[group_index]))[0])
-                groups.append(group_index)
-            else:
-                grouped = True
-
-        return groups, np.array(group_heights)
-
-    def _sum_layers(self, layers):
-        groups, _ = self._group_layers()
-        #  atom_index = range(len(group_heights))
+    def _sum_layers(self, layers, atol=None, custom_layer_inds=None):
+        if custom_layer_inds is None:
+            groups, _ = group_layers(self.poscar.structure, atol=atol)
+        else:
+            groups = custom_inds
         atom_densities = self._sum_atoms(atoms=None)
         densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
         summed_layers = np.sum(densities[layers], axis=0)
@@ -961,11 +964,10 @@ class Dos:
             fill (bool): Determines wether or not to fill underneath the plot
             alpha (float): Alpha value for the fill
             alpha_line (float): Alpha value for the line
-            color_list (list): Optional list of colors for each atom
+            color_list (list): Optional list of colors of the same length as the atoms list.
             linewidth (float): Linewidth of lines
             sigma (float): Standard deviation for gaussian filter
             energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
-            color_list (list): List of colors that is the same length at the atoms list
             legend (bool): Determines whether to draw the legend or not
             total (bool): Determines wheth to draw the total density of states or not
             erange (list): Energy range for the DOS plot ([lower bound, upper bound])
@@ -1245,22 +1247,27 @@ class Dos:
             )
 
     def plot_layers(
-            self,
-            ax,
-            cmap='magma',
-            sigma=0.05,
-            energyaxis='y',
-            erange=[-6, 6],
-            lrange=None,
-            antialiased=False,
-            fontsize=6,
-            interface_layer=None,
-            interface_line_color='white',
-            interface_line_width=2,
-            interface_line_style='--',
-            log_scale=False,
-            contour=False,
-            levels=10,
+        self,
+        ax,
+        cmap='magma',
+        sigma_energy=0.05,
+        sigma_layers=0.75,
+        energyaxis='y',
+        erange=[-6, 6],
+        lrange=None,
+        antialiased=False,
+        fontsize=6,
+        interface_layer=None,
+        interface_line_color='white',
+        interface_line_width=2,
+        interface_line_style='--',
+        log_scale=False,
+        contour=False,
+        levels=10,
+        min_cutoff=1e-7,
+        atol=None,
+        custom_layer_inds=None,
+        custom_cbar_label=None,
     ):
         import matplotlib.colors as colors
         """
@@ -1269,18 +1276,50 @@ class Dos:
 
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot on
-            ylim (list): Upper and lower energy bounds for the plot.
             cmap (str): Color map to use in the heat map
-            sigma (float): Sigma parameter for the _smearing of the heat map.
+            sigma_energy (float): Variance for a gaussian blur with respect to the energy
+                This will help smooth out spikey looking density of states
+            sigma_layers (float): Variance for a gaussian blur with respect to the layers
+                This will help smooth out the the pixelation that can occur between the summed
+                dos with respect to the layers.
             energyaxis (str): Axis to plot the energy on. ('x' or 'y')
+            erange (list): Upper and lower energy bounds for the plot.
+            lrange (list): Upper and lower bounds of the layers included in the plot.
+            antialiased (bool): Determines if antialiasing is used or not.
+            fontsize (float): Fontsize of all the text in the group.
+            interface_layer (float or None): If a value is provided, then a line will be drawn
+                on the plot to identify the interface layer.
+            interface_line_color (str): Color of the line drawn on the plot to mark the 
+                interface.
+            interface_line_width (float): Line with of the line marking the interface.
+            interface_line_style (str): Style of the line marking the interface.
+            log_scale (bool): Determines if the color map is applied in log scale of not.
+                Recommended in order to accurately view the band gap and smaller features.
+            contour (bool): Determines if the color map is plotted as a contour plot instead
+                of a heatmap.
+            levels (int): Number of levels used in the contour plot.
+            min_cutoff (float): Minimum dos value used to determine the cut off for the plot.
+                This can be adjusted to better visualize the band gap of the material.
+            atol (float or None): Tolarence used in the grouping of the layers.
+                This value is automatically calculated if None and is usually on the order of
+                1e-3.
+            custom_layer_inds (list or None): If the structure being calculated has relaxed
+                atomic positions, sometimes the layer grouping algorithm can behave non-idealy.
+                If this is the case, the user can input a list of list that contain the
+                atomic indices in each layers of the material.
+            custom_cbar_label (str or None): Custom label for the colorbar
         """
         energy = self.tdos_array[:,0]
 
         ind = np.where(
-                (erange[0] - 0.5 <= energy) & (energy <= erange[-1] + 0.5)
+                (erange[0] - 0.1 <= energy) & (energy <= erange[-1] + 0.1)
         )
-        groups, group_heights = self._group_layers()
-        atom_index = range(len(group_heights))
+        if custom_layer_inds is None:
+            groups, _ = group_layers(self.poscar.structure, atol=atol)
+        else:
+            groups = custom_layer_inds
+
+        atom_index = range(len(groups))
         energies = energy[ind]
         atom_densities = self._sum_atoms(atoms=None)[ind]
         densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
@@ -1290,22 +1329,30 @@ class Dos:
             atom_index = atom_index[lrange[0]:lrange[1]+1]
             densities = densities[:, lrange[0]:lrange[1]+1]
 
-        if sigma > 0:
+        if sigma_energy > 0:
             for i in range(densities.shape[-1]):
                 densities[:,i] = self._smear(
                     densities[:,i],
-                    sigma=sigma,
+                    sigma=sigma_energy,
                 )
+        if sigma_layers > 0:
+            densities = gaussian_filter(densities, sigma=sigma_layers)
 
         f = interp2d(atom_index, energies, densities, kind='cubic')
         atom_index = np.arange(np.min(atom_index), np.max(atom_index), 0.1)
         densities = f(atom_index, energies)
 
         if log_scale:
-            if np.min(densities) == 0:
-                zero_loc = np.isin(densities, 0)
-                min_val = np.min(densities[np.logical_not(zero_loc)])
-                densities[zero_loc] = min_val
+            if np.min(densities) <= 0:
+                neg_zero_loc = np.where(densities <= 0)
+                pos_loc = np.where(densities > 0)
+                min_val = np.min(densities[pos_loc])
+                if min_val < min_cutoff:
+                    min_val = min_cutoff
+                    too_small_loc = np.where(densities < min_cutoff)
+                    densities[too_small_loc] = min_cutoff
+                else:
+                    densities[neg_zero_loc] = min_val
             else:
                 min_val = np.min(densities)
             norm = colors.LogNorm(vmin=min_val, vmax=np.max(densities))
@@ -1400,14 +1447,17 @@ class Dos:
         fig = plt.gcf()
         cbar = fig.colorbar(im, ax=ax)
         cbar.ax.tick_params(labelsize=fontsize)
-        if self.combination_method == "sub" and self.spin == "both":
-            cbar.set_label('Spin Polarization (arb. units)', fontsize=fontsize)
-            min_val = im.norm.vmin
-            max_val = im.norm.vmax
-            cbar.set_ticks([min_val, max_val])
-            cbar.set_ticklabels(['Down', 'Up'])
+        if custom_cbar_label is None:
+            if self.combination_method == "sub" and self.spin == "both":
+                cbar.set_label('Spin Polarization (arb. units)', fontsize=fontsize)
+                min_val = im.norm.vmin
+                max_val = im.norm.vmax
+                cbar.set_ticks([min_val, max_val])
+                cbar.set_ticklabels(['Down', 'Up'])
+            else:
+                cbar.set_label('Density of States', fontsize=fontsize)
         else:
-            cbar.set_label('Density of States', fontsize=fontsize)
+            cbar.set_label(custom_cbar_label, fontsize=fontsize)
 
     def plot_structure(self, ax, rotation=[90,90,90]):
         structure = self.poscar.structure

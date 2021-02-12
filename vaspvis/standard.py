@@ -6,6 +6,7 @@ projected plots.
 
 from vaspvis.band import Band
 from vaspvis.dos import Dos
+from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import time
@@ -8185,7 +8186,8 @@ def dos_layers(
     save=True,
     shift_efermi=0,
     cmap='magma',
-    sigma=0.05,
+    sigma_energy=0.05,
+    sigma_layers=0.75,
     antialiased=False,
     show_structure=False,
     interface_layer=None,
@@ -8195,6 +8197,15 @@ def dos_layers(
     log_scale=True,
     contour=False,
     levels=10,
+    min_cutoff=1e-7,
+    atol=None,
+    custom_layer_inds=None,
+    custom_cbar_label=None,
+    plot_vbm_cbm=False,
+    vbm_color='white',
+    cbm_color='white',
+    vbm_linestyle=':',
+    cbm_linestyle=':',
 ):
     """
     This function is used to plot a layer by layer density of states heat map for slab structures. It is useful for
@@ -8203,27 +8214,53 @@ def dos_layers(
     Parameters:
         folder (str): This is the folder that contains the VASP files
         output (str): File name of the resulting plot.
-        energyaxis (str): Determines the axis to plot the energy on ('x' or 'y')
         figsize (list / tuple): Desired size of the image in inches (width, height)
-        erange (list): Energy range for the DOS plot ([lower bound, upper bound])
         spin (str): Which spin direction to parse ('up' or 'down')
         combination_method (str): If spin == 'both', this determines if the spin up and spin down
             desnities are added or subtracted. ('add' or 'sub')
-        fontsize (float): Font size of the text in the figure.
-        cmap (str): Matplotlib colormap.
-        antialiased (bool): Determines if the image is antialiased or not.
-        show_structure (bool): If true, a projected of the structure will be plotted next to the layer by later dos.
-            This feature works best with large slab structures, and has not been fully tested.
-        interface_layer (int / None): If an interger is passed in, a line will be drawn on the plot to represent where the
-            interface layers is. If None, no line will be drawn.
-        interface_line_color (str): Color of interface line.
-        interface_line_width (str): Width of interface line.
-        interface_line_style (str): Style of interface line.
-        log_scale (bool): Determines is the colormap is converted to log scale. This setting is set to true by defualt and is
-            recommened as is can help show a more accurate representation of the band gap.
-        sigma (float): Standard deviation for gaussian filter
+        show_structure (bool): If true, a projected of the structure will be plotted next to the
+            layer by later dos. This feature works best with large slab structures, and has not
+            been fully tested.
+        cmap (str): Color map to use in the heat map
+        sigma_energy (float): Variance for a gaussian blur with respect to the energy
+            This will help smooth out spikey looking density of states
+        sigma_layers (float): Variance for a gaussian blur with respect to the layers
+            This will help smooth out the the pixelation that can occur between the summed
+            dos with respect to the layers.
+        energyaxis (str): Axis to plot the energy on. ('x' or 'y')
+        erange (list): Upper and lower energy bounds for the plot.
+        lrange (list): Upper and lower bounds of the layers included in the plot.
+        antialiased (bool): Determines if antialiasing is used or not.
+        fontsize (float): Fontsize of all the text in the group.
+        interface_layer (float or None): If a value is provided, then a line will be drawn
+            on the plot to identify the interface layer.
+        interface_line_color (str): Color of the line drawn on the plot to mark the 
+            interface.
+        interface_line_width (float): Line with of the line marking the interface.
+        interface_line_style (str): Style of the line marking the interface.
+        log_scale (bool): Determines if the color map is applied in log scale of not.
+            Recommended in order to accurately view the band gap and smaller features.
+        contour (bool): Determines if the color map is plotted as a contour plot instead
+            of a heatmap.
+        levels (int): Number of levels used in the contour plot.
+        min_cutoff (float): Minimum dos value used to determine the cut off for the plot.
+            This can be adjusted to better visualize the band gap of the material.
+        atol (float or None): Tolarence used in the grouping of the layers.
+            This value is automatically calculated if None and is usually on the order of
+            1e-3.
+        custom_layer_inds (list or None): If the structure being calculated has relaxed
+            atomic positions, sometimes the layer grouping algorithm can behave non-idealy.
+            If this is the case, the user can input a list of list that contain the
+            atomic indices in each layers of the material.
+        custom_cbar_label (str or None): Custom label for the colorbar
         save (bool): Determines whether to automatically save the figure or not. If not 
             the figure and axis are return for further manipulation.
+        plot_vbm_cbm (bool): Determines if the valence band maximum and conduction band minimum
+            are plotted on the graph.
+        vbm_color (str): Color of the vbm line.
+        cbm_color (str): Color of the cbm line.
+        vbm_linestyle (str): Linestyle of the vbm line.
+        cbm_linestyle (str): Linestyle of the cbm line.
 
     Returns:
         If save == True, this function will return nothing and directly save the image as
@@ -8277,7 +8314,8 @@ def dos_layers(
     dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
     dos.plot_layers(
         ax=dos_ax,
-        sigma=sigma,
+        sigma_layers=sigma_layers,
+        sigma_energy=sigma_energy,
         cmap=cmap,
         erange=erange,
         lrange=lrange,
@@ -8291,7 +8329,37 @@ def dos_layers(
         log_scale=log_scale,
         contour=contour,
         levels=levels,
+        min_cutoff=min_cutoff,
+        atol=atol,
+        custom_cbar_label=custom_cbar_label,
+        custom_layer_inds=custom_layer_inds,
     )
+
+    if plot_vbm_cbm:
+        _, vbm, cbm = get_bandgap(folder=folder, printbg=False, return_vbm_cbm=True)
+
+        if energyaxis == 'y':
+            dos_ax.axhline(
+                y=cbm,
+                color=cbm_color,
+                linestyle=cbm_linestyle,
+            )
+            dos_ax.axhline(
+                y=vbm,
+                color=vbm_color,
+                linestyle=vbm_linestyle,
+            )
+        elif energyaxis == 'x':
+            dos_ax.axvline(
+                x=cbm,
+                color=cbm_color,
+                linestyle=cbm_linestyle,
+            )
+            dos_ax.axvline(
+                x=vbm,
+                color=vbm_color,
+                linestyle=vbm_linestyle,
+            )
 
     if energyaxis == 'y':
         dos_ax.set_ylim(erange[0], erange[1])
