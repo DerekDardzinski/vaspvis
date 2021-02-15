@@ -7,7 +7,6 @@ from pychemia.code.vasp.doscar import VaspDoscar
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import interp2d
-from vaspvis.utils import get_bandgap, group_layers
 from functools import reduce
 import numpy as np
 import pandas as pd
@@ -509,6 +508,7 @@ class Dos:
         #  return groups, np.array(group_heights)
 
     def _sum_layers(self, layers, atol=None, custom_layer_inds=None):
+        from vaspvis.utils import group_layers
         if custom_layer_inds is None:
             groups, _ = group_layers(self.poscar.structure, atol=atol)
         else:
@@ -1269,7 +1269,6 @@ class Dos:
         custom_layer_inds=None,
         custom_cbar_label=None,
     ):
-        import matplotlib.colors as colors
         """
         This function plots a layer by layer heat map of the density
         of states.
@@ -1309,6 +1308,8 @@ class Dos:
                 atomic indices in each layers of the material.
             custom_cbar_label (str or None): Custom label for the colorbar
         """
+        from vaspvis.utils import group_layers
+        import matplotlib.colors as colors
         energy = self.tdos_array[:,0]
 
         ind = np.where(
