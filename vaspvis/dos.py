@@ -512,7 +512,7 @@ class Dos:
         if custom_layer_inds is None:
             groups, _ = group_layers(self.poscar.structure, atol=atol)
         else:
-            groups = custom_inds
+            groups = custom_layer_inds
         atom_densities = self._sum_atoms(atoms=None)
         densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
         summed_layers = np.sum(densities[layers], axis=0)
