@@ -1525,6 +1525,7 @@ def band_plain_spin_polarized(
     high_symm_points=None,
     fontsize=12,
     save=True,
+    scale_factor=20,
     shift_efermi=0,
 ):
     """
@@ -1598,6 +1599,7 @@ def band_plain_spin_polarized(
         linewidth=linewidth,
         linestyle=up_linestyle,
         erange=erange,
+        scale_factor=scale_factor,
     )
 
     band_down.plot_plain(
@@ -1606,6 +1608,7 @@ def band_plain_spin_polarized(
         linewidth=linewidth,
         linestyle=down_linestyle,
         erange=erange,
+        scale_factor=scale_factor,
     )
 
     legend_lines = [
