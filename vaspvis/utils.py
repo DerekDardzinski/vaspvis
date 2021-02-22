@@ -1,6 +1,6 @@
 from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
 from vaspvis.unfold import convert
-from vaspvis.passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart
+from passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart, _center_slab
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import JmolNN, CrystalNN, EconNN
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -241,7 +241,16 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False):
     return band_gap
 
 
-def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True, tol=0.3):
+def passivator(
+    struc,
+    passivated_struc=None,
+    top=True,
+    bot=True,
+    symmetrize=True,
+    tol=0.0001,
+    write_file=False,
+    output='POSCAR_pas',
+):
     """
     This function passivates the slabs with pseudohydrogen. The positions of the pseudo-
     hydrogen are determined by locating the bonds between the second to last and last
@@ -250,8 +259,10 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
     structure is input, the location of the passivating layer will be used on the new structure.
 
     Parameters:
-        struc (pymatgen.core.Structure): Unpassivated Structure
-        passivated_struc (pymatgen.core.Structure): Structure whos passivation layer has already been relaxed
+        struc (str or pymatgen.core.structure.Structure): Unpassivated Structure or file path to
+            unpassivated structure.
+        passivated_struc (str or pymatgen.core.Structure): Structure or file path to a structure whos
+            passivation layer has already been relaxed
         top (bool): Determines if the top of the slab is passivated
         bot (bool): Determines if the bottom of the slab is passivated
         symmetrize (bool): Determines if the slab is symmetrized or not
@@ -266,6 +277,8 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
         struc = Structure.from_file(struc)
     if type(passivated_struc) == str:
         passivated_struc = Structure.from_file(passivated_struc)
+
+    struc, shift = _center_slab(struc)
 
     sorted_slab, z_positions = _sort_by_z(struc)
 
@@ -405,6 +418,10 @@ def passivator(struc, passivated_struc=None, top=True, bot=True, symmetrize=True
     sorted_slab.remove_sites(sites_to_delete)
 
     sorted_slab = sorted_slab.get_sorted_structure()
+    sorted_slab.translate_sites(range(len(sorted_slab)), [0, 0, -shift])
+
+    if write_file:
+        Poscar(sorted_slab).write_file(output)
 
     return sorted_slab
 
@@ -512,7 +529,7 @@ def generate_slab(
         passivate_top=True,
         passivate_bot=True,
         symmetrize=False,
-        tol=0.3,
+        tol=0.0001,
 ):
     """
     This function generates a slab structure.
@@ -734,21 +751,23 @@ def compare_dos_to_bulk(
 
 
 if __name__ == "__main__":
-    area_diff = compare_dos_to_bulk(
-        bulk_folder='../../vaspvis_data/dos_InAs/',
-        slab_folder='../../vaspvis_data/slabdos',
-        atoms=[17,50],
-    )
+    #  area_diff = compare_dos_to_bulk(
+        #  bulk_folder='../../vaspvis_data/dos_InAs/',
+        #  slab_folder='../../vaspvis_data/slabdos',
+        #  atoms=[17,50],
+    #  )
     #  slab = generate_slab(
         #  bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
         #  miller_index=[1,0,0],
         #  layers=8,
         #  vacuum=30,
         #  passivate=True,
+        #  tol=0.0001,
     #  )
-    #  slab = passivator(
-        #  struc=Poscar.from_file('./POSCAR_100_test').structure
-    #  )
+    slab = passivator(
+        struc=Poscar.from_file('./POSCAR_0').structure,
+        write_file=True,
+    )
     #  Poscar(slab).write_file('POSCAR_pas')
     #  M = convert_slab(
         #  bulk_path='../../../../projects/unfold_test/POSCAR_bulk',

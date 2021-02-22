@@ -18,6 +18,7 @@ from pymatgen.core.periodic_table import Element
 import time
 
 
+
 def _cart2sph(coords):
     """
     This function converts cartesian coordinates to spherical coordinates
@@ -84,12 +85,12 @@ def _sort_by_z(struc, reverse=True):
         reverse=reverse,
     )
 
-    z_positions = np.array([site.coords[-1] for site in sorted_slab])
+    z_positions = np.array([site.frac_coords[-1] for site in sorted_slab])
 
     return sorted_slab, z_positions
 
 
-def _get_bot_index(z_pos, to_delete=None, tol=0.1):
+def _get_bot_index(z_pos, to_delete=None, tol=0.0001):
     """
     This function returns the indices of the atoms in the bottom layer of
     a sorted structure within a certain tolerence.
@@ -114,7 +115,7 @@ def _get_bot_index(z_pos, to_delete=None, tol=0.1):
     return bot_index
 
 
-def _get_top_index(z_pos, to_delete=None, tol=0.1):
+def _get_top_index(z_pos, to_delete=None, tol=0.0001):
     """
     This function returns the indices of the atoms in the top layer of
     a sorted structure within a certain tolerence.
@@ -176,8 +177,72 @@ def _get_neighbors(struc, index, covalent_radius):
 
     return neighbor_sph_coords
 
-
 def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
+    """
+    This functions takes the spherical coordinates or neighoring atoms to an
+    index and adjusts them to a new radius which is proportional to the sum
+    of hydrogen and whatever element it is bonded to.
+
+    new_neighbor_cart_coords are in the order of [[x, y, z], [x, y, z], ...]]
+
+    Parameters:
+        struc (pymatgen.core.Structure): Structure calculate hydrogen coordinates for.
+        index (int): Index of central atom in the nearest neighbor group.
+        neighbor_sph_coords (np.array): Array of neighoring spherical coordinates
+
+    Returns:
+        struc (pymatgen.core.Structure)
+    """
+    center_coords = struc[index].coords
+    center_frac_coords = struc[index].frac_coords
+
+    if new_radius:
+        element = struc[index].species.elements[0]
+        element_covalent_length = CovalentRadius.radius[str(element)]
+        h_covalent_length = CovalentRadius.radius['H']
+        new_length = 0.9 * (element_covalent_length + h_covalent_length)
+
+        if side == 'top':
+            new_neighbor_cart_coords = np.array([
+                _sph2cart(np.array([new_length, c[1], c[2]])) + center_coords for c in neighbor_sph_coords
+            ])
+            new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
+            inds = np.where(new_neighbor_frac_coords[:,-1] > center_frac_coords[-1])[0]
+            new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
+
+        elif side == 'bot':
+            new_neighbor_cart_coords = np.array([
+                _sph2cart(np.array([new_length, c[1], c[2]])) + center_coords for c in neighbor_sph_coords
+            ])
+            new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
+            inds = np.where(new_neighbor_frac_coords[:,-1] < center_frac_coords[-1])[0]
+            new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
+    else:
+        if side == 'top':
+            new_neighbor_cart_coords = np.array([
+                _sph2cart(c) + center_coords for c in neighbor_sph_coords
+            ])
+            new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
+            inds = np.where(new_neighbor_frac_coords[:,-1] > center_frac_coords[-1])[0]
+            new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
+        elif side == 'bot':
+            new_neighbor_cart_coords = np.array([
+                _sph2cart(c) + center_coords for c in neighbor_sph_coords
+            ])
+            new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
+            inds = np.where(new_neighbor_frac_coords[:,-1] < center_frac_coords[-1])[0]
+            new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
+
+    H = Element('H')
+
+    for coords in new_neighbor_frac_coords:
+        struc.append(
+            species=H,
+            coords=coords,
+            properties={'to_delete': False},
+        )
+
+def _old_append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
     """
     This functions takes the spherical coordinates or neighoring atoms to an
     index and adjusts them to a new radius which is proportional to the sum
@@ -228,3 +293,22 @@ def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
             coords_are_cartesian=True,
             properties={'to_delete': False},
         )
+
+def _center_slab(slab):
+    bdists = sorted([nn[1] for nn in slab.get_neighbors(slab[0], 10) if nn[1] > 0])
+    r = bdists[0] * 3
+
+    all_indices = [i for i, site in enumerate(slab)]
+
+    for site in slab:
+        if any([nn[1] > slab.lattice.c for nn in slab.get_neighbors(site, r)]):
+            shift = 1 - site.frac_coords[2] + 0.05
+            slab.translate_sites(all_indices, [0, 0, shift])
+
+    weights = [s.species.weight for s in slab]
+    center_of_mass = np.average(slab.frac_coords, weights=weights, axis=0)
+    shift = 0.5 - center_of_mass[2]
+    slab.translate_sites(all_indices, [0, 0, shift])
+
+    return slab, shift
+
