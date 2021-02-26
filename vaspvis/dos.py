@@ -1356,6 +1356,8 @@ class Dos:
                     densities[neg_zero_loc] = min_val
             else:
                 min_val = np.min(densities)
+                if min_val < min_cutoff:
+                    min_val = min_cutoff
             norm = colors.LogNorm(vmin=min_val, vmax=np.max(densities))
         else:
             norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
