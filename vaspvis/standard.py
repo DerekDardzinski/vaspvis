@@ -9,6 +9,8 @@ from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from matplotlib.colors import Normalize, to_rgba, LinearSegmentedColormap
+import numpy as np
 import time
 
 
@@ -103,8 +105,8 @@ def band_plain(
     fontsize=12,
     scale_factor=20,
     heatmap=False,
-    bins=700,
-    sigma=5.5,
+    bins=1000,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -113,6 +115,8 @@ def band_plain(
     gamma=0.7,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a plain band structure
@@ -160,7 +164,9 @@ def band_plain(
         folder=folder,
         spin=spin,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n, 
         kpath=kpath,
         n=n,
         M=M,
@@ -223,9 +229,9 @@ def band_plain(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -254,7 +260,7 @@ def band_spd(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -263,6 +269,8 @@ def band_spd(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a s, p, d projected band structure.
@@ -315,7 +323,9 @@ def band_spd(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -381,9 +391,9 @@ def band_spd(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -412,7 +422,7 @@ def band_atom_orbitals(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -421,6 +431,8 @@ def band_atom_orbitals(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a projected band structure on specific [atom, orbital] pairs.
@@ -473,7 +485,9 @@ def band_atom_orbitals(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -539,9 +553,9 @@ def band_atom_orbitals(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -570,7 +584,7 @@ def band_orbitals(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -579,6 +593,8 @@ def band_orbitals(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a projected band structure on specific orbitals.
@@ -647,7 +663,9 @@ def band_orbitals(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -713,9 +731,9 @@ def band_orbitals(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -744,7 +762,7 @@ def band_atoms(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -753,6 +771,8 @@ def band_atoms(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a projected band structure on specific atoms in the POSCAR.
@@ -803,7 +823,9 @@ def band_atoms(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -869,9 +891,9 @@ def band_atoms(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -899,7 +921,7 @@ def band_atom_spd(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -908,6 +930,8 @@ def band_atom_spd(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a s, p, d projected band structure on specific atoms.
@@ -960,7 +984,9 @@ def band_atom_spd(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1026,9 +1052,9 @@ def band_atom_spd(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -1057,7 +1083,7 @@ def band_elements(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -1066,6 +1092,8 @@ def band_elements(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a projected band structure on specific elements.
@@ -1116,7 +1144,9 @@ def band_elements(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1182,9 +1212,9 @@ def band_elements(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -1213,7 +1243,7 @@ def band_element_orbitals(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -1222,6 +1252,8 @@ def band_element_orbitals(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a projected band structure on orbitals of specific elements.
@@ -1274,7 +1306,9 @@ def band_element_orbitals(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1340,9 +1374,9 @@ def band_element_orbitals(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -1371,7 +1405,7 @@ def band_element_spd(
     fontsize=12,
     heatmap=False,
     bins=800,
-    sigma=5,
+    sigma=2,
     cmap='hot',
     vlinecolor='black',
     cbar=True,
@@ -1380,6 +1414,8 @@ def band_element_spd(
     gamma=0.5,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a s, p, d projected band structure on specific elements.
@@ -1432,7 +1468,9 @@ def band_element_spd(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1498,9 +1536,9 @@ def band_element_spd(
 
     if heatmap:
         if not cbar:
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
     else:
-        fig.tight_layout(pad=0.2)
+        fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -1511,8 +1549,9 @@ def band_element_spd(
 def band_plain_spin_polarized(
     folder,
     output='band_plain_sp.png',
-    up_color='black',
-    down_color='red',
+    up_color='red',
+    down_color='blue',
+    background_color='black',
     linewidth=1.25,
     up_linestyle='-',
     down_linestyle=':',
@@ -1527,6 +1566,16 @@ def band_plain_spin_polarized(
     save=True,
     scale_factor=20,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
+    heatmap=False,
+    bins=1000,
+    sigma=2,
+    vlinecolor='black',
+    cbar=True,
+    cbar_orientation='horizontal',
+    powernorm=True,
+    gamma=0.7,
 ):
     """
     This function generates a plain spin polarized band structure.
@@ -1574,7 +1623,9 @@ def band_plain_spin_polarized(
         folder=folder,
         spin='up',
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1584,66 +1635,202 @@ def band_plain_spin_polarized(
         folder=folder,
         spin='down',
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
     )
-    fig = plt.figure(figsize=(figsize), dpi=400)
-    ax = fig.add_subplot(111)
+
+    if heatmap:
+        if cbar:
+            if cbar_orientation == 'horizontal':
+                fig, (ax, cax) = plt.subplots(
+                    nrows=2,
+                    figsize=figsize,
+                    gridspec_kw={"height_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            elif cbar_orientation == 'vertical':
+                fig, (ax, cax) = plt.subplots(
+                    ncols=2,
+                    figsize=figsize,
+                    gridspec_kw={"width_ratios": [1, 0.05]},
+                    dpi=400,
+                    constrained_layout=True,
+                )
+            else:
+                raise('This is not a valid orientation please choose either horizontal or vertical')
+        else:
+            fig = plt.figure(figsize=(figsize), dpi=400)
+            ax = fig.add_subplot(111)
+    else:
+        fig = plt.figure(figsize=(figsize), dpi=400)
+        ax = fig.add_subplot(111)
+
     _figure_setup(ax=ax, fontsize=fontsize, ylim=[erange[0], erange[1]])
-    band_up.plot_plain(
-        ax=ax,
-        color=up_color,
-        linewidth=linewidth,
-        linestyle=up_linestyle,
-        erange=erange,
-        scale_factor=scale_factor,
-    )
 
-    band_down.plot_plain(
-        ax=ax,
-        color=down_color,
-        linewidth=linewidth,
-        linestyle=down_linestyle,
-        erange=erange,
-        scale_factor=scale_factor,
-    )
-
-    legend_lines = [
-        plt.Line2D(
-            [0],
-            [0],
-            color=up_color,
-            linestyle=up_linestyle
-        ),
-        plt.Line2D(
-            [0],
-            [0],
-            color=down_color,
-            linestyle=down_linestyle
+    if heatmap:
+        _, axd = plt.subplots()
+        spin_cmap = LinearSegmentedColormap.from_list(
+            'spin',
+            [
+                to_rgba(down_color),
+                to_rgba(down_color),
+                to_rgba(down_color),
+                (1,1,1,0),
+                to_rgba(up_color),
+                to_rgba(up_color),
+                to_rgba(up_color),
+            ],
+            N=10000
         )
-    ]
 
-    legend_labels = ['$\\uparrow$', '$\\downarrow$']
+        bot_cmap = LinearSegmentedColormap.from_list(
+            'background',
+            [
+                (1,1,1,0),
+                to_rgba(background_color),
+            ],
+            N=10000
+        )
+        band_up.plot_plain(
+            ax=ax,
+            erange=erange,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            vlinecolor=vlinecolor,
+            powernorm=False,
+            cmap=bot_cmap,
+            gamma=gamma,
+        )
 
-    ax.legend(
-        legend_lines,
-        legend_labels,
-        ncol=1,
-        loc='upper left',
-        fontsize=fontsize,
-        bbox_to_anchor=(1, 1),
-        borderaxespad=0,
-        frameon=False,
-        handletextpad=0.1,
-    )
+        band_down.plot_plain(
+            ax=axd,
+            erange=erange,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            vlinecolor=vlinecolor,
+            powernorm=False,
+            cmap=bot_cmap,
+            gamma=gamma,
+        )
 
-    plt.tight_layout(pad=0.2)
+        band_up.plot_plain(
+            ax=ax,
+            erange=erange,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            vlinecolor=vlinecolor,
+            powernorm=False,
+            cmap=spin_cmap,
+            gamma=gamma,
+        )
+
+        band_down.plot_plain(
+            ax=axd,
+            erange=erange,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            vlinecolor=vlinecolor,
+            cmap=spin_cmap,
+            powernorm=False,
+            gamma=gamma,
+        )
+
+        ax.collections[1].set_array(ax.collections[1].get_array() - axd.collections[1].get_array())
+        ax.collections[0].set_array(ax.collections[0].get_array() + axd.collections[0].get_array())
+        im = ax.collections[1]
+        sym_val = np.max(np.abs([np.min(im.get_array()), np.max(im.get_array())]))
+        norm = Normalize(
+            vmin=-sym_val,
+            vmax=sym_val,
+        )
+        ax.collections[1].set_norm(norm)
+    else:
+        band_up.plot_plain(
+            ax=ax,
+            color=up_color,
+            linewidth=linewidth,
+            linestyle=up_linestyle,
+            erange=erange,
+            scale_factor=scale_factor,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            vlinecolor=vlinecolor,
+            powernorm=powernorm,
+            gamma=gamma,
+        )
+
+        band_down.plot_plain(
+            ax=ax,
+            color=down_color,
+            linewidth=linewidth,
+            linestyle=down_linestyle,
+            erange=erange,
+            scale_factor=scale_factor,
+            heatmap=heatmap,
+            bins=bins,
+            sigma=sigma,
+            vlinecolor=vlinecolor,
+            powernorm=powernorm,
+            gamma=gamma,
+        )
+
+        legend_lines = [
+            plt.Line2D(
+                [0],
+                [0],
+                color=up_color,
+                linestyle=up_linestyle
+            ),
+            plt.Line2D(
+                [0],
+                [0],
+                color=down_color,
+                linestyle=down_linestyle
+            )
+        ]
+
+        legend_labels = ['$\\uparrow$', '$\\downarrow$']
+
+        ax.legend(
+            legend_lines,
+            legend_labels,
+            ncol=1,
+            loc='upper left',
+            fontsize=fontsize,
+            bbox_to_anchor=(1, 1),
+            borderaxespad=0,
+            frameon=False,
+            handletextpad=0.1,
+        )
+
+    if heatmap:
+        if cbar:
+            im = ax.collections[1]
+            min_val = im.norm.vmin
+            max_val = im.norm.vmax
+            cbar = fig.colorbar(im, cax=cax, orientation=cbar_orientation)
+            cbar.set_ticks([min_val, max_val])
+            cbar.set_ticklabels(['down', 'up'])
+
+    if heatmap:
+        if not cbar:
+            fig.tight_layout(pad=0.4)
+    else:
+        fig.tight_layout(pad=0.4)
 
     if save:
-        plt.savefig(output)
+        fig.savefig(output)
     else:
         return fig, ax
 
@@ -1673,6 +1860,8 @@ def band_spd_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a spin polarized s, p, d projected band structure. This will plot two plots
@@ -1732,7 +1921,9 @@ def band_spd_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1744,7 +1935,9 @@ def band_spd_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1821,7 +2014,7 @@ def band_spd_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -1854,6 +2047,8 @@ def band_atom_orbitals_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates an atom orbital spin polarized band structure. This will plot two plots
@@ -1913,7 +2108,9 @@ def band_atom_orbitals_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -1925,7 +2122,9 @@ def band_atom_orbitals_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2002,7 +2201,7 @@ def band_atom_orbitals_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -2032,6 +2231,8 @@ def band_orbitals_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates an orbital spin polarized band structure. This will plot two plots
@@ -2107,7 +2308,9 @@ def band_orbitals_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2119,7 +2322,9 @@ def band_orbitals_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2193,7 +2398,7 @@ def band_orbitals_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -2223,6 +2428,8 @@ def band_atoms_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates an atom spin polarized band structure. This will plot two plots
@@ -2281,7 +2488,9 @@ def band_atoms_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2293,7 +2502,9 @@ def band_atoms_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2368,7 +2579,7 @@ def band_atoms_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -2400,6 +2611,8 @@ def band_atom_spd_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific atoms. This will plot two plots
@@ -2459,7 +2672,9 @@ def band_atom_spd_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2471,7 +2686,9 @@ def band_atom_spd_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2548,7 +2765,7 @@ def band_atom_spd_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -2578,6 +2795,8 @@ def band_elements_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates an element spin polarized band structure. This will plot two plots
@@ -2635,7 +2854,9 @@ def band_elements_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2647,7 +2868,9 @@ def band_elements_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2721,7 +2944,7 @@ def band_elements_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -2754,6 +2977,8 @@ def band_element_orbital_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates an element orbital spin polarized band structure. This will plot two plots
@@ -2813,7 +3038,9 @@ def band_element_orbital_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2825,7 +3052,9 @@ def band_element_orbital_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -2902,7 +3131,7 @@ def band_element_orbital_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -2935,6 +3164,8 @@ def band_element_spd_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific elements. This will plot two plots
@@ -2994,7 +3225,9 @@ def band_element_spd_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -3006,7 +3239,9 @@ def band_element_spd_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -3083,7 +3318,7 @@ def band_element_spd_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3156,7 +3391,7 @@ def dos_plain(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3230,7 +3465,7 @@ def dos_ldos(
         log_scale=log_scale,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3311,7 +3546,7 @@ def dos_spd(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3392,7 +3627,7 @@ def dos_atom_orbitals(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3489,7 +3724,7 @@ def dos_orbitals(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3569,7 +3804,7 @@ def dos_atoms(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3649,7 +3884,7 @@ def dos_atom_spd(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3728,7 +3963,7 @@ def dos_elements(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3809,7 +4044,7 @@ def dos_element_spd(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3890,7 +4125,7 @@ def dos_element_orbitals(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -3966,7 +4201,7 @@ def dos_plain_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4057,7 +4292,7 @@ def dos_spd_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4148,7 +4383,7 @@ def dos_atom_orbitals_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4255,7 +4490,7 @@ def dos_orbitals_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4345,7 +4580,7 @@ def dos_atoms_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4438,7 +4673,7 @@ def dos_atom_spd_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4530,7 +4765,7 @@ def dos_elements_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4624,7 +4859,7 @@ def dos_element_spd_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4718,7 +4953,7 @@ def dos_element_orbitals_spin_polarized(
         erange=erange,
     )
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output)
@@ -4749,6 +4984,8 @@ def band_dos_plain(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -4806,7 +5043,9 @@ def band_dos_plain(
         folder=band_folder,
         spin=spin,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -4838,7 +5077,7 @@ def band_dos_plain(
     labels[0] = ''
     ax2.set_xticklabels(labels)
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -4870,6 +5109,8 @@ def band_dos_spd(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -4946,7 +5187,9 @@ def band_dos_spd(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -4985,7 +5228,7 @@ def band_dos_spd(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -5017,6 +5260,8 @@ def band_dos_atom_orbitals(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5093,7 +5338,9 @@ def band_dos_atom_orbitals(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -5132,7 +5379,7 @@ def band_dos_atom_orbitals(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -5164,6 +5411,8 @@ def band_dos_orbitals(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5256,7 +5505,9 @@ def band_dos_orbitals(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -5295,7 +5546,7 @@ def band_dos_orbitals(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -5327,6 +5578,8 @@ def band_dos_atoms(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5402,7 +5655,9 @@ def band_dos_atoms(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -5441,7 +5696,7 @@ def band_dos_atoms(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -5472,6 +5727,8 @@ def band_dos_atom_spd(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5548,7 +5805,9 @@ def band_dos_atom_spd(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -5587,7 +5846,7 @@ def band_dos_atom_spd(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -5618,6 +5877,8 @@ def band_dos_elements(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5692,7 +5953,9 @@ def band_dos_elements(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -5731,7 +5994,7 @@ def band_dos_elements(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -5763,6 +6026,8 @@ def band_dos_element_spd(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5839,7 +6104,9 @@ def band_dos_element_spd(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -5878,7 +6145,7 @@ def band_dos_element_spd(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -5910,6 +6177,8 @@ def band_dos_element_orbitals(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5986,7 +6255,9 @@ def band_dos_element_orbitals(
         spin=spin,
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -6025,7 +6296,7 @@ def band_dos_element_orbitals(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -6054,6 +6325,8 @@ def band_dos_plain_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6112,7 +6385,9 @@ def band_dos_plain_spin_polarized(
         folder=band_folder,
         spin='up',
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -6123,7 +6398,9 @@ def band_dos_plain_spin_polarized(
         folder=band_folder,
         spin='down',
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -6175,7 +6452,7 @@ def band_dos_plain_spin_polarized(
     nbins = len(ax2.get_xticklabels())
     ax2.xaxis.set_major_locator(MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0)
 
     if save:
@@ -6210,6 +6487,8 @@ def band_dos_spd_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6290,7 +6569,9 @@ def band_dos_spd_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -6302,7 +6583,9 @@ def band_dos_spd_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -6435,7 +6718,7 @@ def band_dos_spd_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -6470,6 +6753,8 @@ def band_dos_atom_orbitals_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6552,7 +6837,9 @@ def band_dos_atom_orbitals_spin_polarized(
         spin='up',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -6564,7 +6851,9 @@ def band_dos_atom_orbitals_spin_polarized(
         spin='down',
         projected=True,
         unfold=unfold,
-        high_symm_points=high_symm_points,
+        high_symm_points=high_symm_points, 
+	interpolate=interpolate,
+	new_n=new_n,
         kpath=kpath,
         n=n,
         M=M,
@@ -6697,7 +6986,7 @@ def band_dos_atom_orbitals_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -6728,6 +7017,8 @@ def band_dos_orbitals_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6956,7 +7247,7 @@ def band_dos_orbitals_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -6987,6 +7278,8 @@ def band_dos_atoms_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7198,7 +7491,7 @@ def band_dos_atoms_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -7228,6 +7521,8 @@ def band_dos_atom_spd_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7440,7 +7735,7 @@ def band_dos_atom_spd_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -7471,6 +7766,8 @@ def band_dos_elements_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7681,7 +7978,7 @@ def band_dos_elements_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -7712,6 +8009,8 @@ def band_dos_element_orbitals_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7924,7 +8223,7 @@ def band_dos_element_orbitals_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -7955,6 +8254,8 @@ def band_dos_element_spd_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
+    interpolate=True,
+    new_n=400,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -8167,7 +8468,7 @@ def band_dos_element_spd_spin_polarized(
     ax_dos_down.xaxis.set_major_locator(
         MaxNLocator(nbins=nbins - 1, prune='lower'))
 
-    plt.tight_layout(pad=0.2)
+    plt.tight_layout(pad=0.4)
     plt.subplots_adjust(wspace=0, hspace=0.05)
 
     if save:
@@ -8374,7 +8675,7 @@ def dos_layers(
             dos.plot_structure(ax=structure_ax, rotation=[90,90,90])
         elif energyaxis == 'x':
             dos.plot_structure(ax=structure_ax, rotation=[0,90,90])
-            fig.tight_layout(pad=0.2)
+            fig.tight_layout(pad=0.4)
 
     if save:
         plt.savefig(output, bbox_inches='tight')
@@ -8387,86 +8688,48 @@ def dos_layers(
 
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
-    band_orbitals(
-        folder='../../vaspvis_data/band_InAs',
-        orbitals=range(8),
+    #  band_plain(
+        #  folder='../../vaspvis_data/band_InAs',
+        #  heatmap=True,
+        #  cmap='jet',
+        #  sigma=2,
+        #  bins=1000,
+        #  #  orbitals=range(8),
+    #  )
+
+    import os
+    from vaspvis.utils import convert_slab
+    def get_M(folder):
+        M = convert_slab(
+            bulk_path='/home/derek/Python_Sample/brett_sp/POSCAR_bulk',
+            slab_path=os.path.join(folder, 'POSCAR'),
+            index=[0, 0, 1],
+            generate=False,
+            print_M=True,
+        )
+        return M
+
+    folder = '/home/derek/Python_Sample/brett_sp/to_DD'
+
+    high_symm_points = [
+        [0.000, 0.000, 0.000],  # G             #bath path in the reciprocal space to plot band structures
+        [0.500, 0.500, 0.500],  # L
+        [0.500, 0.000, 0.500],  # X
+        [0.000, 0.000, 0.000],  # G
+    ]
+
+    band_plain_spin_polarized(
+        folder=folder,
+        unfold=True,
+        M=get_M(folder),
+        kpath='GLXG',
+        high_symm_points=high_symm_points,
+        n=20,
+        figsize=(3, 4),
+        erange=[-10, 6], 
+        heatmap=True,
+        new_n=500,
     )
-    #  dos_ldos(
-        #  folder='../../vaspvis_data/slabdos',
-        #  layers=[0,1,2,3,4],
-        #  fill=False,
-    #  )
-    #  dos_layers(
-        #  folder='../../vaspvis_data/slabdos',
-        #  contour=True,
-        #  output='contour.png',
-        #  #  levels=25,
-    #  )
-    #  band_folder = '../../vaspvis_data/InSb111_band'
-#
-    #  Transformation matrix generated from convert_slab
-    #  M = [
-        #  [0,0,-2],
-        #  [0,-2,2],
-        #  [-25,8,8]
-    #  ]
-#
-    #  high_symm_points = [
-        #  [0.3333,0.3333,0.6666], # X
-        #  [0.0,0.0,0.0], # Gamma
-        #  [0.3333,0.3333,0.6666]  # X
-    #  ]
-#
-    #  # All other functions in the standard library work with band unfolding too.
-    #  band_elements(
-        #  folder=band_folder,
-        #  elements=['Al'],
-        #  color_list=['blue'],
-        #  erange=[-6,6],
-        #  figsize=(3,4),
-        #  unfold=True,
-        #  kpath='AGA',
-        #  high_symm_points=high_symm_points,
-        #  n=50,
-        #  M=M,
-	#  shift_efermi=shift_efermi,
-        #  scale_factor=20,
-        #  output='band_elements_Al.png'
-    #  )
-
-    #  M = [
-        #  [0,1,-1],
-        #  [1,-1,0],
-        #  [-14,-14,-14]
-    #  ]
-#
-    #  high_symm_points = [
-        #  [2/3, 1/3, 1/3],
-        #  [0.0, 0.0, 0],
-        #  [2/3, 1/3, 1/3],
-    #  ]
-#
-    #  band_spd(
-        #  folder="../../vaspvis_data/bandMGM",
-        #  orbitals='pd',
-        #  unfold=True,
-        #  figsize=(3,4),
-        #  kpath='AGA',
-        #  high_symm_points=high_symm_points,
-        #  n=40,
-        #  M=M,
-	#  shift_efermi=shift_efermi,
-        #  scale_factor=20,
-        #  erange=[-4,0.5],
-        #  #  heatmap=True,
-        #  #  cmap='jet',
-        #  #  bins=900,
-        #  #  vlinecolor='white',
-        #  #  cbar_orientation='horizontal',
-        #  #  sigma=5,
-        #  #  powernorm=True,
-    #  )
-
 
 
 if __name__ == "__main__":

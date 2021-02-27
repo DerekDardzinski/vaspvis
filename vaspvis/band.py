@@ -18,6 +18,7 @@ import time
 from copy import deepcopy
 import os
 from scipy.ndimage import gaussian_filter
+from scipy.interpolate import interp1d
 
 import matplotlib as mpl
 mpl.rcParams.update(mpl.rcParamsDefault)
@@ -45,7 +46,22 @@ class Band:
             known by the user, as it was used to generate the KPOINTS file.
     """
 
-    def __init__(self, folder, projected=False, unfold=False, spin='up', kpath=None, n=None, M=None, high_symm_points=None, bandgap=False, printbg=True, shift_efermi=0):
+    def __init__(
+        self,
+        folder,
+        projected=False,
+        unfold=False,
+        spin='up',
+        kpath=None,
+        n=None,
+        M=None,
+        high_symm_points=None,
+        bandgap=False,
+        printbg=True,
+        shift_efermi=0,
+        interpolate=True,
+        new_n=200,
+    ):
         """
         Initialize parameters upon the generation of this class
 
@@ -66,6 +82,8 @@ class Band:
                 known by the user, as it was used to generate the KPOINTS file.
         """
 
+        self.interpolate = interpolate
+        self.new_n = new_n
         self.bandgap = bandgap
         self.printbg = printbg
         self.bg = None
@@ -608,7 +626,7 @@ class Band:
         ax.set_xticks([wave_vectors[k] for k in kpoints_index])
         ax.set_xticklabels(kpts_labels)
 
-    def _get_kticks_hse(self, ax, kpath, vlinecolor):
+    def _get_kticks_hse(self, wave_vectors, ax, kpath, vlinecolor):
         structure = self.poscar.structure
         kpath_obj = HighSymmKpath(structure)
         kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
@@ -625,12 +643,12 @@ class Band:
 
         kpoints_index = index
         kpath = kpath_labels[label_index]
-        kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
+        #  kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
         kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath]
 
         for k in kpoints_index:
-            ax.axvline(x=k, color=vlinecolor, alpha=0.7, linewidth=0.5)
+            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
 
         plt.xticks(kpoints_index, kpath)
 
@@ -650,6 +668,50 @@ class Band:
         ax.set_xticks(wave_vectors[kpoints_index])
         ax.set_xticklabels(kpath)
         #  plt.xticks(np.array(kpoints)[kpoints_index], kpath)
+
+    def _get_slices(self, unfold=False, hse=False):
+        if not unfold and not hse:
+            high_sym_points = self.kpoints_file.kpts
+            all_kpoints = self.kpoints
+
+            index = [0]
+            for i in range(len(high_sym_points) - 2):
+                if high_sym_points[i + 2] != high_sym_points[i + 1]:
+                    index.append(i)
+            index.append(len(high_sym_points) - 1)
+            kpts_loc = np.isin(np.round(all_kpoints, 3), np.round(high_sym_points, 3)).all(1)
+            index = np.where(kpts_loc == True)[0][index]
+            index[0] = -1
+            slices = [np.s_[index[i]+1:index[i+1]+1] for i in range(0,len(index)-1)]
+
+        if hse and not unfold:
+            structure = self.poscar.structure
+            kpath_obj = HighSymmKpath(structure)
+            kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
+            index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
+            index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
+            slices = [np.s_[index[i]:index[i+1]+1] for i in range(len(index)-1)]
+
+        if unfold and not hse:
+            index = [0] + [(self.n * i) for i in range(1, len(self.kpath))]
+            slices = [np.s_[index[i]:index[i+1]+1] for i in range(len(index)-1)]
+
+        return slices
+
+    def _get_interpolated_data(self, wave_vectors, data, crop_zero=False):
+        slices = self._get_slices(unfold=self.unfold, hse=self.hse)
+        data = [data[:,i] for i in slices]
+        wave_vectors = [wave_vectors[i] for i in slices]
+        fs = [interp1d(i, j, kind='cubic', axis=1) for (i,j) in zip(wave_vectors, data)]
+        new_wave_vectors = [np.linspace(wv.min(), wv.max(), self.new_n) for wv in wave_vectors]
+        data = np.hstack([f(wv) for (f, wv) in zip(fs, new_wave_vectors)])
+        wave_vectors = np.hstack(new_wave_vectors)
+
+        if crop_zero:
+            data[np.where(data < 0)] = 0
+
+        return wave_vectors, data
+
 
     def _filter_bands(self, erange):
         eigenvalues = self.eigenvalues
@@ -774,12 +836,21 @@ class Band:
         bands_in_plot = self._filter_bands(erange=erange)
         eigenvalues = self.eigenvalues[bands_in_plot]
         wave_vectors = self._get_k_distance()
+        wave_vectors_for_kpoints = wave_vectors
+
+        if self.interpolate:
+            wave_vectors, eigenvalues = self._get_interpolated_data(wave_vectors_for_kpoints, eigenvalues)
+
         eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
         wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
 
         if self.unfold:
             spectral_weights = self.spectral_weights[bands_in_plot]
             spectral_weights = spectral_weights / np.max(spectral_weights)
+
+            if self.interpolate:
+                _, spectral_weights = self._get_interpolated_data(wave_vectors_for_kpoints, spectral_weights, crop_zero=True)
+            
             spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
 
             if heatmap:
@@ -805,21 +876,35 @@ class Band:
                     zorder=0,
                 )
         else:
-            ax.plot(
-                wave_vectors_tile,
-                eigenvalues_ravel,
-                color=color,
-                linewidth=linewidth,
-                linestyle=linestyle,
-                zorder=0,
-            )
+            if heatmap:
+                self._heatmap(
+                    ax=ax,
+                    wave_vectors=wave_vectors,
+                    eigenvalues=eigenvalues,
+                    weights=np.ones(eigenvalues.shape),
+                    sigma=sigma,
+                    cmap=cmap,
+                    bins=bins,
+                    projection=projection,
+                    powernorm=powernorm,
+                    gamma=gamma,
+                )
+            else:
+                ax.plot(
+                    wave_vectors_tile,
+                    eigenvalues_ravel,
+                    color=color,
+                    linewidth=linewidth,
+                    linestyle=linestyle,
+                    zorder=0,
+                )
 
         if self.hse:
-            self._get_kticks_hse(ax=ax, kpath=self.kpath, vlinecolor=vlinecolor)
+            self._get_kticks_hse(ax=ax, wave_vectors=wave_vectors_for_kpoints, kpath=self.kpath, vlinecolor=vlinecolor)
         elif self.unfold:
-            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors, vlinecolor=vlinecolor)
+            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors_for_kpoints, vlinecolor=vlinecolor)
         else:
-            self._get_kticks(ax=ax, wave_vectors=wave_vectors, vlinecolor=vlinecolor)
+            self._get_kticks(ax=ax, wave_vectors=wave_vectors_for_kpoints, vlinecolor=vlinecolor)
 
         ax.set_xlim(0, np.max(wave_vectors))
 
@@ -863,12 +948,16 @@ class Band:
         projected_data = projected_data[bands_in_plot]
         projected_data = projected_data / np.max(projected_data)
         wave_vectors = self._get_k_distance()
+        wave_vectors_old = wave_vectors
         eigenvalues = self.eigenvalues[bands_in_plot]
 
-        if heatmap:
-            if self.unfold:
-                K_indices = np.array(self.K_indices[0], dtype=int)
-                projected_data = projected_data[:, K_indices, :]
+        if self.unfold:
+            K_indices = np.array(self.K_indices[0], dtype=int)
+            projected_data = projected_data[:, K_indices, :]
+
+        if self.interpolate:
+            wave_vectors, eigenvalues = self._get_interpolated_data(wave_vectors_old, eigenvalues)
+            _, projected_data = self._get_interpolated_data(wave_vectors_old, projected_data, crop_zero=True)
 
         self.plot_plain(
             ax=ax,
@@ -887,8 +976,10 @@ class Band:
             if self.unfold:
                 spectral_weights = self.spectral_weights[bands_in_plot]
                 spectral_weights = spectral_weights / np.max(spectral_weights)
-                K_indices = np.array(self.K_indices[0], dtype=int)
-                projected_data = projected_data[:, K_indices, :]
+
+                if self.interpolate:
+                    _, spectral_weights = self._get_interpolated_data(wave_vectors_old, spectral_weights, crop_zero=True)
+
                 spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
 
             projected_data_ravel = np.ravel(projected_data)
