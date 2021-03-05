@@ -103,7 +103,7 @@ def band_plain(
     M=None,
     high_symm_points=None,
     fontsize=12,
-    scale_factor=20,
+    scale_factor=5,
     heatmap=False,
     bins=1000,
     sigma=2,
@@ -115,8 +115,8 @@ def band_plain(
     gamma=0.7,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a plain band structure
@@ -243,7 +243,7 @@ def band_spd(
     folder,
     output='band_spd.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     orbitals='spd',
     display_order=None,
     color_dict=None,
@@ -269,8 +269,8 @@ def band_spd(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a s, p, d projected band structure.
@@ -407,7 +407,7 @@ def band_atom_orbitals(
     output='band_atom_orbitals.png',
     spin='up',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -431,8 +431,8 @@ def band_atom_orbitals(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a projected band structure on specific [atom, orbital] pairs.
@@ -568,7 +568,7 @@ def band_orbitals(
     orbitals,
     output='band_orbital.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     display_order=None,
     color_list=None,
     legend=True,
@@ -593,8 +593,8 @@ def band_orbitals(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a projected band structure on specific orbitals.
@@ -747,7 +747,7 @@ def band_atoms(
     output='band_atoms.png',
     spin='up',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -771,8 +771,8 @@ def band_atoms(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a projected band structure on specific atoms in the POSCAR.
@@ -906,7 +906,7 @@ def band_atom_spd(
     output='band_atom_spd.png',
     spin='up',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -930,8 +930,8 @@ def band_atom_spd(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a s, p, d projected band structure on specific atoms.
@@ -1067,7 +1067,7 @@ def band_elements(
     elements,
     output='band_elements.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     display_order=None,
     color_list=None,
     legend=True,
@@ -1092,8 +1092,8 @@ def band_elements(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a projected band structure on specific elements.
@@ -1228,7 +1228,7 @@ def band_element_orbitals(
     output='band_element_orbital.png',
     spin='up',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -1252,8 +1252,8 @@ def band_element_orbitals(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a projected band structure on orbitals of specific elements.
@@ -1390,7 +1390,7 @@ def band_element_spd(
     output='band_element_spd.png',
     spin='up',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -1414,8 +1414,8 @@ def band_element_spd(
     gamma=0.5,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a s, p, d projected band structure on specific elements.
@@ -1564,10 +1564,10 @@ def band_plain_spin_polarized(
     high_symm_points=None,
     fontsize=12,
     save=True,
-    scale_factor=20,
+    scale_factor=5,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     heatmap=False,
     bins=1000,
     sigma=2,
@@ -1785,20 +1785,40 @@ def band_plain_spin_polarized(
             gamma=gamma,
         )
 
-        legend_lines = [
-            plt.Line2D(
-                [0],
-                [0],
-                color=up_color,
-                linestyle=up_linestyle
-            ),
-            plt.Line2D(
-                [0],
-                [0],
-                color=down_color,
-                linestyle=down_linestyle
-            )
-        ]
+        if unfold:
+            legend_lines = [
+                plt.Line2D(
+                    [0],
+                    [0],
+                    color=up_color,
+                    linestyle='',
+                    marker='o',
+                    markersize=3,
+                ),
+                plt.Line2D(
+                    [0],
+                    [0],
+                    color=down_color,
+                    linestyle='',
+                    marker='o',
+                    markersize=3,
+                )
+            ]
+        else:
+            legend_lines = [
+                plt.Line2D(
+                    [0],
+                    [0],
+                    color=up_color,
+                    linestyle=up_linestyle
+                ),
+                plt.Line2D(
+                    [0],
+                    [0],
+                    color=down_color,
+                    linestyle=down_linestyle
+                )
+            ]
 
         legend_labels = ['$\\uparrow$', '$\\downarrow$']
 
@@ -1838,7 +1858,7 @@ def band_plain_spin_polarized(
 def band_spd_spin_polarized(
     folder,
     output='band_spd_sp.png',
-    scale_factor=2,
+    scale_factor=5,
     orbitals='spd',
     display_order=None,
     color_dict=None,
@@ -1860,8 +1880,8 @@ def band_spd_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a spin polarized s, p, d projected band structure. This will plot two plots
@@ -2027,7 +2047,7 @@ def band_atom_orbitals_spin_polarized(
     atom_orbital_dict,
     output='band_atom_orbitals_sp.png',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -2047,8 +2067,8 @@ def band_atom_orbitals_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates an atom orbital spin polarized band structure. This will plot two plots
@@ -2213,7 +2233,7 @@ def band_orbitals_spin_polarized(
     folder,
     orbitals,
     output='band_orbitals_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     display_order=None,
     color_list=None,
     legend=True,
@@ -2231,8 +2251,8 @@ def band_orbitals_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates an orbital spin polarized band structure. This will plot two plots
@@ -2411,7 +2431,7 @@ def band_atoms_spin_polarized(
     atoms,
     output='band_atoms_sp.png',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -2428,8 +2448,8 @@ def band_atoms_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates an atom spin polarized band structure. This will plot two plots
@@ -2591,7 +2611,7 @@ def band_atom_spd_spin_polarized(
     atom_spd_dict,
     output='band_atoms_spd_sp.png',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -2611,8 +2631,8 @@ def band_atom_spd_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific atoms. This will plot two plots
@@ -2777,7 +2797,7 @@ def band_elements_spin_polarized(
     folder,
     elements,
     output='band_elements_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     display_order=None,
     color_list=None,
     legend=True,
@@ -2795,8 +2815,8 @@ def band_elements_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates an element spin polarized band structure. This will plot two plots
@@ -2957,7 +2977,7 @@ def band_element_orbital_spin_polarized(
     element_orbital_dict,
     output='band_element_orbital_sp.png',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -2977,8 +2997,8 @@ def band_element_orbital_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates an element orbital spin polarized band structure. This will plot two plots
@@ -3144,7 +3164,7 @@ def band_element_spd_spin_polarized(
     element_spd_dict,
     output='band_elements_spd_sp.png',
     display_order=None,
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -3164,8 +3184,8 @@ def band_element_spd_spin_polarized(
     high_symm_points=None,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific elements. This will plot two plots
@@ -4984,8 +5004,8 @@ def band_dos_plain(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5091,7 +5111,7 @@ def band_dos_spd(
     dos_folder,
     output='band_dos_spd.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     orbitals='spd',
     color_dict=None,
     legend=True,
@@ -5109,8 +5129,8 @@ def band_dos_spd(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5243,7 +5263,7 @@ def band_dos_atom_orbitals(
     atom_orbital_dict,
     output='band_dos_atom_orbitals.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -5260,8 +5280,8 @@ def band_dos_atom_orbitals(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5394,7 +5414,7 @@ def band_dos_orbitals(
     orbitals,
     output='band_dos_orbitals.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -5411,8 +5431,8 @@ def band_dos_orbitals(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5561,7 +5581,7 @@ def band_dos_atoms(
     atoms,
     output='band_dos_atoms.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -5578,8 +5598,8 @@ def band_dos_atoms(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5710,7 +5730,7 @@ def band_dos_atom_spd(
     atom_spd_dict,
     output='band_dos_atom_spd.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -5727,8 +5747,8 @@ def band_dos_atom_spd(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5860,7 +5880,7 @@ def band_dos_elements(
     elements,
     output='band_dos_elements.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -5877,8 +5897,8 @@ def band_dos_elements(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6009,7 +6029,7 @@ def band_dos_element_spd(
     element_spd_dict,
     output='band_dos_element_spd.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -6026,8 +6046,8 @@ def band_dos_element_spd(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6160,7 +6180,7 @@ def band_dos_element_orbitals(
     element_orbital_dict,
     output='band_dos_element_orbitals.png',
     spin='up',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -6177,8 +6197,8 @@ def band_dos_element_orbitals(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6325,8 +6345,8 @@ def band_dos_plain_spin_polarized(
     fontsize=12,
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6465,7 +6485,7 @@ def band_dos_spd_spin_polarized(
     band_folder,
     dos_folder,
     output='band_dos_spd_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     orbitals='spd',
     color_dict=None,
     legend=True,
@@ -6487,8 +6507,8 @@ def band_dos_spd_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6732,7 +6752,7 @@ def band_dos_atom_orbitals_spin_polarized(
     dos_folder,
     atom_orbital_dict,
     output='band_dos_atom_orbitals_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -6753,8 +6773,8 @@ def band_dos_atom_orbitals_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7000,7 +7020,7 @@ def band_dos_orbitals_spin_polarized(
     dos_folder,
     orbitals,
     output='band_dos_orbitals_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -7017,8 +7037,8 @@ def band_dos_orbitals_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7261,7 +7281,7 @@ def band_dos_atoms_spin_polarized(
     dos_folder,
     atoms,
     output='band_dos_atoms_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -7278,8 +7298,8 @@ def band_dos_atoms_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7504,7 +7524,7 @@ def band_dos_atom_spd_spin_polarized(
     dos_folder,
     atom_spd_dict,
     output='band_dos_atom_spd_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -7521,8 +7541,8 @@ def band_dos_atom_spd_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7749,7 +7769,7 @@ def band_dos_elements_spin_polarized(
     dos_folder,
     elements,
     output='band_dos_elements_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -7766,8 +7786,8 @@ def band_dos_elements_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7992,7 +8012,7 @@ def band_dos_element_orbitals_spin_polarized(
     dos_folder,
     element_orbital_dict,
     output='band_dos_element_orbitals_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -8009,8 +8029,8 @@ def band_dos_element_orbitals_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -8237,7 +8257,7 @@ def band_dos_element_spd_spin_polarized(
     dos_folder,
     element_spd_dict,
     output='band_dos_element_spd_sp.png',
-    scale_factor=6,
+    scale_factor=5,
     color_list=None,
     legend=True,
     linewidth=0.75,
@@ -8254,8 +8274,8 @@ def band_dos_element_spd_spin_polarized(
     annotation_xy=(0.0125, 0.98),
     save=True,
     shift_efermi=0,
-    interpolate=True,
-    new_n=400,
+    interpolate=False,
+    new_n=200,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -8688,48 +8708,55 @@ def dos_layers(
 
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
-    #  band_plain(
+    band_plain(
+        folder='../../vaspvis_data/band_InAs',
+    )
+    #  band_spd(
         #  folder='../../vaspvis_data/band_InAs',
-        #  heatmap=True,
-        #  cmap='jet',
-        #  sigma=2,
-        #  bins=1000,
+        #  orbitals='spd',
+        #  scale_factor=0.01,
+        #  #  display_order='dominant',
+        #  new_n=300,
+        #  #  interpolate=False,
+        #  output='band_spd_interp.png'
+        #  #  heatmap=True,
         #  #  orbitals=range(8),
     #  )
 
-    import os
-    from vaspvis.utils import convert_slab
-    def get_M(folder):
-        M = convert_slab(
-            bulk_path='/home/derek/Python_Sample/brett_sp/POSCAR_bulk',
-            slab_path=os.path.join(folder, 'POSCAR'),
-            index=[0, 0, 1],
-            generate=False,
-            print_M=True,
-        )
-        return M
-
-    folder = '/home/derek/Python_Sample/brett_sp/to_DD'
-
-    high_symm_points = [
-        [0.000, 0.000, 0.000],  # G             #bath path in the reciprocal space to plot band structures
-        [0.500, 0.500, 0.500],  # L
-        [0.500, 0.000, 0.500],  # X
-        [0.000, 0.000, 0.000],  # G
-    ]
-
-    band_plain_spin_polarized(
-        folder=folder,
-        unfold=True,
-        M=get_M(folder),
-        kpath='GLXG',
-        high_symm_points=high_symm_points,
-        n=20,
-        figsize=(3, 4),
-        erange=[-10, 6], 
-        heatmap=True,
-        new_n=500,
-    )
+    #  import os
+    #  from vaspvis.utils import convert_slab
+    #  def get_M(folder):
+        #  M = convert_slab(
+            #  bulk_path='/home/derek/Python_Sample/brett_sp/POSCAR_bulk',
+            #  slab_path=os.path.join(folder, 'POSCAR'),
+            #  index=[0, 0, 1],
+            #  generate=False,
+            #  print_M=True,
+        #  )
+        #  return M
+#
+    #  folder = '/home/derek/Python_Sample/brett_sp/to_DD'
+#
+    #  high_symm_points = [
+        #  [0.000, 0.000, 0.000],  # G             #bath path in the reciprocal space to plot band structures
+        #  [0.500, 0.500, 0.500],  # L
+        #  [0.500, 0.000, 0.500],  # X
+        #  [0.000, 0.000, 0.000],  # G
+    #  ]
+#
+    #  band_spd(
+        #  folder=folder,
+        #  unfold=True,
+        #  M=get_M(folder),
+        #  kpath='GLXG',
+        #  high_symm_points=high_symm_points,
+        #  n=20,
+        #  figsize=(4, 3),
+        #  erange=[-4, 4],
+        #  scale_factor=10,
+        #  #  heatmap=True,
+        #  new_n=500,
+    #  )
 
 
 if __name__ == "__main__":

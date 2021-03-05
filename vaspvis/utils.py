@@ -756,18 +756,17 @@ if __name__ == "__main__":
         #  slab_folder='../../vaspvis_data/slabdos',
         #  atoms=[17,50],
     #  )
-    #  slab = generate_slab(
-        #  bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
-        #  miller_index=[1,0,0],
-        #  layers=8,
-        #  vacuum=30,
-        #  passivate=True,
-        #  tol=0.0001,
-    #  )
-    slab = passivator(
-        struc=Poscar.from_file('./POSCAR_0').structure,
-        write_file=True,
+    slab = generate_slab(
+        bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
+        miller_index=[1,1,0],
+        layers=8,
+        vacuum=30,
+        passivate=True,
     )
+    #  slab = passivator(
+        #  struc=Poscar.from_file('./POSCAR_0').structure,
+        #  write_file=True,
+    #  )
     #  Poscar(slab).write_file('POSCAR_pas')
     #  M = convert_slab(
         #  bulk_path='../../../../projects/unfold_test/POSCAR_bulk',

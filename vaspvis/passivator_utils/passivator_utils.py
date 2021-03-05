@@ -195,6 +195,8 @@ def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
     """
     center_coords = struc[index].coords
     center_frac_coords = struc[index].frac_coords
+    c_norm = np.linalg.norm(struc.lattice.matrix[-1])
+    tol = 0.1 / c_norm
 
     if new_radius:
         element = struc[index].species.elements[0]
@@ -207,7 +209,7 @@ def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
                 _sph2cart(np.array([new_length, c[1], c[2]])) + center_coords for c in neighbor_sph_coords
             ])
             new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
-            inds = np.where(new_neighbor_frac_coords[:,-1] > center_frac_coords[-1])[0]
+            inds = np.where(new_neighbor_frac_coords[:,-1] > (center_frac_coords[-1] + tol))[0]
             new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
 
         elif side == 'bot':
@@ -215,7 +217,7 @@ def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
                 _sph2cart(np.array([new_length, c[1], c[2]])) + center_coords for c in neighbor_sph_coords
             ])
             new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
-            inds = np.where(new_neighbor_frac_coords[:,-1] < center_frac_coords[-1])[0]
+            inds = np.where(new_neighbor_frac_coords[:,-1] < (center_frac_coords[-1] - tol))[0]
             new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
     else:
         if side == 'top':
@@ -223,14 +225,14 @@ def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
                 _sph2cart(c) + center_coords for c in neighbor_sph_coords
             ])
             new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
-            inds = np.where(new_neighbor_frac_coords[:,-1] > center_frac_coords[-1])[0]
+            inds = np.where(new_neighbor_frac_coords[:,-1] > (center_frac_coords[-1] + tol))[0]
             new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
         elif side == 'bot':
             new_neighbor_cart_coords = np.array([
                 _sph2cart(c) + center_coords for c in neighbor_sph_coords
             ])
             new_neighbor_frac_coords = np.dot(new_neighbor_cart_coords, struc.lattice.inv_matrix)
-            inds = np.where(new_neighbor_frac_coords[:,-1] < center_frac_coords[-1])[0]
+            inds = np.where(new_neighbor_frac_coords[:,-1] < (center_frac_coords[-1] - tol))[0]
             new_neighbor_frac_coords = new_neighbor_frac_coords[inds]
 
     H = Element('H')

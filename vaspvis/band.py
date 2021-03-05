@@ -165,8 +165,8 @@ class Band:
         self.orbital_labels = {
             0: 's',
             1: 'p_{y}',
-            2: 'p_{x}',
-            3: 'p_{z}',
+            2: 'p_{z}',
+            3: 'p_{x}',
             4: 'd_{xy}',
             5: 'd_{yz}',
             6: 'd_{z^{2}}',
@@ -698,11 +698,11 @@ class Band:
 
         return slices
 
-    def _get_interpolated_data(self, wave_vectors, data, crop_zero=False):
+    def _get_interpolated_data(self, wave_vectors, data, crop_zero=False, kind='cubic'):
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         data = [data[:,i] for i in slices]
         wave_vectors = [wave_vectors[i] for i in slices]
-        fs = [interp1d(i, j, kind='cubic', axis=1) for (i,j) in zip(wave_vectors, data)]
+        fs = [interp1d(i, j, kind=kind, axis=1) for (i,j) in zip(wave_vectors, data)]
         new_wave_vectors = [np.linspace(wv.min(), wv.max(), self.new_n) for wv in wave_vectors]
         data = np.hstack([f(wv) for (f, wv) in zip(fs, new_wave_vectors)])
         wave_vectors = np.hstack(new_wave_vectors)
@@ -849,7 +849,12 @@ class Band:
             spectral_weights = spectral_weights / np.max(spectral_weights)
 
             if self.interpolate:
-                _, spectral_weights = self._get_interpolated_data(wave_vectors_for_kpoints, spectral_weights, crop_zero=True)
+                _, spectral_weights = self._get_interpolated_data(
+                    wave_vectors_for_kpoints,
+                    spectral_weights,
+                    crop_zero=True,
+                    kind='linear',
+                )
             
             spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
 
@@ -926,6 +931,7 @@ class Band:
         vlinecolor='black',
         powernorm=False,
         gamma=0.5,
+        plain_scale_factor=10,
     ):
         """
         This is a general method for plotting projected data
@@ -957,7 +963,12 @@ class Band:
 
         if self.interpolate:
             wave_vectors, eigenvalues = self._get_interpolated_data(wave_vectors_old, eigenvalues)
-            _, projected_data = self._get_interpolated_data(wave_vectors_old, projected_data, crop_zero=True)
+            _, projected_data = self._get_interpolated_data(
+                wave_vectors_old,
+                projected_data,
+                crop_zero=True,
+                kind='linear',
+            )
 
         self.plot_plain(
             ax=ax,
@@ -970,6 +981,7 @@ class Band:
             bins=bins,
             vlinecolor=vlinecolor,
             projection=projected_data,
+            scale_factor=plain_scale_factor,
         )
 
         if not heatmap:
@@ -978,7 +990,12 @@ class Band:
                 spectral_weights = spectral_weights / np.max(spectral_weights)
 
                 if self.interpolate:
-                    _, spectral_weights = self._get_interpolated_data(wave_vectors_old, spectral_weights, crop_zero=True)
+                    _, spectral_weights = self._get_interpolated_data(
+                        wave_vectors_old,
+                        spectral_weights,
+                        crop_zero=True,
+                        kind='linear',
+                    )
 
                 spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
 
