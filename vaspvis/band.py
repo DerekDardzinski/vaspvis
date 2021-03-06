@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
 from matplotlib.collections import PatchCollection
 import matplotlib.colors as colors
+from matplotlib.colors import Normalize, to_rgba, LinearSegmentedColormap
 import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
@@ -210,7 +211,6 @@ class Band:
         self.bg = bg
 
 
-
     def _load_bands(self):
         """
         This function is used to load eigenvalues from the vasprun.xml
@@ -395,7 +395,6 @@ class Band:
 
         return projected_eigenvalues
 
-    
 
     def _sum_spd(self, spd):
         """
@@ -805,6 +804,19 @@ class Band:
             cmap=cmap,
             norm=norm,
         )
+
+    def _alpha_cmap(color):
+        cmap = LinearSegmentedColormap.from_list(
+            'custom_cmap',
+            [
+                (1,1,1,0),
+                to_rgba(color),
+                to_rgba(color),
+            ],
+            N=10000
+        )
+        return cmap
+        
 
 
     def plot_plain(
