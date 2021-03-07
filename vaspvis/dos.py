@@ -1360,7 +1360,11 @@ class Dos:
                     min_val = min_cutoff
             norm = colors.LogNorm(vmin=min_val, vmax=np.max(densities))
         else:
-            norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
+            if self.combination_method == "sub" and self.spin == "both":
+                norm_val = np.max(np.abs([np.min(densities), np.max(densities)]))
+                norm = colors.Normalize(vmin=-norm_val, vmax=norm_val)
+            else:
+                norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
 
 
         if log_scale:
