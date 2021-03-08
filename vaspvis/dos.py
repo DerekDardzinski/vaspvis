@@ -740,7 +740,6 @@ class Dos:
 
         if log_scale:
             tdensity = np.log10(tdensity)
-            tdensity = np.log10(tdensity)
             neg_inf_loc = np.isin(tdensity, -np.inf)
             min_val = np.min(tdensity[np.logical_not(neg_inf_loc)])
             tdensity[neg_inf_loc] = min_val
@@ -752,6 +751,7 @@ class Dos:
             erange=erange,
             energyaxis=energyaxis,
             spin=self.spin,
+            log_scale=log_scale,
         )
 
         if energyaxis == 'y':
