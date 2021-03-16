@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
@@ -8708,8 +8708,28 @@ def dos_layers(
 
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
-    band_plain(
-        folder='../../vaspvis_data/band_InAs',
+    band_elements(
+        folder='../../vaspvis_data/slab',
+        elements=['In', 'Sb'],
+        band_color='grey',
+        erange=[-4,1],
+        figsize=(3,4),
+        legend=False,
+        scale_factor=15,
+        display_order='dominant',
+        interpolate=True,
+    )
+    band_atoms(
+        folder='../../vaspvis_data/slab',
+        atoms=range(36),
+        color_list=['red' for _ in range(18)] + ['blue' for _ in range(18)],
+        band_color='grey',
+        erange=[-4,1],
+        figsize=(3,4),
+        legend=False,
+        scale_factor=15,
+        display_order='dominant',
+        interpolate=True,
     )
     #  band_spd(
         #  folder='../../vaspvis_data/band_InAs',

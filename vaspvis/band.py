@@ -964,7 +964,19 @@ class Band:
 
         bands_in_plot = self._filter_bands(erange=erange)
         projected_data = projected_data[bands_in_plot]
-        projected_data = projected_data / np.max(projected_data)
+        unique_colors = np.unique(colors)
+        shapes = (projected_data.shape[0], projected_data.shape[1], projected_data.shape[-1])
+        projected_data = projected_data.reshape(shapes)
+
+        if len(unique_colors) == len(colors):
+            pass
+        else:
+            unique_inds = [np.isin(colors, c) for c in unique_colors]
+            projected_data = np.squeeze(projected_data)
+            projected_data = np.c_[[np.sum(projected_data[...,i], axis=2) for i in unique_inds]].transpose((1,2,0))
+            colors = unique_colors
+
+        #  projected_data = projected_data / np.max(projected_data)
         wave_vectors = self._get_k_distance()
         wave_vectors_old = wave_vectors
         eigenvalues = self.eigenvalues[bands_in_plot]
@@ -1640,59 +1652,60 @@ class Band:
 
 
 if __name__ == "__main__":
-    M = [
-        [0,1,-1],
-        [1,-1,0],
-        [-14,-14,-14]
-    ]
-
-    high_symm_points = [
-        [2/3, 1/3, 1/3],
-        [0.0, 0.0, 0],
-        [2/3, 1/3, 1/3],
-    ]
-
-    #  high_symm_points = [
-        #  [0.1, 0.1, 0],
-        #  [0.0, 0.0, 0],
-        #  [0.1, 0.1, 0],
+    pass
+    #  M = [
+        #  [0,1,-1],
+        #  [1,-1,0],
+        #  [-14,-14,-14]
     #  ]
-
-    band = Band(
-        folder="../../vaspvis_data/bandMGM",
-        projected=False,
-        unfold=True,
-        kpath='AGA',
-        high_symm_points=high_symm_points,
-        n=40,
-        M=M,
-    )
-    fig, ax = plt.subplots(figsize=(3,4), dpi=300)
-    start = time.time()
-    #  band.plot_plain(ax=ax, color=[(0.9,0.9,0.9)])
-    #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
-    #  band.plot_orbitals(ax=ax, scale_factor=35, orbitals=range(8), display_order=None)
-    band.plot_plain( 
-        ax=ax,
-        scale_factor=20,
-        erange=[-4,0.5],
-        heatmap=True,
-        cmap='hot',
-        bins=800,
-        sigma=3,
-        powernorm=False,
-        gamma=0.5,
-        vlinecolor='white'
-    )
-    #  ax.set_aspect(3, adjustable='datalim')
-    end = time.time()
-    print(end-start)
-    ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-    ax.tick_params(labelsize=6, length=2.5)
-    ax.tick_params(axis='x', length=0)
-    ax.set_ylim(-4, 0.5)
-    plt.tight_layout(pad=0.2)
-    plt.savefig('heatmap_powernorm.png')
+#
+    #  high_symm_points = [
+        #  [2/3, 1/3, 1/3],
+        #  [0.0, 0.0, 0],
+        #  [2/3, 1/3, 1/3],
+    #  ]
+#
+    #  #  high_symm_points = [
+        #  #  [0.1, 0.1, 0],
+        #  #  [0.0, 0.0, 0],
+        #  #  [0.1, 0.1, 0],
+    #  #  ]
+#
+    #  band = Band(
+        #  folder="../../vaspvis_data/bandMGM",
+        #  projected=False,
+        #  unfold=True,
+        #  kpath='AGA',
+        #  high_symm_points=high_symm_points,
+        #  n=40,
+        #  M=M,
+    #  )
+    #  fig, ax = plt.subplots(figsize=(3,4), dpi=300)
+    #  start = time.time()
+    #  #  band.plot_plain(ax=ax, color=[(0.9,0.9,0.9)])
+    #  #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
+    #  #  band.plot_orbitals(ax=ax, scale_factor=35, orbitals=range(8), display_order=None)
+    #  band.plot_plain(
+        #  ax=ax,
+        #  scale_factor=20,
+        #  erange=[-4,0.5],
+        #  heatmap=True,
+        #  cmap='hot',
+        #  bins=800,
+        #  sigma=3,
+        #  powernorm=False,
+        #  gamma=0.5,
+        #  vlinecolor='white'
+    #  )
+    #  #  ax.set_aspect(3, adjustable='datalim')
+    #  end = time.time()
+    #  print(end-start)
+    #  ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
+    #  ax.tick_params(labelsize=6, length=2.5)
+    #  ax.tick_params(axis='x', length=0)
+    #  ax.set_ylim(-4, 0.5)
+    #  plt.tight_layout(pad=0.2)
+    #  plt.savefig('heatmap_powernorm.png')
         
         
 
