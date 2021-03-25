@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from band import Band
+from vaspvis.band import Band
 from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
@@ -3436,6 +3436,7 @@ def dos_ldos(
     save=True,
     shift_efermi=0,
     log_scale=False,
+    atol=None,
 ):
     """
     This function plots the local density of states for atomic layers. Useful for comparing 
@@ -3483,6 +3484,7 @@ def dos_ldos(
         color=color,
         erange=erange,
         log_scale=log_scale,
+        atol=atol,
     )
 
     plt.tight_layout(pad=0.4)
@@ -8530,6 +8532,7 @@ def dos_layers(
     cbm_color='white',
     vbm_linestyle=':',
     cbm_linestyle=':',
+    cbar_orientation='vertical',
 ):
     """
     This function is used to plot a layer by layer density of states heat map for slab structures. It is useful for
@@ -8657,6 +8660,7 @@ def dos_layers(
         atol=atol,
         custom_cbar_label=custom_cbar_label,
         custom_layer_inds=custom_layer_inds,
+        cbar_orientation=cbar_orientation,
     )
 
     if plot_vbm_cbm:

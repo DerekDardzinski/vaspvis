@@ -58,6 +58,9 @@ class Dos:
                     'projected': projected_dos,
                 }
             else:
+                if self._check_f_error():
+                    self._fix_doscar()
+
                 self.doscar = VaspDoscar.parse_doscar(os.path.join(folder, 'DOSCAR'))
                 np.save(os.path.join(folder, 'dos.npy'), self.doscar['total'])
                 np.save(os.path.join(folder, 'projected_dos.npy'), self.doscar['projected'])
@@ -143,6 +146,68 @@ class Dos:
 
         if self.lorbit:
             self.pdos_array = self._load_pdos()
+
+    def _check_f_error(self):
+        with open(os.path.join(self.folder, 'DOSCAR'), 'rb') as f:
+            f.seek(-2, os.SEEK_END)
+            while f.read(1) != b'\n':
+                f.seek(-2, os.SEEK_CUR)
+            last_line = f.readline().decode()
+
+        last_line_len = len(last_line.split())
+
+        if last_line_len == 28:
+            return True
+        else:
+            return False
+
+    def _fix_doscar(self):
+        doscar = []
+        with open(os.path.join(self.folder, 'DOSCAR')) as f:
+            for line in f:
+                split_line = line.split()
+                doscar.append(split_line)
+
+        num_atoms = int(doscar[0][1])
+        nedos = int(doscar[5][2])
+        nedos_f = 2 * nedos
+        start_inds = nedos + 7
+
+        top_file = []
+
+        with open(os.path.join(self.folder, 'DOSCAR')) as f:
+            count = 0
+            for line in f:
+                top_file.append(line)
+                count += 1
+                if count == start_inds:
+                    break
+
+        a = np.c_[[np.arange(0,nedos_f-1,2),np.arange(1,nedos_f,2)]].T
+        a = np.c_[[a for _ in range(num_atoms)]]
+        b = np.array([1] + [nedos_f for _ in range(num_atoms-1)])
+        c = np.arange(num_atoms)
+        d = np.arange(num_atoms)
+        d[0] = 1
+        inds = a + (b*c)[:,None,None] + c[:,None,None]
+        inds += start_inds
+
+        new_list = []
+
+        for i, ind in enumerate(inds):
+            inbetween_ind = np.max(ind) + 1
+            for j in ind:
+                new_list.append('\t' + '  '.join(doscar[j[0]] + doscar[j[1]]))
+
+            if i != inds.shape[0]-1:
+                new_list.append('\t' + '    '.join(doscar[inbetween_ind]))
+
+        new_doscar = ''.join([''.join(top_file), '\n'.join(new_list)])
+
+        os.rename(os.path.join(self.folder, 'DOSCAR'), os.path.join(self.folder, 'DOSCAR_old'))
+
+        with open(os.path.join(self.folder, 'DOSCAR'), 'w') as x:
+            x.write(new_doscar)
 
     def _load_tdos(self):
         """
@@ -711,7 +776,21 @@ class Dos:
                     alpha=alpha,
                 )
 
-    def plot_ldos(self, ax, layers, linewidth=1.5, fill=False, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='x', color='black', log_scale=False, erange=[-6, 6]):
+    def plot_ldos(
+            self,
+            ax,
+            layers,
+            linewidth=1.5,
+            fill=False,
+            alpha=0.3,
+            alpha_line=1.0,
+            sigma=0.05,
+            energyaxis='x',
+            color='black',
+            log_scale=False,
+            erange=[-6, 6],
+            atol=None
+    ):
         """
         This function plots the total density of states
 
@@ -732,11 +811,11 @@ class Dos:
 
         if sigma > 0:
             tdensity = self._smear(
-                self._sum_layers(layers=layers),
+                self._sum_layers(layers=layers, atol=atol),
                 sigma=sigma
             )
         else:
-            tdensity = self._sum_layers(layers=layers)
+            tdensity = self._sum_layers(layers=layers, atol=atol)
 
         if log_scale:
             tdensity = np.log10(tdensity)
@@ -1268,6 +1347,7 @@ class Dos:
         atol=None,
         custom_layer_inds=None,
         custom_cbar_label=None,
+        cbar_orientation='vertical',
     ):
         """
         This function plots a layer by layer heat map of the density
@@ -1452,7 +1532,7 @@ class Dos:
                 )
 
         fig = plt.gcf()
-        cbar = fig.colorbar(im, ax=ax)
+        cbar = fig.colorbar(im, ax=ax, orientation=cbar_orientation)
         cbar.ax.tick_params(labelsize=fontsize)
         if custom_cbar_label is None:
             if self.combination_method == "sub" and self.spin == "both":

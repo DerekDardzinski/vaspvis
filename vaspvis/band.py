@@ -973,7 +973,9 @@ class Band:
         else:
             unique_inds = [np.isin(colors, c) for c in unique_colors]
             projected_data = np.squeeze(projected_data)
-            projected_data = np.c_[[np.sum(projected_data[...,i], axis=2) for i in unique_inds]].transpose((1,2,0))
+            projected_data = np.c_[
+                [np.sum(projected_data[...,i], axis=2) for i in unique_inds]
+            ].transpose((1,2,0))
             colors = unique_colors
 
         #  projected_data = projected_data / np.max(projected_data)
