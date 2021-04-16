@@ -3,6 +3,7 @@ from matplotlib.ticker import MaxNLocator, LogLocator
 from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Poscar, Incar
 from pymatgen.electronic_structure.core import Spin, Orbital
+from pymatgen.core.periodic_table import Element
 from pychemia.code.vasp.doscar import VaspDoscar
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage import gaussian_filter
@@ -30,11 +31,18 @@ class Dos:
             by passing 'add' or 'sub'. It spin is passed as 'up' or 'down' this option is ignored.
     """
 
-    def __init__(self, folder, spin='up', combination_method="add", shift_efermi=0):
+    def __init__(
+            self,
+            folder,
+            spin='up',
+            soc_axis=None,
+            combination_method="add",
+            shift_efermi=0,
+    ):
         self.folder = folder
         self.spin = spin
+        self.soc_axis = soc_axis
         self.combination_method = combination_method
-        self.forbitals = False
         self.incar = Incar.from_file(
             os.path.join(folder, 'INCAR')
         )
@@ -82,6 +90,7 @@ class Dos:
             check_for_POTCAR=False,
             read_velocities=False
         )
+        self.forbitals = self._check_f_orb()
         self.color_dict = {
             0: '#FF0000',
             1: '#0000FF',
@@ -142,10 +151,27 @@ class Dos:
             self.ispin = False
 
         self.spin_dict = {'up': Spin.up, 'down': Spin.down}
+
         self.tdos_array = self._load_tdos()
 
         if self.lorbit:
             self.pdos_array = self._load_pdos()
+
+            if self.lsorbit and self.soc_axis is not None:
+                self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
+
+
+    def _check_f_orb(self):
+        f = False
+        for element in self.poscar.site_symbols:
+            if element != 'H':
+                E = Element(element)
+                orbitals = list(E.atomic_orbitals.keys())
+                for orb in orbitals:
+                    if 'f' in orb:
+                        f = True
+        
+        return f
 
     def _check_f_error(self):
         with open(os.path.join(self.folder, 'DOSCAR'), 'rb') as f:
@@ -254,38 +280,132 @@ class Dos:
         if self.spin == 'up':
             if not self.forbitals:
                 if self.lsorbit:
-                    pdos = pdos[:,:,[(j*4) + 1 for j in range(9)]]
+                    if self.soc_axis is None:
+                        pdos = pdos[:,:,[(j*4) + 1 for j in range(9)]]
+                    elif self.soc_axis == 'x':
+                        pdos = pdos[:,:,[(j*4) + 2 for j in range(9)]]
+                    elif self.soc_axis == 'y':
+                        pdos = pdos[:,:,[(j*4) + 3 for j in range(9)]]
+                    elif self.soc_axis == 'z':
+                        pdos = pdos[:,:,[(j*4) + 4 for j in range(9)]]
+
+                    if self.soc_axis is not None:
+                        pdos_up = np.zeros(pdos.shape)
+                        pdos_up[np.where(pdos > 0)] = pdos[np.where(pdos > 0)]
+                        pdos = pdos_up
+
                 elif self.ispin and not self.lsorbit:
                     pdos = pdos[:,:,[(j*2) + 1 for j in range(9)]]
                 else:
                     pdos = pdos[:,:,1:]
             else:
                 if self.lsorbit:
-                    pdos = pdos[:,:,[(j*4) + 1 for j in range(16)]]
-                else:
+                    if self.soc_axis is None:
+                        pdos = pdos[:,:,[(j*4) + 1 for j in range(16)]]
+                    if self.soc_axis == 'x':
+                        pdos = pdos[:,:,[(j*4) + 2 for j in range(16)]]
+                    if self.soc_axis == 'y':
+                        pdos = pdos[:,:,[(j*4) + 3 for j in range(16)]]
+                    if self.soc_axis == 'z':
+                        pdos = pdos[:,:,[(j*4) + 4 for j in range(16)]]
+
+                    if self.soc_axis is not None:
+                        pdos_up = np.zeros(pdos.shape)
+                        pdos_up[np.where(pdos > 0)] = pdos[np.where(pdos > 0)]
+                        pdos = pdos_up
+
+                elif self.ispin and not self.lsorbit:
                     pdos = pdos[:,:,[(j*2) + 1 for j in range(16)]]
+                else:
+                    pdos = pdos[:,:,1:]
         if self.spin == 'down':
             if not self.forbitals:
-                pdos = -pdos[:,:,[(j*2) + 2 for j in range(9)]]
+                if self.lsorbit:
+                    if self.soc_axis is None:
+                        raise("You have selected spin='down' for a SOC calculation, but soc_axis has not been selected. Please set soc_axis to 'x', 'y', or 'z' for this function to work.")
+                    elif self.soc_axis == 'x':
+                        pdos = pdos[:,:,[(j*4) + 2 for j in range(9)]]
+                    elif self.soc_axis == 'y':
+                        pdos = pdos[:,:,[(j*4) + 3 for j in range(9)]]
+                    elif self.soc_axis == 'z':
+                        pdos = pdos[:,:,[(j*4) + 4 for j in range(9)]]
+
+                    if self.soc_axis is not None:
+                        pdos_down = np.zeros(pdos.shape)
+                        pdos_down[np.where(pdos < 0)] = pdos[np.where(pdos < 0)]
+                        pdos = pdos_down
+
+                elif self.ispin and not self.lsorbit:
+                    pdos = -pdos[:,:,[(j*2) + 2 for j in range(9)]]
             else:
-                pdos = -pdos[:,:,[(j*2) + 2 for j in range(16)]]
+                if self.lsorbit:
+                    if self.soc_axis is None:
+                        raise("You have selected spin='down' for a SOC calculation, but soc_axis has not been selected. Please set soc_axis to 'x', 'y', or 'z' for this function to work.")
+                    if self.soc_axis == 'x':
+                        pdos = pdos[:,:,[(j*4) + 2 for j in range(16)]]
+                    if self.soc_axis == 'y':
+                        pdos = pdos[:,:,[(j*4) + 3 for j in range(16)]]
+                    if self.soc_axis == 'z':
+                        pdos = pdos[:,:,[(j*4) + 4 for j in range(16)]]
+
+                    if self.soc_axis is not None:
+                        pdos_down = np.zeros(pdos.shape)
+                        pdos_down[np.where(pdos < 0)] = pdos[np.where(pdos < 0)]
+                        pdos = pdos_down
+
+                elif self.ispin and not self.lsorbit:
+                    pdos = -pdos[:,:,[(j*2) + 2 for j in range(16)]]
         if self.spin == 'both':
             if not self.forbitals:
-                pdos_up = pdos[:,:,[(j*2) + 1 for j in range(9)]]
-                pdos_down = pdos[:,:,[(j*2) + 2 for j in range(9)]]
+                if self.lsorbit:
+                    if self.soc_axis is None:
+                        raise("You have selected spin='down' for a SOC calculation, but soc_axis has not been selected. Please set soc_axis to 'x', 'y', or 'z' for this function to work.")
+                    elif self.soc_axis == 'x':
+                        pdos = pdos[:,:,[(j*4) + 2 for j in range(9)]]
+                    elif self.soc_axis == 'y':
+                        pdos = pdos[:,:,[(j*4) + 3 for j in range(9)]]
+                    elif self.soc_axis == 'z':
+                        pdos = pdos[:,:,[(j*4) + 4 for j in range(9)]]
+
+                    if self.soc_axis is not None:
+                        pdos_up = np.zeros(pdos.shape)
+                        pdos_up[np.where(pdos > 0)] = pdos[np.where(pdos > 0)]
+                        pdos_down = np.zeros(pdos.shape)
+                        pdos_down[np.where(pdos < 0)] = -pdos[np.where(pdos < 0)]
+
+                elif self.ispin and not self.lsorbit:
+                    pdos_up = pdos[:,:,[(j*2) + 1 for j in range(9)]]
+                    pdos_down = pdos[:,:,[(j*2) + 2 for j in range(9)]]
             else:
-                pdos_up = pdos[:,:,[(j*2) + 1 for j in range(16)]]
-                pdos_down = pdos[:,:,[(j*2) + 2 for j in range(16)]]
+                if self.lsorbit:
+                    if self.soc_axis is None:
+                        raise("You have selected spin='down' for a SOC calculation, but soc_axis has not been selected. Please set soc_axis to 'x', 'y', or 'z' for this function to work.")
+                    if self.soc_axis == 'x':
+                        pdos = pdos[:,:,[(j*4) + 2 for j in range(16)]]
+                    if self.soc_axis == 'y':
+                        pdos = pdos[:,:,[(j*4) + 3 for j in range(16)]]
+                    if self.soc_axis == 'z':
+                        pdos = pdos[:,:,[(j*4) + 4 for j in range(16)]]
+
+                    if self.soc_axis is not None:
+                        pdos_up = np.zeros(pdos.shape)
+                        pdos_up[np.where(pdos > 0)] = pdos[np.where(pdos > 0)]
+                        pdos_down = np.zeros(pdos.shape)
+                        pdos_down[np.where(pdos < 0)] = -pdos[np.where(pdos < 0)]
+
+                elif self.ispin and not self.lsorbit:
+                    pdos_up = pdos[:,:,[(j*2) + 1 for j in range(16)]]
+                    pdos_down = pdos[:,:,[(j*2) + 2 for j in range(16)]]
 
             if self.combination_method == 'add':
                 pdos = pdos_up + pdos_down
             if self.combination_method == 'sub':
                 pdos = pdos_up - pdos_down
 
-        tdos = self.tdos_array[:,-1]
-        summed_pdos = np.sum(np.sum(pdos, axis=1), axis=1)
-        scale_factor = np.nan_to_num(np.divide(tdos, summed_pdos))
-        pdos = np.multiply(pdos, scale_factor[:,None,None])
+        #  tdos = self.tdos_array[:,-1]
+        #  summed_pdos = np.sum(np.sum(pdos, axis=1), axis=1)
+        #  scale_factor = np.nan_to_num(np.divide(tdos, summed_pdos))
+        #  pdos = np.multiply(pdos, scale_factor[:,None,None])
 
         return pdos
 

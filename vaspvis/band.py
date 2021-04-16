@@ -2,6 +2,7 @@ from pymatgen.electronic_structure.core import Spin, Orbital
 from pymatgen.io.vasp.outputs import BSVasprun, Eigenval
 from pymatgen.io.vasp.inputs import Kpoints, Poscar, Incar
 from pymatgen.symmetry.bandstructure import HighSymmKpath
+from pymatgen.core.periodic_table import Element
 from vaspvis.unfold import unfold, make_kpath, removeDuplicateKpoints
 from pymatgen.core.periodic_table import Element
 from pyprocar.utilsprocar import UtilsProcar
@@ -126,7 +127,7 @@ class Band:
 
         self.wavecar = os.path.join(folder, 'WAVECAR')
         self.projected = projected
-        self.forbitals = False
+        self.forbitals = self._check_f_orb()
         self.unfold = unfold
 
         if self.hse and self.unfold:
@@ -209,6 +210,19 @@ class Band:
             print(f'Bandgap = {np.round(bg, 3)} eV')
 
         self.bg = bg
+
+    def _check_f_orb(self):
+        f = False
+        for element in self.poscar.site_symbols:
+            if element != 'H':
+                E = Element(element)
+                orbitals = list(E.atomic_orbitals.keys())
+                for orb in orbitals:
+                    if 'f' in orb:
+                        f = True
+        
+        return f
+                    
 
 
     def _load_bands(self):
@@ -387,9 +401,6 @@ class Band:
             kpoint_weights = np.array(self.eigenval.kpoints_weights)
             zero_weight = np.where(kpoint_weights == 0)[0]
             projected_eigenvalues = projected_eigenvalues[:,zero_weight]
-
-        if projected_eigenvalues.shape[-1] == 16:
-            self.forbitals = True
 
         projected_eigenvalues = np.square(projected_eigenvalues)
 
@@ -699,9 +710,19 @@ class Band:
 
     def _get_interpolated_data(self, wave_vectors, data, crop_zero=False, kind='cubic'):
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
-        data = [data[:,i] for i in slices]
+        data_shape = data.shape
+        if len(data_shape) == 1:
+            data = [data[i] for i in slices]
+        else:
+            data = [data[:,i] for i in slices]
+
         wave_vectors = [wave_vectors[i] for i in slices]
-        fs = [interp1d(i, j, kind=kind, axis=1) for (i,j) in zip(wave_vectors, data)]
+
+        if len(data_shape) == 1:
+            fs = [interp1d(i, j, kind=kind, axis=0) for (i,j) in zip(wave_vectors, data)]
+        else:
+            fs = [interp1d(i, j, kind=kind, axis=1) for (i,j) in zip(wave_vectors, data)]
+
         new_wave_vectors = [np.linspace(wv.min(), wv.max(), self.new_n) for wv in wave_vectors]
         data = np.hstack([f(wv) for (f, wv) in zip(fs, new_wave_vectors)])
         wave_vectors = np.hstack(new_wave_vectors)
@@ -835,6 +856,9 @@ class Band:
         powernorm=False,
         gamma=0.5,
         projection=None,
+        highlight_band=False,
+        highlight_band_color='red',
+        band_index=None,
     ):
         """
         This function plots a plain band structure.
@@ -847,18 +871,36 @@ class Band:
         """
         bands_in_plot = self._filter_bands(erange=erange)
         eigenvalues = self.eigenvalues[bands_in_plot]
+
+        if highlight_band:
+            if band_index is not None:
+                highlight_eigenvalues = self.eigenvalues[int(band_index)]
+
         wave_vectors = self._get_k_distance()
         wave_vectors_for_kpoints = wave_vectors
 
         if self.interpolate:
             wave_vectors, eigenvalues = self._get_interpolated_data(wave_vectors_for_kpoints, eigenvalues)
 
+            if highlight_band:
+                if band_index is not None:
+                    _, highlight_eigenvalues = self._get_interpolated_data(
+                        wave_vectors_for_kpoints,
+                        highlight_eigenvalues,
+                    )
+            
+
+
         eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
         wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
 
         if self.unfold:
             spectral_weights = self.spectral_weights[bands_in_plot]
-            spectral_weights = spectral_weights / np.max(spectral_weights)
+            #  spectral_weights = spectral_weights / np.max(spectral_weights)
+
+            if highlight_band:
+                if band_index is not None:
+                    highlight_spectral_weights = self.spectral_weights[int(band_index)]
 
             if self.interpolate:
                 _, spectral_weights = self._get_interpolated_data(
@@ -867,6 +909,15 @@ class Band:
                     crop_zero=True,
                     kind='linear',
                 )
+
+                if highlight_band:
+                    if band_index is not None:
+                        _, highlight_spectral_weights = self._get_interpolated_data(
+                            wave_vectors_for_kpoints,
+                            highlight_spectral_weights,
+                            crop_zero=True,
+                            kind='linear',
+                        )
             
             spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
 
@@ -892,6 +943,16 @@ class Band:
                     s=scale_factor * spectral_weights_ravel,
                     zorder=0,
                 )
+                if highlight_band:
+                    if band_index is not None:
+                        ax.scatter(
+                            wave_vectors,
+                            highlight_eigenvalues,
+                            c=highlight_band_color,
+                            ec=None,
+                            s=scale_factor * highlight_spectral_weights,
+                            zorder=100,
+                        )
         else:
             if heatmap:
                 self._heatmap(
@@ -915,6 +976,16 @@ class Band:
                     linestyle=linestyle,
                     zorder=0,
                 )
+                if highlight_band:
+                    if band_index is not None:
+                        ax.plot(
+                            wave_vectors,
+                            highlight_eigenvalues,
+                            color=highlight_band_color,
+                            linewidth=linewidth,
+                            linestyle=linestyle,
+                            zorder=100,
+                        )
 
         if self.hse:
             self._get_kticks_hse(ax=ax, wave_vectors=wave_vectors_for_kpoints, kpath=self.kpath, vlinecolor=vlinecolor)
@@ -959,7 +1030,8 @@ class Band:
             band_color (string): Color of the plain band structure
         """
         if self.unfold:
-            band_color = [(0.9,0.9,0.9)]
+            if band_color == 'black':
+                band_color = 'darkgrey'
             scale_factor = scale_factor * 4
 
         bands_in_plot = self._filter_bands(erange=erange)

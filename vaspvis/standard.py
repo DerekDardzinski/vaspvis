@@ -117,6 +117,9 @@ def band_plain(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    highlight_band=False,
+    highlight_band_color='red',
+    band_index=None,
 ):
     """
     This function generates a plain band structure
@@ -216,6 +219,9 @@ def band_plain(
         vlinecolor=vlinecolor,
         powernorm=powernorm,
         gamma=gamma,
+        highlight_band=highlight_band,
+        highlight_band_color=highlight_band_color,
+        band_index=band_index,
     )
 
     if heatmap:
@@ -3362,6 +3368,7 @@ def dos_plain(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -3431,6 +3438,7 @@ def dos_ldos(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -3510,6 +3518,7 @@ def dos_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -3591,6 +3600,7 @@ def dos_atom_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -3672,6 +3682,7 @@ def dos_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -3769,6 +3780,7 @@ def dos_atoms(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -3848,6 +3860,7 @@ def dos_atom_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -3929,6 +3942,7 @@ def dos_elements(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -4008,6 +4022,7 @@ def dos_element_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -4089,6 +4104,7 @@ def dos_element_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -4163,6 +4179,7 @@ def dos_plain_spin_polarized(
     alpha=0.3,
     sigma=0.05,
     energyaxis='x',
+    soc_axis='z',
     color='black',
     figsize=(4, 3),
     erange=[-6, 6],
@@ -4194,8 +4211,8 @@ def dos_plain_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4240,6 +4257,7 @@ def dos_spd_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='x',
+    soc_axis='z',
     color_dict=None,
     legend=True,
     total=True,
@@ -4279,8 +4297,8 @@ def dos_spd_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4331,6 +4349,7 @@ def dos_atom_orbitals_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='y',
+    soc_axis='z',
     color_list=None,
     legend=True,
     total=True,
@@ -4370,8 +4389,8 @@ def dos_atom_orbitals_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4422,6 +4441,7 @@ def dos_orbitals_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='y',
+    soc_axis='z',
     color_list=None,
     legend=True,
     total=True,
@@ -4477,8 +4497,8 @@ def dos_orbitals_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4529,6 +4549,7 @@ def dos_atoms_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='y',
+    soc_axis='z',
     color_list=None,
     legend=True,
     total=True,
@@ -4567,8 +4588,8 @@ def dos_atoms_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4618,6 +4639,7 @@ def dos_atom_spd_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='x',
+    soc_axis='z',
     color_list=None,
     legend=True,
     total=True,
@@ -4660,8 +4682,8 @@ def dos_atom_spd_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4712,6 +4734,7 @@ def dos_elements_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='y',
+    soc_axis='z',
     color_list=None,
     legend=True,
     total=True,
@@ -4752,8 +4775,8 @@ def dos_elements_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4804,6 +4827,7 @@ def dos_element_spd_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='x',
+    soc_axis='z',
     color_list=None,
     legend=True,
     total=True,
@@ -4846,8 +4870,8 @@ def dos_element_spd_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -4898,6 +4922,7 @@ def dos_element_orbitals_spin_polarized(
     linewidth=1.5,
     sigma=0.05,
     energyaxis='y',
+    soc_axis='z',
     color_list=None,
     legend=True,
     total=True,
@@ -4940,8 +4965,8 @@ def dos_element_orbitals_spin_polarized(
         and axis for further editing. 
     """
 
-    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up')
-    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down')
+    dos_up = Dos(shift_efermi=shift_efermi, folder=folder, spin='up', soc_axis=soc_axis)
+    dos_down = Dos(shift_efermi=shift_efermi, folder=folder, spin='down', soc_axis=soc_axis)
 
     fig = plt.figure(figsize=figsize, dpi=400)
     ax = fig.add_subplot(111)
@@ -8507,6 +8532,7 @@ def dos_layers(
     erange=[-3, 3],
     lrange=None,
     spin='up',
+    soc_axis=None,
     combination_method='add',
     fontsize=12,
     save=True,
@@ -8638,7 +8664,7 @@ def dos_layers(
         
     _figure_setup_layer_dos(ax=dos_ax, fontsize=fontsize, energyaxis=energyaxis)
 
-    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, combination_method=combination_method)
+    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, soc_axis=soc_axis, combination_method=combination_method)
     dos.plot_layers(
         ax=dos_ax,
         sigma_layers=sigma_layers,
@@ -8712,27 +8738,26 @@ def dos_layers(
 
 def _main():
     #  band_folder = '../../vaspvis_data/InAsAl'
-    band_elements(
-        folder='../../vaspvis_data/slab',
-        elements=['In', 'Sb'],
-        band_color='grey',
-        erange=[-4,1],
-        figsize=(3,4),
-        legend=False,
-        scale_factor=15,
-        display_order='dominant',
-        interpolate=True,
-    )
-    band_atoms(
-        folder='../../vaspvis_data/slab',
-        atoms=range(36),
-        color_list=['red' for _ in range(18)] + ['blue' for _ in range(18)],
-        band_color='grey',
-        erange=[-4,1],
-        figsize=(3,4),
-        legend=False,
-        scale_factor=15,
-        display_order='dominant',
+    #  dos_plain_spin_polarized(
+        #  folder='../../vaspvis_data/Fe-sp/dos/',
+        #  output='sp.png',
+        #  sigma=0,
+    #  )
+    #  dos_plain_spin_polarized(
+        #  folder='../../vaspvis_data/Fe/',
+        #  output='soc_sp.png',
+        #  sigma=0,
+        #  soc_axis='z',
+    #  )
+    #  dos_plain(
+        #  folder='../../vaspvis_data/Fe/',
+        #  output='soc_up.png',
+        #  sigma=0,
+    #  )
+    band_plain(
+        folder='../../vaspvis_data/band_InAs',
+        highlight_band=True,
+        band_index=6,
         interpolate=True,
     )
     #  band_spd(
