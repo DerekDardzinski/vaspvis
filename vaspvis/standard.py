@@ -8550,6 +8550,7 @@ def dos_layers(
     contour=False,
     levels=10,
     min_cutoff=1e-7,
+    max_cufoff=None,
     atol=None,
     custom_layer_inds=None,
     custom_cbar_label=None,
@@ -8597,6 +8598,8 @@ def dos_layers(
             of a heatmap.
         levels (int): Number of levels used in the contour plot.
         min_cutoff (float): Minimum dos value used to determine the cut off for the plot.
+            This can be adjusted to better visualize the band gap of the material.
+        max_cutoff (float): Maximum dos value used to determine the cut off for the plot.
             This can be adjusted to better visualize the band gap of the material.
         atol (float or None): Tolarence used in the grouping of the layers.
             This value is automatically calculated if None and is usually on the order of
@@ -8683,6 +8686,7 @@ def dos_layers(
         contour=contour,
         levels=levels,
         min_cutoff=min_cutoff,
+        max_cufoff=max_cufoff,
         atol=atol,
         custom_cbar_label=custom_cbar_label,
         custom_layer_inds=custom_layer_inds,

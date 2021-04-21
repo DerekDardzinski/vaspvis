@@ -1464,6 +1464,7 @@ class Dos:
         contour=False,
         levels=10,
         min_cutoff=1e-7,
+        max_cufoff=None,
         atol=None,
         custom_layer_inds=None,
         custom_cbar_label=None,
@@ -1558,7 +1559,13 @@ class Dos:
                 min_val = np.min(densities)
                 if min_val < min_cutoff:
                     min_val = min_cutoff
-            norm = colors.LogNorm(vmin=min_val, vmax=np.max(densities))
+
+            if max_cufoff is not None:
+                max_val = max_cufoff
+            else:
+                max_val = np.max(densities)
+                
+            norm = colors.LogNorm(vmin=min_val, vmax=max_val))
         else:
             if self.combination_method == "sub" and self.spin == "both":
                 norm_val = np.max(np.abs([np.min(densities), np.max(densities)]))
