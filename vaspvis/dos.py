@@ -1565,7 +1565,7 @@ class Dos:
             else:
                 max_val = np.max(densities)
                 
-            norm = colors.LogNorm(vmin=min_val, vmax=max_val))
+            norm = colors.LogNorm(vmin=min_val, vmax=max_val)
         else:
             if self.combination_method == "sub" and self.spin == "both":
                 norm_val = np.max(np.abs([np.min(densities), np.max(densities)]))
