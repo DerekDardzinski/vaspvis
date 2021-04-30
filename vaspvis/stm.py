@@ -33,9 +33,6 @@ class STM:
             check_for_POTCAR=False,
             read_velocities=False
         )
-        #  self.incar = Incar.from_file(
-            #  os.path.join(folder, 'INCAR')
-        #  )
         self.data, self.a_vals, self.b_vals, self.c_vals = self._load_parchg()
         [self.bottom_surface,
         self.bottom_ind,
@@ -51,16 +48,14 @@ class STM:
         if self.preloaded_data:
             with open(os.path.join(self.folder, 'parchg.npy'), 'rb') as p:
                 data = np.load(p)
-                a_vals = np.linspace(0,1,data.shape[0])
-                b_vals = np.linspace(0,1,data.shape[1])
-                c_vals = np.linspace(0,1,data.shape[2])
         else:
             parchg = Chgcar.from_file(os.path.join(self.folder, 'PARCHG'))
             data = parchg.data['total']
-            a_vals = parchg.xpoints
-            b_vals = parchg.ypoints
-            c_vals = parchg.zpoints
             np.save(os.path.join(self.folder, 'parchg.npy'), data)
+
+        a_vals = np.linspace(0,1,data.shape[0])
+        b_vals = np.linspace(0,1,data.shape[1])
+        c_vals = np.linspace(0,1,data.shape[2])
 
         return data, a_vals, b_vals, c_vals
 
@@ -77,7 +72,7 @@ class STM:
         return y1 + (((y2 - y1) / (x2 - x1)) * (x - x1)) 
 
     def _get_constant_current_isosurface(self, current, sigma=6, top=True):
-        slab_middle_ind = int((self.top_ind - self.bottom_ind) / 2)
+        slab_middle_ind = int((self.top_ind + self.bottom_ind) / 2)
         cell_middle_ind = int(self.data.shape[-1] / 2)
         shift = cell_middle_ind - slab_middle_ind
         init_shape = self.data.shape[:2]
@@ -86,18 +81,31 @@ class STM:
             shift,
             axis=2,
         )
-        shifted_slab = shifted_slab[:,:,:self.bottom_ind+shift]
         c_vals = self.c_vals
+        c_vals_extended = np.hstack([c_vals[:-1] - 1, c_vals, c_vals[1:] + 1])
+        shifted_cvals = np.roll(
+            c_vals_extended,
+            shift,
+        )
+        shifted_cvals = shifted_cvals[len(c_vals)-1:(2*len(c_vals))-1]
+
+        if top:
+            shifted_slab = shifted_slab[:,:,self.top_ind+shift:]
+            shifted_cvals = shifted_cvals[self.top_ind+shift:]
+        else:
+            shifted_slab = shifted_slab[:,:,:self.bottom_ind+shift]
+            shifted_cvals = shifted_cvals[:self.bottom_ind+shift]
+
 
         if top:
             heights = np.zeros(shifted_slab.shape[:2])
             inds = np.zeros(shifted_slab.shape[:2], dtype=bool)
-            for i in range(1, shifted_slab.shape[-1])[::-1]:
+            for i in range(0, shifted_slab.shape[-1]-1)[::-1]:
                 points = inds < (shifted_slab[:,:,i] > current)
-                x1 = shifted_slab[points, i+1]
-                x2 = shifted_slab[points, i]
-                y1 = c_vals[i+1]
-                y2 = c_vals[i]
+                x1 = shifted_slab[points, i]
+                x2 = shifted_slab[points, i+1]
+                y1 = shifted_cvals[i]
+                y2 = shifted_cvals[i+1]
                 heights[points] = self._interp(
                     x=current,
                     x1=x1,
@@ -106,6 +114,9 @@ class STM:
                     y2=y2,
                 )
                 inds[points] = True
+
+            heights[heights <= self.top_surface] = heights[heights > self.top_surface].min()
+
         else:
             heights = np.zeros(shifted_slab.shape[:2])
             inds = np.zeros(shifted_slab.shape[:2], dtype=bool)
@@ -113,8 +124,8 @@ class STM:
                 points = inds < (shifted_slab[:,:,i] > current)
                 x1 = shifted_slab[points, i-1]
                 x2 = shifted_slab[points, i]
-                y1 = c_vals[i-1]
-                y2 = c_vals[i]
+                y1 = shifted_cvals[i-1]
+                y2 = shifted_cvals[i]
                 heights[points] = self._interp(
                     x=current,
                     x1=x1,
@@ -124,8 +135,7 @@ class STM:
                 )
                 inds[points] = True
 
-        heights[heights == 0] = heights[heights > 0].min()
-        heights -= (cell_middle_ind - slab_middle_ind) / self.data.shape[-1]
+            heights[heights >= self.top_surface] = heights[heights < self.top_surface].min()
 
         return heights
 
@@ -221,6 +231,45 @@ class STM:
 
         return X_conv, Y_conv, Z_conv, midpoint, scaling_matrix
 
+    def _add_legend(self, ax, names, colors, fontsize=10, markersize=4):
+        legend_lines = []
+        legend_labels = []
+        for name, color in zip(names, colors):
+            legend_lines.append(plt.Line2D(
+                [0],
+                [0],
+                marker='o',
+                markersize=markersize,
+                linestyle='',
+                color=color
+            ))
+            legend_labels.append(
+                f'${name}$'
+            )
+
+        leg = ax.get_legend()
+
+        if leg is None:
+            handles = legend_lines
+            labels = legend_labels
+        else:
+            handles = [l._legmarker for l in leg.legendHandles]
+            labels = [text._text for text in leg.texts]
+            handles.extend(legend_lines)
+            labels.extend(legend_labels)
+
+        ax.legend(
+            handles,
+            labels,
+            ncol=1,
+            loc='upper left',
+            fontsize=fontsize,
+            bbox_to_anchor=(1, 1),
+            borderaxespad=0,
+            frameon=False,
+            handletextpad=0.1,
+        )
+
     def _plot_stm_general(
         self,
         ax,
@@ -250,6 +299,8 @@ class STM:
         scaling_matrix,
         midpoint,
         scan_size,
+        legend,
+        top,
     ):
         supercell = make_supercell(
             self.poscar.structure,
@@ -257,8 +308,13 @@ class STM:
         )
         inds, heights = group_layers(supercell, atol=atol)
 
-        surface_atom_coords = supercell.cart_coords[inds[0]]
-        surface_atom_symbols = np.array(supercell.species, dtype='str')[inds[0]]
+        if top:
+            surface_inds = inds[-1]
+        else:
+            surface_inds = inds[0]
+
+        surface_atom_coords = supercell.cart_coords[surface_inds]
+        surface_atom_symbols = np.array(supercell.species, dtype='str')[surface_inds]
         surface_atom_species = np.zeros(surface_atom_symbols.shape, dtype=int)
         unique_species = np.unique(surface_atom_symbols)
         unique_zs = [Element(i).Z for i in unique_species]
@@ -307,6 +363,44 @@ class STM:
             s=atom_size,
             zorder=10,
         )
+
+        if legend:
+            legend_lines = []
+            legend_labels = []
+            for name, color in zip(unique_species, jmol_colors[unique_zs]):
+                legend_lines.append(plt.scatter(
+                    [0],
+                    [0],
+                    color=color,
+                    s=atom_size,
+                    ec='black',
+                ))
+                legend_labels.append(
+                    f'{name}'
+                )
+
+            leg = ax.get_legend()
+
+            if leg is None:
+                handles = legend_lines
+                labels = legend_labels
+            else:
+                handles = [l._legmarker for l in leg.legendHandles]
+                labels = [text._text for text in leg.texts]
+                handles.extend(legend_lines)
+                labels.extend(legend_labels)
+
+            l = ax.legend(
+                handles,
+                labels,
+                ncol=1,
+                loc='upper right',
+                framealpha=1,
+            )
+            l.set_zorder(200)
+            frame = l.get_frame()
+            frame.set_facecolor('white')
+            frame.set_edgecolor('black')
 
     def update_plot(
         self,
@@ -397,6 +491,7 @@ class STM:
         max_bond_length=3.14,
         cmap='hot',
         sigma=4,
+        legend=False,
     ):
         X, Y, Z, midpoint, scaling_matrix = self._run_constant_current_scan(
             current=current,
@@ -427,6 +522,8 @@ class STM:
                 scaling_matrix=scaling_matrix,
                 midpoint=midpoint,
                 scan_size=scan_size,
+                legend=legend,
+                top=top,
             )
 
 
@@ -439,15 +536,17 @@ if __name__ == "__main__":
         labelleft=False,
     )
 
-    stm = STM(folder='./2x1')
+    stm = STM(folder='../../vaspvis_data/InSb110_stm/')
     stm.plot_constant_current(
         ax=ax,
-        current=0.00005,
+        current=0.0005,
         top=False,
         scan_size=40,
         plot_atoms=True,
         sigma=3,
         cmap='hot',
+        atol=None,
+        legend=True,
     )
     stm.add_scale_bar(
         ax=ax,
@@ -455,5 +554,5 @@ if __name__ == "__main__":
         height=1.5,
     )
     fig.tight_layout(pad=0)
-    fig.savefig('STM_test.png')
+    fig.savefig('STM_test_bottom.png')
 
