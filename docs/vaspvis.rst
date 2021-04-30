@@ -36,6 +36,14 @@ vaspvis.utils module
    :undoc-members:
    :show-inheritance:
 
+vaspvis.stm module
+-----------------------
+
+.. automodule:: vaspvis.stm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------
