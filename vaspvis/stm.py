@@ -60,9 +60,8 @@ class STM:
         return data, a_vals, b_vals, c_vals
 
     def _get_surface_heights(self):
-        structure = self.poscar.structure
-        bottom_surface = structure.frac_coords[:,-1].min()
-        top_surface = structure.frac_coords[:,-1].max()
+        bottom_surface = self.poscar.structure.frac_coords[:,-1].min()
+        top_surface = self.poscar.structure.frac_coords[:,-1].max()
         bottom_ind = np.argmin((self.c_vals - bottom_surface)**2)
         top_ind = np.argmin((self.c_vals - top_surface)**2)
 
@@ -70,6 +69,21 @@ class STM:
 
     def _interp(self, x, x1, x2, y1, y2):
         return y1 + (((y2 - y1) / (x2 - x1)) * (x - x1)) 
+
+    def _rotate_structure(self, structure, angle):
+        copy_structure = copy.copy(structure)
+        angle = angle * (np.pi / 180)
+        operation = SymmOp.from_rotation_and_translation(
+            rotation_matrix=np.array([
+                [np.cos(angle), -np.sin(angle), 0],
+                [np.sin(angle), np.cos(angle), 0],
+                [0,0,1],
+            ]),
+            translation_vec=[0,0,0],
+        )
+        copy_structure.apply_operation(operation, fractional=False)
+
+        return copy_structure
 
     def _get_constant_current_isosurface(self, current, sigma=6, top=True):
         slab_middle_ind = int((self.top_ind + self.bottom_ind) / 2)
@@ -198,10 +212,10 @@ class STM:
 
         return scaling_matrix.astype(int), midpoint
 
-    def _run_constant_current_scan(self, current, top=True, scan_size=40):
+    def _run_constant_current_scan(self, current, structure, top=True, scan_size=40):
         scaling_matrix, midpoint = self._get_scaling_matrix(
-            a=self.poscar.structure.lattice.matrix[0,:2],
-            b=self.poscar.structure.lattice.matrix[1,:2],
+            a=structure.lattice.matrix[0,:2],
+            b=structure.lattice.matrix[1,:2],
             scan_size=scan_size,
         )
         Z = self._get_constant_current_isosurface(current, top=top)
@@ -220,7 +234,7 @@ class STM:
         X, Y = np.meshgrid(x, y)
 
         conv_input = np.c_[np.ravel(X), np.ravel(Y), np.ravel(Z)]
-        converted = self.poscar.structure.lattice.get_cartesian_coords(conv_input)
+        converted = structure.lattice.get_cartesian_coords(conv_input)
         X_conv, Y_conv, Z_conv = converted[:,0], converted[:,1], converted[:,2]
         X_conv = X_conv.reshape(X.shape)
         Y_conv = Y_conv.reshape(Y.shape)
@@ -230,45 +244,6 @@ class STM:
         Y_conv -= shifted_point[1]
 
         return X_conv, Y_conv, Z_conv, midpoint, scaling_matrix
-
-    def _add_legend(self, ax, names, colors, fontsize=10, markersize=4):
-        legend_lines = []
-        legend_labels = []
-        for name, color in zip(names, colors):
-            legend_lines.append(plt.Line2D(
-                [0],
-                [0],
-                marker='o',
-                markersize=markersize,
-                linestyle='',
-                color=color
-            ))
-            legend_labels.append(
-                f'${name}$'
-            )
-
-        leg = ax.get_legend()
-
-        if leg is None:
-            handles = legend_lines
-            labels = legend_labels
-        else:
-            handles = [l._legmarker for l in leg.legendHandles]
-            labels = [text._text for text in leg.texts]
-            handles.extend(legend_lines)
-            labels.extend(legend_labels)
-
-        ax.legend(
-            handles,
-            labels,
-            ncol=1,
-            loc='upper left',
-            fontsize=fontsize,
-            bbox_to_anchor=(1, 1),
-            borderaxespad=0,
-            frameon=False,
-            handletextpad=0.1,
-        )
 
     def _plot_stm_general(
         self,
@@ -301,9 +276,10 @@ class STM:
         scan_size,
         legend,
         top,
+        structure,
     ):
         supercell = make_supercell(
-            self.poscar.structure,
+            structure,
             scaling_matrix=np.hstack([scaling_matrix, 1]),
         )
         inds, heights = group_layers(supercell, atol=atol)
@@ -402,36 +378,37 @@ class STM:
             frame.set_facecolor('white')
             frame.set_edgecolor('black')
 
-    def update_plot(
-        self,
-        ax,
-        current,
-        scan_size,
-        top,
-    ):
-        scaling_matrix, midpoint = self._get_scaling_matrix(
-            a=self.poscar.structure.lattice.matrix[0,:2],
-            b=self.poscar.structure.lattice.matrix[1,:2],
-            scan_size=scan_size,
-        )
-        Z = self._get_constant_current_isosurface(current, top=top)
-        if top:
-            Z = np.abs(Z - self.top_surface)
-        else:
-            Z = np.abs(Z - self.bottom_surface)
-
-        Z = np.hstack([
-            np.vstack([Z for _ in range(scaling_matrix[0])]) for _ in range(scaling_matrix[1])
-        ])
-
-        Z_ravel = np.ravel(Z)
-
-        conv_input = np.c_[np.zeros(Z_ravel.shape), np.zeros(Z_ravel.shape), Z_ravel]
-        converted = self.poscar.structure.lattice.get_cartesian_coords(conv_input)
-
-        class_names = [str(col.__class__.__name__) for col in ax.collections]
-        mesh_loc = np.where(np.isin(class_names, 'QuadMesh'))[0][0]
-        ax.collections[mesh_loc].set_array(converted[:,2])
+    #  def update_plot(
+        #  self,
+        #  ax,
+        #  current,
+        #  scan_size,
+        #  top,
+        #  structure,
+    #  ):
+        #  scaling_matrix, midpoint = self._get_scaling_matrix(
+            #  a=self.poscar.structure.lattice.matrix[0,:2],
+            #  b=self.poscar.structure.lattice.matrix[1,:2],
+            #  scan_size=scan_size,
+        #  )
+        #  Z = self._get_constant_current_isosurface(current, top=top)
+        #  if top:
+            #  Z = np.abs(Z - self.top_surface)
+        #  else:
+            #  Z = np.abs(Z - self.bottom_surface)
+#
+        #  Z = np.hstack([
+            #  np.vstack([Z for _ in range(scaling_matrix[0])]) for _ in range(scaling_matrix[1])
+        #  ])
+#
+        #  Z_ravel = np.ravel(Z)
+#
+        #  conv_input = np.c_[np.zeros(Z_ravel.shape), np.zeros(Z_ravel.shape), Z_ravel]
+        #  converted = self.poscar.structure.lattice.get_cartesian_coords(conv_input)
+#
+        #  class_names = [str(col.__class__.__name__) for col in ax.collections]
+        #  mesh_loc = np.where(np.isin(class_names, 'QuadMesh'))[0][0]
+        #  ax.collections[mesh_loc].set_array(converted[:,2])
 
 
     def add_scale_bar(
@@ -492,9 +469,16 @@ class STM:
         cmap='hot',
         sigma=4,
         legend=False,
+        rotation=0,
     ):
+        if rotation != 0:
+            structure = self._rotate_structure(self.poscar.structure, angle=rotation)
+        else:
+            structure = self.poscar.structure
+
         X, Y, Z, midpoint, scaling_matrix = self._run_constant_current_scan(
             current=current,
+            structure=structure,
             top=top,
             scan_size=scan_size,
         )
@@ -524,6 +508,7 @@ class STM:
                 scan_size=scan_size,
                 legend=legend,
                 top=top,
+                structure=structure,
             )
 
 
@@ -536,17 +521,19 @@ if __name__ == "__main__":
         labelleft=False,
     )
 
-    stm = STM(folder='../../vaspvis_data/InSb110_stm/')
+    stm = STM(folder='../../vaspvis_data/InAs111A_stm/')
     stm.plot_constant_current(
         ax=ax,
-        current=0.0005,
+        current=0.009,
         top=False,
         scan_size=40,
-        plot_atoms=True,
+        plot_atoms=False,
         sigma=3,
-        cmap='hot',
-        atol=None,
+        cmap='afmhot',
+        atol=0.03,
         legend=True,
+        rotation=0,
+        atom_size=100,
     )
     stm.add_scale_bar(
         ax=ax,
@@ -554,5 +541,5 @@ if __name__ == "__main__":
         height=1.5,
     )
     fig.tight_layout(pad=0)
-    fig.savefig('STM_test_bottom.png')
+    fig.savefig('InAs111A_no_atoms.png')
 
