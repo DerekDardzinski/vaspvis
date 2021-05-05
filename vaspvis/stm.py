@@ -277,6 +277,9 @@ class STM:
         legend,
         top,
         structure,
+        atom_axis_bounds,
+        atoms_box,
+        legend_atom_size,
     ):
         supercell = make_supercell(
             structure,
@@ -292,11 +295,16 @@ class STM:
         surface_atom_coords = supercell.cart_coords[surface_inds]
         surface_atom_symbols = np.array(supercell.species, dtype='str')[surface_inds]
         surface_atom_species = np.zeros(surface_atom_symbols.shape, dtype=int)
+        surface_atom_sizes = np.zeros(surface_atom_symbols.shape, dtype=float)
         unique_species = np.unique(surface_atom_symbols)
+        unique_elements = [Element(i) for i in unique_species]
         unique_zs = [Element(i).Z for i in unique_species]
 
-        for i, z in enumerate(unique_zs):
-            surface_atom_species[np.isin(surface_atom_symbols, unique_species[i])] = z
+        for i, z in enumerate(unique_elements):
+            surface_atom_species[np.isin(surface_atom_symbols, unique_species[i])] = z.Z
+            surface_atom_sizes[np.isin(surface_atom_symbols, unique_species[i])] = z.atomic_radius
+
+        surface_atom_sizes /= surface_atom_sizes.max()
 
         colors = jmol_colors[surface_atom_species]
 
@@ -323,7 +331,33 @@ class STM:
 
         bonds = np.vstack(bonds)
 
-        ax.plot(
+        ax_atoms = ax.inset_axes(
+            bounds=atom_axis_bounds,
+        )
+        ax_atoms.set_xlim(
+            atom_axis_bounds[0] * scan_size,
+            (atom_axis_bounds[0] + atom_axis_bounds[2]) * scan_size
+        )
+        ax_atoms.set_ylim(
+            atom_axis_bounds[1] * scan_size,
+            (atom_axis_bounds[1] + atom_axis_bounds[3]) * scan_size
+        )
+        ax_atoms.set_facecolor((0,0,0,0))
+
+        ax_atoms.tick_params(
+            bottom=False,
+            left=False,
+            labelbottom=False,
+            labelleft=False,
+        )
+
+        if not atoms_box:
+            ax_atoms.spines['left'].set_visible(False)
+            ax_atoms.spines['right'].set_visible(False)
+            ax_atoms.spines['top'].set_visible(False)
+            ax_atoms.spines['bottom'].set_visible(False)
+
+        ax_atoms.plot(
             bonds[:,0],
             bonds[:,1],
             color='lightgrey',
@@ -331,24 +365,24 @@ class STM:
             zorder=5,
             path_effects=[pa.Stroke(linewidth=bond_line_width+2, foreground='black'), pa.Normal()],
         )
-        ax.scatter(
+        ax_atoms.scatter(
             surface_atom_coords[:,0],
             surface_atom_coords[:,1],
             c=colors,
             ec='black',
-            s=atom_size,
+            s=atom_size*surface_atom_sizes,
             zorder=10,
         )
 
         if legend:
             legend_lines = []
             legend_labels = []
-            for name, color in zip(unique_species, jmol_colors[unique_zs]):
+            for name, color, element in zip(unique_species, jmol_colors[unique_zs], unique_elements):
                 legend_lines.append(plt.scatter(
-                    [0],
-                    [0],
+                    [-1],
+                    [-1],
                     color=color,
-                    s=atom_size,
+                    s=legend_atom_size*element.atomic_radius,
                     ec='black',
                 ))
                 legend_labels.append(
@@ -377,39 +411,6 @@ class STM:
             frame = l.get_frame()
             frame.set_facecolor('white')
             frame.set_edgecolor('black')
-
-    #  def update_plot(
-        #  self,
-        #  ax,
-        #  current,
-        #  scan_size,
-        #  top,
-        #  structure,
-    #  ):
-        #  scaling_matrix, midpoint = self._get_scaling_matrix(
-            #  a=self.poscar.structure.lattice.matrix[0,:2],
-            #  b=self.poscar.structure.lattice.matrix[1,:2],
-            #  scan_size=scan_size,
-        #  )
-        #  Z = self._get_constant_current_isosurface(current, top=top)
-        #  if top:
-            #  Z = np.abs(Z - self.top_surface)
-        #  else:
-            #  Z = np.abs(Z - self.bottom_surface)
-#
-        #  Z = np.hstack([
-            #  np.vstack([Z for _ in range(scaling_matrix[0])]) for _ in range(scaling_matrix[1])
-        #  ])
-#
-        #  Z_ravel = np.ravel(Z)
-#
-        #  conv_input = np.c_[np.zeros(Z_ravel.shape), np.zeros(Z_ravel.shape), Z_ravel]
-        #  converted = self.poscar.structure.lattice.get_cartesian_coords(conv_input)
-#
-        #  class_names = [str(col.__class__.__name__) for col in ax.collections]
-        #  mesh_loc = np.where(np.isin(class_names, 'QuadMesh'))[0][0]
-        #  ax.collections[mesh_loc].set_array(converted[:,2])
-
 
     def add_scale_bar(
         self,
@@ -464,12 +465,15 @@ class STM:
         atol=0.03,
         plot_atoms=False,
         atom_size=80,
+        legend_atom_size=100,
         bond_line_width=2,
         max_bond_length=3.14,
         cmap='hot',
         sigma=4,
         legend=False,
         rotation=0,
+        atom_axis_bounds=[0.5,0.0,0.5,0.5],
+        atoms_box=False,
     ):
         if rotation != 0:
             structure = self._rotate_structure(self.poscar.structure, angle=rotation)
@@ -509,6 +513,9 @@ class STM:
                 legend=legend,
                 top=top,
                 structure=structure,
+                atom_axis_bounds=atom_axis_bounds,
+                atoms_box=atoms_box,
+                legend_atom_size=legend_atom_size,
             )
 
 
@@ -526,20 +533,26 @@ if __name__ == "__main__":
         ax=ax,
         current=0.009,
         top=False,
-        scan_size=40,
-        plot_atoms=False,
-        sigma=3,
-        cmap='afmhot',
+        scan_size=100,
+        plot_atoms=True,
+        sigma=10,
+        cmap='gray',
         atol=0.03,
         legend=True,
-        rotation=0,
-        atom_size=100,
+        rotation=-90,
+        atom_size=20,
+        bond_line_width=0.5,
+        legend_atom_size=50,
+        atom_axis_bounds=[0.5, 0.0, 0.5, 1],
+        atoms_box=True,
     )
     stm.add_scale_bar(
         ax=ax,
-        width=10,
-        height=1.5,
+        width=20,
+        height=3.0,
+        offset_x=3,
+        fontsize=14,
     )
     fig.tight_layout(pad=0)
-    fig.savefig('InAs111A_no_atoms.png')
+    fig.savefig('InAs111A_with_atoms.png')
 
