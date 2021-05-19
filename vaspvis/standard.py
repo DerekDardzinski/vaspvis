@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
@@ -8759,10 +8759,7 @@ def _main():
         #  sigma=0,
     #  )
     band_plain(
-        folder='../../vaspvis_data/band_InAs',
-        highlight_band=True,
-        band_index=6,
-        interpolate=True,
+        folder='../../vaspvis_data/andrea_hse',
     )
     #  band_spd(
         #  folder='../../vaspvis_data/band_InAs',

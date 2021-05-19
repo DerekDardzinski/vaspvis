@@ -37,12 +37,14 @@ class Dos:
             spin='up',
             soc_axis=None,
             combination_method="add",
+            sp_method='percentage',
             shift_efermi=0,
     ):
         self.folder = folder
         self.spin = spin
         self.soc_axis = soc_axis
         self.combination_method = combination_method
+        self.sp_method = sp_method
         self.incar = Incar.from_file(
             os.path.join(folder, 'INCAR')
         )
@@ -258,7 +260,10 @@ class Dos:
             if self.combination_method == "add":
                 tdos = np.c_[tdos[:,0], tdos_up + tdos_down]
             if self.combination_method == "sub":
-                tdos = np.c_[tdos[:,0], tdos_up - tdos_down]
+                if self.sp_method == 'percentage':
+                    tdos = np.c_[tdos[:,0], (tdos_up - tdos_down) / (tdos_up + tdos_down)]
+                elif self.sp_method = 'absolute':
+                    tdos = np.c_[tdos[:,0], tdos_up - tdos_down]
 
         return tdos
 
@@ -400,7 +405,10 @@ class Dos:
             if self.combination_method == 'add':
                 pdos = pdos_up + pdos_down
             if self.combination_method == 'sub':
-                pdos = pdos_up - pdos_down
+                if self.sp_method == 'percentage':
+                    pdos = (pdos_up - pdos_down) / (pdos_up + pdos_down)
+                elif self.sp_method = 'absolute':
+                    pdos = pdos_up - pdos_down
 
         #  tdos = self.tdos_array[:,-1]
         #  summed_pdos = np.sum(np.sum(pdos, axis=1), axis=1)
@@ -1469,6 +1477,8 @@ class Dos:
         custom_layer_inds=None,
         custom_cbar_label=None,
         cbar_orientation='vertical',
+        show_bounds=False,
+        set_bounds=None,
     ):
         """
         This function plots a layer by layer heat map of the density
@@ -1568,7 +1578,11 @@ class Dos:
             norm = colors.LogNorm(vmin=min_val, vmax=max_val)
         else:
             if self.combination_method == "sub" and self.spin == "both":
-                norm_val = np.max(np.abs([np.min(densities), np.max(densities)]))
+                if set_bounds is None:
+                    norm_val = np.max(np.abs([np.min(densities), np.max(densities)]))
+                else:
+                    norm_val = set_bounds
+
                 norm = colors.Normalize(vmin=-norm_val, vmax=norm_val)
             else:
                 norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
@@ -1667,7 +1681,8 @@ class Dos:
                 min_val = im.norm.vmin
                 max_val = im.norm.vmax
                 cbar.set_ticks([min_val, max_val])
-                cbar.set_ticklabels(['Down', 'Up'])
+                if not show_bounds:
+                    cbar.set_ticklabels(['Down', 'Up'])
             else:
                 cbar.set_label('Density of States', fontsize=fontsize)
         else:

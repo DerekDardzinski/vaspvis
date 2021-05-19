@@ -641,7 +641,8 @@ class Band:
         kpath_obj = HighSymmKpath(structure)
         kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
         kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
-        index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
+        index = np.where(np.isclose(self.kpoints[:, None], kpath_coords).all(-1).any(-1) == True)[0]
+        #  index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
         index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
         kpoints_in_band = self.kpoints[index]
 
