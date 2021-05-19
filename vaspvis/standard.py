@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from band import Band
+from vaspvis.band import Band
 from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
