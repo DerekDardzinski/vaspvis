@@ -8758,8 +8758,12 @@ def _main():
         #  output='soc_up.png',
         #  sigma=0,
     #  )
-    band_plain(
-        folder='../../vaspvis_data/andrea_hse',
+    band_spd(
+        folder='../../vaspvis_data/AGL_band',
+        #  folder='../../vaspvis_data/band_InAs',
+        interpolate=False,
+        erange=[-0.8,0.3],
+        scale_factor=100,
     )
     #  band_spd(
         #  folder='../../vaspvis_data/band_InAs',

@@ -520,7 +520,7 @@ class STM:
 
 
 if __name__ == "__main__":
-    fig, ax = plt.subplots(figsize=(4,4), dpi=200)
+    fig, ax = plt.subplots(figsize=(4,4), dpi=400)
     ax.tick_params(
         bottom=False,
         left=False,
@@ -533,25 +533,25 @@ if __name__ == "__main__":
         ax=ax,
         current=0.009,
         top=False,
-        scan_size=100,
+        scan_size=40,
         plot_atoms=True,
-        sigma=10,
-        cmap='gray',
+        sigma=5,
+        cmap='afmhot',
         atol=0.03,
         legend=True,
         rotation=-90,
-        atom_size=20,
-        bond_line_width=0.5,
+        #  atom_size=20,
+        #  bond_line_width=0.5,
         legend_atom_size=50,
         atom_axis_bounds=[0.5, 0.0, 0.5, 1],
         atoms_box=True,
     )
     stm.add_scale_bar(
         ax=ax,
-        width=20,
-        height=3.0,
-        offset_x=3,
-        fontsize=14,
+        width=10,
+        height=1.5,
+        #  offset_x=3,
+        #  fontsize=14,
     )
     fig.tight_layout(pad=0)
     fig.savefig('InAs111A_with_atoms.png')

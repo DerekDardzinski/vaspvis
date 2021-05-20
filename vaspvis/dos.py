@@ -262,7 +262,7 @@ class Dos:
             if self.combination_method == "sub":
                 if self.sp_method == 'percentage':
                     tdos = np.c_[tdos[:,0], (tdos_up - tdos_down) / (tdos_up + tdos_down)]
-                elif self.sp_method = 'absolute':
+                elif self.sp_method == 'absolute':
                     tdos = np.c_[tdos[:,0], tdos_up - tdos_down]
 
         return tdos
@@ -407,7 +407,7 @@ class Dos:
             if self.combination_method == 'sub':
                 if self.sp_method == 'percentage':
                     pdos = (pdos_up - pdos_down) / (pdos_up + pdos_down)
-                elif self.sp_method = 'absolute':
+                elif self.sp_method == 'absolute':
                     pdos = pdos_up - pdos_down
 
         #  tdos = self.tdos_array[:,-1]

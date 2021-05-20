@@ -127,6 +127,7 @@ class Band:
 
         self.wavecar = os.path.join(folder, 'WAVECAR')
         self.projected = projected
+
         self.forbitals = self._check_f_orb()
         self.unfold = unfold
 
@@ -212,14 +213,39 @@ class Band:
         self.bg = bg
 
     def _check_f_orb(self):
+        f_elements = [
+            'La',
+            'Ac',
+            'Ce',
+            'Tb',
+            'Th',
+            'Pr',
+            'Dy',
+            'Pa',
+            'Nd',
+            'Ho',
+            'U',
+            'Pm',
+            'Er',
+            'Np',
+            'Sm',
+            'Tm',
+            'Pu',
+            'Eu',
+            'Yb',
+            'Am',
+            'Gd',
+            'Lu',
+        ]
         f = False
         for element in self.poscar.site_symbols:
-            if element != 'H':
-                E = Element(element)
-                orbitals = list(E.atomic_orbitals.keys())
-                for orb in orbitals:
-                    if 'f' in orb:
-                        f = True
+            if element in f_elements:
+            #  if element != 'H' and element in f_elements:
+                #  E = Element(element)
+                #  orbitals = list(E.atomic_orbitals.keys())
+                #  for orb in orbitals:
+                    #  if 'f' in orb:
+                f = True
         
         return f
                     
@@ -641,8 +667,8 @@ class Band:
         kpath_obj = HighSymmKpath(structure)
         kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
         kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
-        index = np.where(np.isclose(self.kpoints[:, None], kpath_coords).all(-1).any(-1) == True)[0]
-        #  index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
+        #  index = np.where(np.isclose(self.kpoints[:, None], kpath_coords).all(-1).any(-1) == True)[0]
+        index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
         index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
         kpoints_in_band = self.kpoints[index]
 
@@ -661,7 +687,10 @@ class Band:
         for k in kpoints_index:
             ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
 
-        plt.xticks(kpoints_index, kpath)
+        plt.xticks(
+            [wave_vectors[k] for k in kpoints_index],
+            kpath
+        )
 
     def _get_kticks_unfold(self, ax, wave_vectors, vlinecolor):
         if type(self.kpath) == str:
@@ -700,8 +729,8 @@ class Band:
             kpath_obj = HighSymmKpath(structure)
             kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
             index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
-            index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
-            slices = [np.s_[index[i]:index[i+1]+1] for i in range(len(index)-1)]
+            index = [index[0]-1] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
+            slices = [np.s_[index[i]+1:index[i+1]+1] for i in range(len(index)-1)]
 
         if unfold and not hse:
             index = [0] + [(self.n * i) for i in range(1, len(self.kpath))]
