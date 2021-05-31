@@ -133,18 +133,17 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False):
         if return_vbm_cbm is True: The band gap, vbm, and cbm are returned in eV in that order
     """
     def _get_bandgap(eigenvalues, printbg=printbg):
+
+        occupied = eigenvalues[np.where(eigenvalues[:,:,0] < 0)]
+        unoccupied = eigenvalues[np.where(eigenvalues[:,:,0] > 0)]
+
+        vbm = np.max(occupied[:,0])
+        cbm = np.min(unoccupied[:,0])
+
         if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
-            occupied = eigenvalues[np.where(eigenvalues[:,:,0] < 0)]
-            unoccupied = eigenvalues[np.where(eigenvalues[:,:,0] > 0)]
-
-            vbm = np.max(occupied[:,0])
-            cbm = np.min(unoccupied[:,0])
-
             bg = cbm - vbm
         else:
             bg = 0
-            vbm = np.nan
-            cbm = np.nan
 
         if printbg:
             print(f'Bandgap = {np.round(bg, 3)} eV')

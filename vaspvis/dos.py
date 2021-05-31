@@ -712,7 +712,7 @@ class Dos:
 
         return summed_layers
 
-    def _add_legend(self, ax, names, colors, fontsize=5, markersize=2):
+    def _add_legend(self, ax, names, colors, fontsize=10, markersize=4):
         legend_lines = []
         legend_labels = []
         for name, color in zip(names, colors):
