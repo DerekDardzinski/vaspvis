@@ -431,6 +431,7 @@ def get_periodic_vacuum(
         vacuum=40,
         write_file=False,
         output='POSCAR_good_vacuum',
+        periodic_vacuum=True,
 ):
     """
     Creates a slab with a vacuum that is an integer multiple of unit cell length in the direction of the
@@ -477,7 +478,12 @@ def get_periodic_vacuum(
     slab_height_in_unit_cells = np.round(((max_z2 - min_z2) * c_len) / unit_cell_len, 0)
     vacuum_height_in_unit_cells = np.round(vacuum / unit_cell_len, 0)
     new_lattice = copy.deepcopy(slab.lattice.matrix)
-    new_lattice[-1] = (new_lattice[-1] / np.linalg.norm(new_lattice[-1])) * (slab_height_in_unit_cells + vacuum_height_in_unit_cells) * unit_cell_len
+
+    if periodic_vacuum:
+        new_lattice[-1] = (new_lattice[-1] / np.linalg.norm(new_lattice[-1])) * (slab_height_in_unit_cells + vacuum_height_in_unit_cells) * unit_cell_len
+    else:
+        new_lattice[-1] = (new_lattice[-1] / np.linalg.norm(new_lattice[-1])) * (((max_z2 - min_z2) * c_len) + vacuum)
+
     new_c_len = np.linalg.norm(new_lattice[-1])
     new_frac_coords = copy.deepcopy(slab.frac_coords)
     new_frac_coords[:,-1] = new_frac_coords[:,-1] * (c_len / new_c_len)
@@ -529,6 +535,7 @@ def generate_slab(
         passivate_bot=True,
         symmetrize=False,
         tol=0.0001,
+        periodic_vacuum=True,
 ):
     """
     This function generates a slab structure.
@@ -576,6 +583,7 @@ def generate_slab(
         bulk_structure_prim,
         miller_index,
         vacuum=vacuum,
+        periodic_vacuum=periodic_vacuum,
     )
 
     if passivate:
@@ -756,11 +764,12 @@ if __name__ == "__main__":
         #  atoms=[17,50],
     #  )
     slab = generate_slab(
-        bulk='../../../../projects/unfold_test/POSCAR_InSb_conv',
-        miller_index=[1,1,0],
-        layers=8,
-        vacuum=30,
-        passivate=True,
+        bulk='../../../../projects/InAs111A_new/POSCAR_InAs_conv',
+        miller_index=[1,1,1],
+        layers=5,
+        vacuum=0.87442,
+        passivate=False,
+        periodic_vacuum=False,
     )
     #  slab = passivator(
         #  struc=Poscar.from_file('./POSCAR_0').structure,
@@ -790,3 +799,9 @@ if __name__ == "__main__":
         #  vacuum=40,
         #  write_file=True
     #  )
+    #  bg = get_bandgap(
+        #  folder='../../vaspvis_data/Fe',
+        #  return_vbm_cbm=True,
+        #  printbg=False,
+    #  )
+    #  print(bg)
