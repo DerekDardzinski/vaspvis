@@ -240,11 +240,6 @@ class Band:
         f = False
         for element in self.poscar.site_symbols:
             if element in f_elements:
-            #  if element != 'H' and element in f_elements:
-                #  E = Element(element)
-                #  orbitals = list(E.atomic_orbitals.keys())
-                #  for orb in orbitals:
-                    #  if 'f' in orb:
                 f = True
         
         return f
@@ -667,15 +662,21 @@ class Band:
         kpath_obj = HighSymmKpath(structure)
         kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
         kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
+        index = np.where(
+            np.isclose(
+                self.kpoints[:, None],
+                kpath_coords,
+            ).all(-1).any(-1) == True
+        )[0]
         #  index = np.where(np.isclose(self.kpoints[:, None], kpath_coords).all(-1).any(-1) == True)[0]
-        index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
+        #  index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
         index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
         kpoints_in_band = self.kpoints[index]
 
         label_index = []
         for i in range(kpoints_in_band.shape[0]):
             for j in range(kpath_coords.shape[0]):
-                if (kpoints_in_band[i] == kpath_coords[j]).all():
+                if (np.round(kpoints_in_band[i], 5) == np.round(kpath_coords[j], 5)).all():
                     label_index.append(j)
 
         kpoints_index = index
@@ -728,7 +729,14 @@ class Band:
             structure = self.poscar.structure
             kpath_obj = HighSymmKpath(structure)
             kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
-            index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
+            #  index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
+
+            index = np.where(
+                np.isclose(
+                    self.kpoints[:, None],
+                    kpath_coords,
+                ).all(-1).any(-1) == True
+            )[0]
             index = [index[0]-1] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
             slices = [np.s_[index[i]+1:index[i+1]+1] for i in range(len(index)-1)]
 
@@ -1253,7 +1261,7 @@ class Band:
         orbitals='spd',
         erange=[-6,6],
         display_order=None,
-        color_dict=None,
+        color_list=None,
         legend=True,
         linewidth=0.75,
         band_color='black',
@@ -1285,15 +1293,18 @@ class Band:
             linewidth (float): Line width of the plain band structure plotted in the background
             band_color (string): Color of the plain band structure
         """
-        if color_dict is None:
-            color_dict = {
-                0: self.color_dict[0],
-                1: self.color_dict[1],
-                2: self.color_dict[2],
-                3: self.color_dict[4],
-            }
-
-        colors = np.array([color_dict[self.spd_relations[i]] for i in orbitals])
+        if color_list is None:
+            color_list = [
+                self.color_dict[0],
+                self.color_dict[1],
+                self.color_dict[2],
+                self.color_dict[4]
+            ]
+            colors = np.array(
+                [color_list[i] for i in range(len(orbitals))]
+            )
+        else:
+            colors = color_list
 
         projected_data = self._sum_spd(spd=orbitals)
 

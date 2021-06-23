@@ -119,7 +119,7 @@ def generate_kpoints(M, high_symmetry_points, n, output='KPOINTS'):
     save2VaspKPOINTS(reducedK, output)
 
 
-def get_bandgap(folder, printbg=True, return_vbm_cbm=False):
+def get_bandgap(folder, printbg=True, return_vbm_cbm=False, spin='both'):
     """
     Determines the band gap from a band structure calculation
 
@@ -127,6 +127,9 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False):
         folder (str): Folder that contains the VASP input and outputs files
         printbg (bool): Determines if the band gap value is printed out or not.
         return_vbm_cbm (bool): Determines if the vbm and cbm are returned.
+        spin (str): 'both' returns the bandgap for all spins, 'up' returns the 
+            bandgap for only the spin up states and 'down' returns the bandgap
+            for only the spin down states.
 
     Returns:
         if return_vbm_cbm is False: The band gap is returned in eV
@@ -195,7 +198,12 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False):
             kpoints = band_data[0,:,4:]
             eigenvalues_up = band_data[:,:,[0,1]]
             eigenvalues_down = band_data[:,:,[2,3]]
-            eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+            if spin == 'both':
+                eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+            elif spin == 'up':
+                eigenvalues_bg = eigenvalues_up
+            elif spin == 'down':
+                eigenvalues_bg = eigenvalues_down
         else:
             eigenvalues = band_data[:,:,0]
             kpoints = band_data[0,:,2:]
@@ -212,7 +220,12 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False):
                 [eigenvalues_up, eigenvalues_down],
                 axis=2
             )
-            eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+            if spin == 'both':
+                eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+            elif spin == 'up':
+                eigenvalues_bg = eigenvalues_up
+            elif spin == 'down':
+                eigenvalues_bg = eigenvalues_down
         else:
             eigenvalues = np.transpose(eigenval.eigenvalues[Spin.up], axes=(1,0,2))
             eigenvalues[:,:,0] = eigenvalues[:,:,0] - efermi
@@ -570,7 +583,7 @@ def generate_slab(
         bulk_structure_ase,
         miller_index,
         layers,
-        vacuum=vacuum,
+        vacuum=40,
         periodic=False
     )
     sorted_slab = sort(ase_slab, tags=ase_slab.positions[:,-1])
@@ -588,7 +601,7 @@ def generate_slab(
 
     if passivate:
         if passivated_file is not None:
-            passivated_file = Poscar.from_file(passivated_file).structure
+            passivated_file = Structure.from_file(passivated_file)
 
         slab_primitive = passivator(
             slab_primitive,
@@ -764,10 +777,11 @@ if __name__ == "__main__":
         #  atoms=[17,50],
     #  )
     slab = generate_slab(
-        bulk='../../../../projects/InAs111A_new/POSCAR_InAs_conv',
+        bulk='../../../../projects/OgreInterface/core/poscars/POSCAR_InAs_conv',
         miller_index=[1,1,1],
-        layers=5,
-        vacuum=0.87442,
+        layers=45,
+        #  vacuum=0.87442,
+        vacuum=20,
         passivate=False,
         periodic_vacuum=False,
     )

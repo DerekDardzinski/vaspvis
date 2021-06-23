@@ -164,14 +164,34 @@ class Dos:
 
 
     def _check_f_orb(self):
+        f_elements = [
+            'La',
+            'Ac',
+            'Ce',
+            'Tb',
+            'Th',
+            'Pr',
+            'Dy',
+            'Pa',
+            'Nd',
+            'Ho',
+            'U',
+            'Pm',
+            'Er',
+            'Np',
+            'Sm',
+            'Tm',
+            'Pu',
+            'Eu',
+            'Yb',
+            'Am',
+            'Gd',
+            'Lu',
+        ]
         f = False
         for element in self.poscar.site_symbols:
-            if element != 'H':
-                E = Element(element)
-                orbitals = list(E.atomic_orbitals.keys())
-                for orb in orbitals:
-                    if 'f' in orb:
-                        f = True
+            if element in f_elements:
+                f = True
         
         return f
 
@@ -759,6 +779,17 @@ class Dos:
         energy = energy[energy_in_plot_index]
         projected_data = projected_data[energy_in_plot_index]
 
+        unique_colors = np.unique(colors)
+
+        if len(unique_colors) == len(colors):
+            pass
+        else:
+            unique_inds = [np.isin(colors, c) for c in unique_colors]
+            projected_data = np.c_[
+                [np.sum(projected_data[:,i], axis=1) for i in unique_inds]
+            ].transpose()
+            colors = unique_colors
+
         if sigma > 0:
             for i in range(projected_data.shape[-1]):
                 projected_data[:,i] = self._smear(
@@ -997,7 +1028,7 @@ class Dos:
                     alpha=alpha,
                 )
 
-    def plot_spd(self, ax, orbitals='spd', fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_dict=None, legend=True, total=True, erange=[-6, 6]):
+    def plot_spd(self, ax, orbitals='spd', fill=True, alpha=0.3, alpha_line=1.0, linewidth=1.5, sigma=0.05, energyaxis='y', color_list=None, legend=True, total=True, erange=[-6, 6]):
         """
         This function plots the total density of states with the projected
         density of states for the total projections of the s, p, and d orbitals.
@@ -1022,15 +1053,18 @@ class Dos:
 
         projected_data = self._sum_spd(spd=orbitals)
 
-        if color_dict is None:
-            color_dict = {
-                0: self.color_dict[0],
-                1: self.color_dict[1],
-                2: self.color_dict[2],
-                3: self.color_dict[4],
-            }
-
-        colors = np.array([color_dict[self.spd_relations[i]] for i in orbitals])
+        if color_list is None:
+            color_list = [
+                self.color_dict[0],
+                self.color_dict[1],
+                self.color_dict[2],
+                self.color_dict[4]
+            ]
+            colors = np.array(
+                [color_list[i] for i in range(len(orbitals))]
+            )
+        else:
+            colors = color_list
 
         self._plot_projected_general(
             ax=ax,
@@ -1701,8 +1735,15 @@ class Dos:
 
 
 if __name__ == '__main__':
-    dos = Dos(folder='../../vaspvis_data/slabdos')
+    dos = Dos(folder='../../vaspvis_data/dos_InAs')
     #  dos._sum_layers(layers=[0,1,2,3])
     fig, ax = plt.subplots(figsize=(4,3), dpi=100)
-    dos.plot_ldos(ax=ax, layers=range(10), erange=[-2,2], fill=False)
+    dos.plot_spd(
+        ax=ax,
+        erange=[-6,6],
+        fill=True,
+        total=False,
+        energyaxis='x',
+        #  color_list=['red', 'red', 'green'],
+    )
     plt.show()

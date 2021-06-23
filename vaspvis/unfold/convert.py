@@ -1,4 +1,3 @@
-import pymatgen as mg
 import argparse
 import numpy as np
 import os
@@ -110,11 +109,11 @@ def ext_gcd(a, b):
 
 def convert(bulk, slab, index, output, generate=True, print_M=True):
     if type(bulk) == str:
-        primitiveCell = mg.Structure.from_file(bulk)
+        primitiveCell = Structure.from_file(bulk)
     else:
         primitiveCell = bulk
     if type(slab) == str:
-        refSlab = mg.Structure.from_file(slab)
+        refSlab = Structure.from_file(slab)
     else:
         refSlab = slab
 
