@@ -88,7 +88,6 @@ class Band:
         self.new_n = new_n
         self.bandgap = bandgap
         self.printbg = printbg
-        self.bg = None
         self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
         self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2]) + shift_efermi
         self.poscar = Poscar.from_file(
@@ -189,28 +188,22 @@ class Band:
             'd': 2,
             'f': 3,
         }
+        if self.bandgap:
+            self.bg = self._get_bandgap()
+        else:
+            self.bg = None
 
 
         if projected:
             self.pre_loaded_projections = os.path.isfile(os.path.join(folder, 'projected_eigenvalues.npy'))
             self.projected_eigenvalues = self._load_projected_bands()
 
-    def _get_bandgap(self, eigenvalues):
-        if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
-            occupied = eigenvalues[np.where(eigenvalues[:,:,-1] > 1e-8)]
-            unoccupied = eigenvalues[np.where(eigenvalues[:,:,-1] < 1e-8)]
-
-            vbm = np.max(occupied[:,0])
-            cbm = np.min(unoccupied[:,0])
-
-            bg = cbm - vbm
-        else:
-            bg = 0
-
-        if self.printbg:
-            print(f'Bandgap = {np.round(bg, 3)} eV')
-
-        self.bg = bg
+    def _get_bandgap(self):
+        from vaspvis.utils import get_bandgap
+        self.bg = get_bandgap(
+            folder=self.folder,
+            printbg=self.printbg,
+        )
 
     def _check_f_orb(self):
         f_elements = [
@@ -269,18 +262,9 @@ class Band:
             if self.ispin and not self.lsorbit:
                 eigenvalues = band_data[:,:,[0,2]]
                 kpoints = band_data[0,:,4:]
-                if self.bandgap:
-                    eigenvalues_up = band_data[:,:,[0,1]]
-                    eigenvalues_down = band_data[:,:,[2,3]]
-                    eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
             else:
                 eigenvalues = band_data[:,:,0]
                 kpoints = band_data[0,:,2:]
-                if self.bandgap:
-                    eigenvalues_bg = band_data[:,:,[0,1]]
-            
-            if self.bandgap:
-                self._get_bandgap(eigenvalues=eigenvalues_bg)
         else:
             if len(self.eigenval.eigenvalues.keys()) > 1:
                 eigenvalues_up = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
@@ -291,13 +275,9 @@ class Band:
                     [eigenvalues_up, eigenvalues_down],
                     axis=2
                 )
-                if self.bandgap:
-                    eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
             else:
                 eigenvalues = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
                 eigenvalues[:,:,0] = eigenvalues[:,:,0] - self.efermi
-                if self.bandgap:
-                    eigenvalues_bg = eigenvalues
 
             kpoints = np.array(self.eigenval.kpoints)
 
@@ -305,12 +285,7 @@ class Band:
                 kpoint_weights = np.array(self.eigenval.kpoints_weights)
                 zero_weight = np.where(kpoint_weights == 0)[0]
                 eigenvalues = eigenvalues[:,zero_weight]
-                if self.bandgap:
-                    eigenvalues_bg = eigenvalues_bg[:, zero_weight]
                 kpoints = kpoints[zero_weight]
-
-            if self.bandgap:
-                self._get_bandgap(eigenvalues=eigenvalues_bg)
 
             band_data = np.append(
                 eigenvalues,
@@ -1768,11 +1743,11 @@ class Band:
 
 if __name__ == "__main__":
     pass
-    #  M = [
-        #  [0,1,-1],
-        #  [1,-1,0],
-        #  [-14,-14,-14]
-    #  ]
+    M = [
+        [0,1,-1],
+        [1,-1,0],
+        [-14,-14,-14]
+    ]
 #
     #  high_symm_points = [
         #  [2/3, 1/3, 1/3],
@@ -1780,24 +1755,21 @@ if __name__ == "__main__":
         #  [2/3, 1/3, 1/3],
     #  ]
 #
-    #  #  high_symm_points = [
-        #  #  [0.1, 0.1, 0],
-        #  #  [0.0, 0.0, 0],
-        #  #  [0.1, 0.1, 0],
-    #  #  ]
-#
-    #  band = Band(
-        #  folder="../../vaspvis_data/bandMGM",
-        #  projected=False,
-        #  unfold=True,
-        #  kpath='AGA',
-        #  high_symm_points=high_symm_points,
-        #  n=40,
-        #  M=M,
-    #  )
-    #  fig, ax = plt.subplots(figsize=(3,4), dpi=300)
+    high_symm_points = [
+        [0.1, 0.1, 0],
+        [0.0, 0.0, 0],
+        [0.1, 0.1, 0],
+    ]
+
+    band = Band(
+        folder="/home/derek/for_James/band",
+        projected=False,
+    )
+    band.eigenvalues
+    fig, ax = plt.subplots(figsize=(3,4), dpi=300)
     #  start = time.time()
-    #  #  band.plot_plain(ax=ax, color=[(0.9,0.9,0.9)])
+    band.plot_plain(ax=ax, color=[(0.9,0.9,0.9)])
+    band._get_bandgap()
     #  #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
     #  #  band.plot_orbitals(ax=ax, scale_factor=35, orbitals=range(8), display_order=None)
     #  band.plot_plain(

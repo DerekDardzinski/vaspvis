@@ -119,7 +119,13 @@ def generate_kpoints(M, high_symmetry_points, n, output='KPOINTS'):
     save2VaspKPOINTS(reducedK, output)
 
 
-def get_bandgap(folder, printbg=True, return_vbm_cbm=False, spin='both'):
+def get_bandgap(
+    folder,
+    printbg=True,
+    return_vbm_cbm=False,
+    spin='both',
+    method=0,
+):
     """
     Determines the band gap from a band structure calculation
 
@@ -130,12 +136,15 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False, spin='both'):
         spin (str): 'both' returns the bandgap for all spins, 'up' returns the 
             bandgap for only the spin up states and 'down' returns the bandgap
             for only the spin down states.
+        method (int): method=0 gets the band gap by finding the values closest to
+            the fermi level. method=1 gets the band gap based on the average energy
+            of each band.
 
     Returns:
         if return_vbm_cbm is False: The band gap is returned in eV
         if return_vbm_cbm is True: The band gap, vbm, and cbm are returned in eV in that order
     """
-    def _get_bandgap(eigenvalues, printbg=printbg):
+    def _get_bandgap_0(eigenvalues, printbg=printbg):
 
         occupied = eigenvalues[np.where(eigenvalues[:,:,0] < 0)]
         unoccupied = eigenvalues[np.where(eigenvalues[:,:,0] > 0)]
@@ -158,6 +167,49 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False, spin='both'):
             return bg, vbm, cbm
         else:
             return bg
+
+    def _get_bandgap_1(eigenvalues, printbg=printbg):
+        band_mean = eigenvalues[:,:,0].mean(axis=1)
+
+        below_index = np.where(band_mean < 0)[0]
+        above_index = np.where(band_mean >= 0)[0]
+
+        vbm = np.max(eigenvalues[below_index, :, 0])
+        cbm = np.min(eigenvalues[above_index, :, 0])
+
+        fig, ax = plt.subplots(figsize=(4,3), dpi=400)
+        for i in below_index:
+            ax.plot(
+                range(len(eigenvalues[i,:,0])),
+                eigenvalues[i,:,0],
+                color='red',
+            )
+        for i in above_index:
+            ax.plot(
+                range(len(eigenvalues[i,:,0])),
+                eigenvalues[i,:,0],
+                color='blue',
+            )
+        ax.set_ylim(-0.5, 0.5)
+        #  plt.show()
+
+        if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
+            bg = cbm - vbm
+        else:
+            bg = 0
+
+        if printbg:
+            print(f'Bandgap = {np.round(bg, 3)} eV')
+            if return_vbm_cbm:
+                print(f'VBM = {np.round(vbm, 3)} eV')
+                print(f'CBM = {np.round(cbm, 3)} eV')
+
+        if return_vbm_cbm:
+            return bg, vbm, cbm
+        else:
+            return bg
+        
+
 
     pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
     eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
@@ -209,7 +261,11 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False, spin='both'):
             kpoints = band_data[0,:,2:]
             eigenvalues_bg = band_data[:,:,[0,1]]
         
-        band_gap = _get_bandgap(eigenvalues=eigenvalues_bg)
+        if method == 0:
+            band_gap = _get_bandgap_0(eigenvalues=eigenvalues_bg)
+        elif method == 1:
+            band_gap = _get_bandgap_1(eigenvalues=eigenvalues_bg)
+
     else:
         if len(eigenval.eigenvalues.keys()) > 1:
             eigenvalues_up = np.transpose(eigenval.eigenvalues[Spin.up], axes=(1,0,2))
@@ -240,7 +296,10 @@ def get_bandgap(folder, printbg=True, return_vbm_cbm=False, spin='both'):
             eigenvalues_bg = eigenvalues_bg[:, zero_weight]
             kpoints = kpoints[zero_weight]
 
-        band_gap = _get_bandgap(eigenvalues=eigenvalues_bg)
+        if method == 0:
+            band_gap = _get_bandgap_0(eigenvalues=eigenvalues_bg)
+        elif method == 1:
+            band_gap = _get_bandgap_1(eigenvalues=eigenvalues_bg)
 
         band_data = np.append(
             eigenvalues,
@@ -776,15 +835,6 @@ if __name__ == "__main__":
         #  slab_folder='../../vaspvis_data/slabdos',
         #  atoms=[17,50],
     #  )
-    slab = generate_slab(
-        bulk='../../../../projects/OgreInterface/core/poscars/POSCAR_InAs_conv',
-        miller_index=[1,1,1],
-        layers=45,
-        #  vacuum=0.87442,
-        vacuum=20,
-        passivate=False,
-        periodic_vacuum=False,
-    )
     #  slab = passivator(
         #  struc=Poscar.from_file('./POSCAR_0').structure,
         #  write_file=True,
@@ -813,9 +863,18 @@ if __name__ == "__main__":
         #  vacuum=40,
         #  write_file=True
     #  )
-    #  bg = get_bandgap(
-        #  folder='../../vaspvis_data/Fe',
-        #  return_vbm_cbm=True,
-        #  printbg=False,
-    #  )
+    bg = get_bandgap(
+        folder='/home/derek/for_James/band/',
+        return_vbm_cbm=True,
+        printbg=True,
+        method=0,
+        spin='up',
+    )
+    bg = get_bandgap(
+        folder='/home/derek/for_James/band/',
+        return_vbm_cbm=True,
+        printbg=True,
+        method=0,
+        spin='down',
+    )
     #  print(bg)

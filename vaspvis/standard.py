@@ -8758,13 +8758,72 @@ def _main():
         #  output='soc_up.png',
         #  sigma=0,
     #  )
-    band_spd(
-        folder='../../vaspvis_data/AGL_band',
-        #  folder='../../vaspvis_data/band_InAs',
-        interpolate=False,
-        erange=[-0.8,0.3],
-        scale_factor=100,
+    fig, ax = band_plain_spin_polarized(
+        folder='/home/derek/for_James/band',
+        #  erange=[-0.5, 0.5],
+        erange=[-2, 2],
+        down_linestyle='-',
+        figsize=(4,3),
+        save=False,
     )
+    from utils import get_bandgap
+    bg_up, vbm_up, cbm_up = get_bandgap(
+        folder='/home/derek/for_James/band',
+        spin='up',
+        method=1,
+        return_vbm_cbm=True,
+    )
+    bg_down, vbm_down, cbm_down = get_bandgap(
+        folder='/home/derek/for_James/band',
+        spin='down',
+        method=1,
+        return_vbm_cbm=True,
+    )
+    ax.axhspan(
+        vbm_up,
+        cbm_up,
+        facecolor='red',
+        alpha=0.2,
+    )
+    ax.axhspan(
+        vbm_down,
+        cbm_down,
+        facecolor='blue',
+        alpha=0.2,
+    )
+    #  ax.axhline(
+        #  y=vbm_up,
+        #  color='red',
+        #  linestyle=':',
+    #  )
+    #  ax.axhline(
+        #  y=cbm_up,
+        #  color='red',
+        #  linestyle=':',
+    #  )
+    #  ax.axhline(
+        #  y=vbm_down,
+        #  color='blue',
+        #  linestyle=':',
+    #  )
+    #  ax.axhline(
+        #  y=cbm_down,
+        #  color='blue',
+        #  linestyle=':',
+    #  )
+    #  fig.tight_layout(pad=0.4)
+    fig.savefig('band_plain_spin_polarized.png')
+    #  band_plain(
+        #  folder='/home/derek/for_James/band',
+        #  spin='down',
+        #  output='down.png'
+    #  )
+    #  band_spd(
+        #  #  folder='../../vaspvis_data/AGL_band',
+        #  folder='../../vaspvis_data/band_InAs',
+        #  interpolate=False,
+        #  erange=[-6, 6],
+    #  )
     #  band_spd(
         #  folder='../../vaspvis_data/band_InAs',
         #  orbitals='spd',
