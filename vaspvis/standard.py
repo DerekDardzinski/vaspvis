@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
@@ -8741,135 +8741,15 @@ def dos_layers(
 
 
 def _main():
-    #  band_folder = '../../vaspvis_data/InAsAl'
-    #  dos_plain_spin_polarized(
-        #  folder='../../vaspvis_data/Fe-sp/dos/',
-        #  output='sp.png',
-        #  sigma=0,
+    #  band_plain_spin_polarized(
+        #  folder='../../vaspvis_data/band_Cr2O3',
+        #  figsize=(7,3),
+        #  #  interpolate=True
     #  )
-    #  dos_plain_spin_polarized(
-        #  folder='../../vaspvis_data/Fe/',
-        #  output='soc_sp.png',
-        #  sigma=0,
-        #  soc_axis='z',
-    #  )
-    #  dos_plain(
-        #  folder='../../vaspvis_data/Fe/',
-        #  output='soc_up.png',
-        #  sigma=0,
-    #  )
-    fig, ax = band_plain_spin_polarized(
-        folder='/home/derek/for_James/band',
-        #  erange=[-0.5, 0.5],
-        erange=[-2, 2],
-        down_linestyle='-',
-        figsize=(4,3),
-        save=False,
+    band_plain(
+        folder='../../vaspvis_data/band_KGXWLGK',
+        #  interpolate=True,
     )
-    from utils import get_bandgap
-    bg_up, vbm_up, cbm_up = get_bandgap(
-        folder='/home/derek/for_James/band',
-        spin='up',
-        method=1,
-        return_vbm_cbm=True,
-    )
-    bg_down, vbm_down, cbm_down = get_bandgap(
-        folder='/home/derek/for_James/band',
-        spin='down',
-        method=1,
-        return_vbm_cbm=True,
-    )
-    ax.axhspan(
-        vbm_up,
-        cbm_up,
-        facecolor='red',
-        alpha=0.2,
-    )
-    ax.axhspan(
-        vbm_down,
-        cbm_down,
-        facecolor='blue',
-        alpha=0.2,
-    )
-    #  ax.axhline(
-        #  y=vbm_up,
-        #  color='red',
-        #  linestyle=':',
-    #  )
-    #  ax.axhline(
-        #  y=cbm_up,
-        #  color='red',
-        #  linestyle=':',
-    #  )
-    #  ax.axhline(
-        #  y=vbm_down,
-        #  color='blue',
-        #  linestyle=':',
-    #  )
-    #  ax.axhline(
-        #  y=cbm_down,
-        #  color='blue',
-        #  linestyle=':',
-    #  )
-    #  fig.tight_layout(pad=0.4)
-    fig.savefig('band_plain_spin_polarized.png')
-    #  band_plain(
-        #  folder='/home/derek/for_James/band',
-        #  spin='down',
-        #  output='down.png'
-    #  )
-    #  band_spd(
-        #  #  folder='../../vaspvis_data/AGL_band',
-        #  folder='../../vaspvis_data/band_InAs',
-        #  interpolate=False,
-        #  erange=[-6, 6],
-    #  )
-    #  band_spd(
-        #  folder='../../vaspvis_data/band_InAs',
-        #  orbitals='spd',
-        #  scale_factor=0.01,
-        #  #  display_order='dominant',
-        #  new_n=300,
-        #  #  interpolate=False,
-        #  output='band_spd_interp.png'
-        #  #  heatmap=True,
-        #  #  orbitals=range(8),
-    #  )
-
-    #  import os
-    #  from vaspvis.utils import convert_slab
-    #  def get_M(folder):
-        #  M = convert_slab(
-            #  bulk_path='/home/derek/Python_Sample/brett_sp/POSCAR_bulk',
-            #  slab_path=os.path.join(folder, 'POSCAR'),
-            #  index=[0, 0, 1],
-            #  generate=False,
-            #  print_M=True,
-        #  )
-        #  return M
-#
-    #  folder = '/home/derek/Python_Sample/brett_sp/to_DD'
-#
-    #  high_symm_points = [
-        #  [0.000, 0.000, 0.000],  # G             #bath path in the reciprocal space to plot band structures
-        #  [0.500, 0.500, 0.500],  # L
-        #  [0.500, 0.000, 0.500],  # X
-        #  [0.000, 0.000, 0.000],  # G
-    #  ]
-#
-    #  band_spd(
-        #  folder=folder,
-        #  unfold=True,
-        #  M=get_M(folder),
-        #  kpath='GLXG',
-        #  high_symm_points=high_symm_points,
-        #  n=20,
-        #  figsize=(4, 3),
-        #  erange=[-4, 4],
-        #  scale_factor=10,
-        #  #  heatmap=True,
-        #  new_n=500,
-    #  )
 
 
 if __name__ == "__main__":
