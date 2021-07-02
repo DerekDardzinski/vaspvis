@@ -1742,7 +1742,6 @@ class Band:
 
 
 if __name__ == "__main__":
-    pass
     M = [
         [0,1,-1],
         [1,-1,0],

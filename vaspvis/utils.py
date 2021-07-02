@@ -177,22 +177,6 @@ def get_bandgap(
         vbm = np.max(eigenvalues[below_index, :, 0])
         cbm = np.min(eigenvalues[above_index, :, 0])
 
-        fig, ax = plt.subplots(figsize=(4,3), dpi=400)
-        for i in below_index:
-            ax.plot(
-                range(len(eigenvalues[i,:,0])),
-                eigenvalues[i,:,0],
-                color='red',
-            )
-        for i in above_index:
-            ax.plot(
-                range(len(eigenvalues[i,:,0])),
-                eigenvalues[i,:,0],
-                color='blue',
-            )
-        ax.set_ylim(-0.5, 0.5)
-        #  plt.show()
-
         if np.sum(np.diff(np.sign(eigenvalues[:,:,0])) != 0) == 0:
             bg = cbm - vbm
         else:
