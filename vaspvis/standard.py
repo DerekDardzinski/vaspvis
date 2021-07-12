@@ -8746,9 +8746,9 @@ def _main():
         #  figsize=(7,3),
         #  #  interpolate=True
     #  )
-    band_plain(
-        folder='../../vaspvis_data/band_KGXWLGK',
-        #  interpolate=True,
+    band_spd(
+        folder='../../vaspvis_data/band_InAs',
+        interpolate=True,
     )
 
 
