@@ -767,7 +767,6 @@ class Band:
             if i == len(high_sym_points_inds) - 1:
                 group_index.append([j])
 
-        #  index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
         kpoints_in_band = []
         for group in group_index:
             g = [self.kpoints[g] for g in group]
@@ -798,9 +797,6 @@ class Band:
                     ]).replace('$|$', '|')
                     labels.append(merged_label)
 
-        #  kpoints_index = [0] + [(i+1)*num_kpts - 1 for i in range(int((len(high_sym_points_inds) + 1) / 2))]
-        #  kpoints_index = index
-
         kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in labels]
 
         for k in kpoints_index:
@@ -812,6 +808,54 @@ class Band:
         )
 
     def _get_kticks_unfold(self, ax, wave_vectors, vlinecolor):
+        if self.custom_kpath is not None:
+            kpath = []
+            for i, b in zip(self.custom_kpath_inds, self.custom_kpath_flip):
+                if b:
+                    seg = list(reversed(self.kpath[i]))
+                else:
+                    seg = self.kpath[i]
+
+                kpath.extend(seg)
+        else:
+            kpath = []
+            for seg in self.kpath:
+                kpath.extend(seg)
+
+        kpath = [f'${k.strip()}$' if k.strip() != 'G' else '$\\Gamma$' for k in kpath]
+
+        group_kpath = []
+        for i, j in enumerate(kpath):
+            if i == 0:
+                group_kpath.append([j])
+            if i % 2 and not i == len(kpath) - 1:
+                group_kpath.append([j, kpath[i+1]])
+            if i == len(kpath) - 1:
+                group_kpath.append([j])
+
+        labels = []
+
+        for k in group_kpath:
+            if len(k) == 1:
+                labels.append(k[0])
+            else:
+                if k[0] == k[1]:
+                    labels.append(k[0])
+                else:
+                    merged_label = '|'.join([k[0], k[1]]).replace('$|$', '|')
+                    labels.append(merged_label)
+
+        kpoints_index = [0] + [(self.n * i) for i in range(1, len(labels))]
+        kpoints_index[-1] -= 1
+
+        for k in kpoints_index:
+            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
+
+        ax.set_xticks(wave_vectors[kpoints_index])
+        ax.set_xticklabels(labels)
+        #  plt.xticks(np.array(kpoints)[kpoints_index], kpath)
+
+    def _get_kticks_unfold_old(self, ax, wave_vectors, vlinecolor):
         if type(self.kpath) == str:
             kpath = [
                 f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpath.upper().strip()
@@ -820,6 +864,7 @@ class Band:
             kpath = self.kpath
 
         kpoints_index = [0] + [(self.n * i) for i in range(1, len(self.kpath))]
+        kpoints_index[-1] -= 1
 
         for k in kpoints_index:
             ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
@@ -924,7 +969,7 @@ class Band:
 
         if unfold and not hse:
             slices = [
-                slice(i*self.n, (i+1)*self.n, None) for i in range(int(len(self.kpath)-1))
+                slice(i*self.n, (i+1)*self.n, None) for i in range(int(len(self.kpath)))
             ]
 
         return slices
@@ -1146,7 +1191,14 @@ class Band:
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         wave_vector_segments = self._get_k_distance()
 
-        for i, f, wave_vectors in zip(self.custom_kpath_inds, self.custom_kpath_flip, wave_vector_segments):
+        if self.custom_kpath is not None:
+            kpath_inds = self.custom_kpath_inds
+            kpath_flip = self.custom_kpath_flip
+        else:
+            kpath_inds = range(len(slices))
+            kpath_flip = [False for _ in range(len(slices))]
+
+        for i, f, wave_vectors in zip(kpath_inds, kpath_flip, wave_vector_segments):
             if f:
                 eigenvalues = np.flip(self.eigenvalues[bands_in_plot, slices[i]], axis=1)
             else:
@@ -1176,6 +1228,8 @@ class Band:
 
             if self.unfold:
                 spectral_weights = self.spectral_weights[bands_in_plot, slices[i]]
+                if f:
+                    spectral_weights = np.flip(spectral_weights, axis=1)
                 #  spectral_weights = spectral_weights / np.max(spectral_weights)
 
                 if highlight_band:
@@ -1350,7 +1404,14 @@ class Band:
 
         wave_vector_segments = self._get_k_distance()
 
-        for i, f, wave_vectors in zip(self.custom_kpath_inds, self.custom_kpath_flip, wave_vector_segments):
+        if self.custom_kpath is not None:
+            kpath_inds = self.custom_kpath_inds
+            kpath_flip = self.custom_kpath_flip
+        else:
+            kpath_inds = range(len(slices))
+            kpath_flip = [False for _ in range(len(slices))]
+
+        for i, f, wave_vectors in zip(kpath_inds, kpath_flip, wave_vector_segments):
             projected_data_slice = projected_data[bands_in_plot, slices[i]]
             if f:
                 eigenvalues = np.flip(self.eigenvalues[bands_in_plot, slices[i]], axis=1)
@@ -1387,7 +1448,9 @@ class Band:
             if not heatmap:
                 if self.unfold:
                     spectral_weights = self.spectral_weights[bands_in_plot, slices[i]]
-                    spectral_weights = spectral_weights / np.max(spectral_weights)
+                    if f:
+                        spectral_weights = np.flip(spectral_weights, axis=1)
+                    #  spectral_weights = spectral_weights / np.max(spectral_weights)
 
                     if self.interpolate:
                         _, spectral_weights = self._get_interpolated_data_segment(
@@ -2349,14 +2412,20 @@ if __name__ == "__main__":
     ]
 
     band = Band(
-        folder="../../vaspvis_data/hse_band_LGXWLGK",
+        folder="../../vaspvis_data/bandAGA",
         projected=True,
-        interpolate=True,
-        custom_kpath=[1,2,3,4,5,6],
+        interpolate=False,
+        unfold=True,
+        M=M,
+        high_symm_points=high_symm_points,
+        n=40,
+        kpath=[['A', 'G'], ['G', 'A']],
+        custom_kpath=[1,2,2,-1],
     )
-    fig, ax = plt.subplots(figsize=(6,3), dpi=400)
-    band.plot_spd(ax=ax)
-    ax.set_ylim(-6,6)
+    fig, ax = plt.subplots(figsize=(4,3), dpi=400)
+    band.plot_spd(ax=ax, scale_factor=100)
+    ax.set_ylim(-2,2)
+    fig.tight_layout()
     fig.savefig('test.png')
     #  band._get_bandgap()
     #  #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
