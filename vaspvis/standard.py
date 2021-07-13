@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from vaspvis.band import Band
+from band import Band
 from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
@@ -98,6 +98,7 @@ def band_plain(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -133,11 +134,18 @@ def band_plain(
         linestyle (str): Line style of the bands
         figsize (list / tuple): Desired size of the image in inches (width, height)
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -171,6 +179,7 @@ def band_plain(
 	interpolate=interpolate,
 	new_n=new_n, 
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -259,6 +268,7 @@ def band_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -301,11 +311,18 @@ def band_spd(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -333,6 +350,7 @@ def band_spd(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -421,6 +439,7 @@ def band_atom_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -463,11 +482,18 @@ def band_atom_orbitals(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -495,6 +521,7 @@ def band_atom_orbitals(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -583,6 +610,7 @@ def band_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -641,11 +669,18 @@ def band_orbitals(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -673,6 +708,7 @@ def band_orbitals(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -761,6 +797,7 @@ def band_atoms(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -802,11 +839,18 @@ def band_atoms(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -833,6 +877,7 @@ def band_atoms(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -920,6 +965,7 @@ def band_atom_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -962,11 +1008,18 @@ def band_atom_spd(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -994,6 +1047,7 @@ def band_atom_spd(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -1082,6 +1136,7 @@ def band_elements(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -1122,11 +1177,18 @@ def band_elements(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -1154,6 +1216,7 @@ def band_elements(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -1242,6 +1305,7 @@ def band_element_orbitals(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -1284,11 +1348,18 @@ def band_element_orbitals(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -1316,6 +1387,7 @@ def band_element_orbitals(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -1404,6 +1476,7 @@ def band_element_spd(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -1446,11 +1519,18 @@ def band_element_spd(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -1478,6 +1558,7 @@ def band_element_spd(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -1564,6 +1645,7 @@ def band_plain_spin_polarized(
     figsize=(4, 3),
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -1602,11 +1684,18 @@ def band_plain_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -1633,6 +1722,7 @@ def band_plain_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -1645,6 +1735,7 @@ def band_plain_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -1880,6 +1971,7 @@ def band_spd_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -1919,11 +2011,18 @@ def band_spd_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -1951,6 +2050,7 @@ def band_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -1965,6 +2065,7 @@ def band_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2067,6 +2168,7 @@ def band_atom_orbitals_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -2106,11 +2208,18 @@ def band_atom_orbitals_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -2138,6 +2247,7 @@ def band_atom_orbitals_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2152,6 +2262,7 @@ def band_atom_orbitals_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2250,6 +2361,7 @@ def band_orbitals_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -2306,11 +2418,18 @@ def band_orbitals_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -2338,6 +2457,7 @@ def band_orbitals_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2352,6 +2472,7 @@ def band_orbitals_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2447,6 +2568,7 @@ def band_atoms_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -2486,11 +2608,18 @@ def band_atoms_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -2518,6 +2647,7 @@ def band_atoms_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2532,6 +2662,7 @@ def band_atoms_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2631,6 +2762,7 @@ def band_atom_spd_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -2670,11 +2802,18 @@ def band_atom_spd_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -2702,6 +2841,7 @@ def band_atom_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2716,6 +2856,7 @@ def band_atom_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2814,6 +2955,7 @@ def band_elements_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -2852,11 +2994,18 @@ def band_elements_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -2884,6 +3033,7 @@ def band_elements_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2898,6 +3048,7 @@ def band_elements_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -2997,6 +3148,7 @@ def band_element_orbital_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -3036,11 +3188,18 @@ def band_element_orbital_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -3068,6 +3227,7 @@ def band_element_orbital_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -3082,6 +3242,7 @@ def band_element_orbital_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -3184,6 +3345,7 @@ def band_element_spd_spin_polarized(
     erange=[-6, 6],
     stack='vertical',
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -3223,11 +3385,18 @@ def band_element_spd_spin_polarized(
         band_color (string): Color of the plain band structure.
         figsize (list / tuple): Desired size of the image in inches. (width, height)
         erange (list / tuple): Range of energy to show in the plot. [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -3255,6 +3424,7 @@ def band_element_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -3269,6 +3439,7 @@ def band_element_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -5024,6 +5195,7 @@ def band_dos_plain(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -5051,11 +5223,18 @@ def band_dos_plain(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -5094,6 +5273,7 @@ def band_dos_plain(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -5148,6 +5328,7 @@ def band_dos_spd(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -5188,11 +5369,18 @@ def band_dos_spd(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -5238,6 +5426,7 @@ def band_dos_spd(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -5299,6 +5488,7 @@ def band_dos_atom_orbitals(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -5339,11 +5529,18 @@ def band_dos_atom_orbitals(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -5389,6 +5586,7 @@ def band_dos_atom_orbitals(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -5450,6 +5648,7 @@ def band_dos_orbitals(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -5506,11 +5705,18 @@ def band_dos_orbitals(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -5556,6 +5762,7 @@ def band_dos_orbitals(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -5617,6 +5824,7 @@ def band_dos_atoms(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -5656,11 +5864,18 @@ def band_dos_atoms(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -5706,6 +5921,7 @@ def band_dos_atoms(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -5766,6 +5982,7 @@ def band_dos_atom_spd(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -5806,11 +6023,18 @@ def band_dos_atom_spd(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -5856,6 +6080,7 @@ def band_dos_atom_spd(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -5916,6 +6141,7 @@ def band_dos_elements(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -5954,11 +6180,18 @@ def band_dos_elements(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -6004,6 +6237,7 @@ def band_dos_elements(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6065,6 +6299,7 @@ def band_dos_element_spd(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -6105,11 +6340,18 @@ def band_dos_element_spd(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -6155,6 +6397,7 @@ def band_dos_element_spd(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6216,6 +6459,7 @@ def band_dos_element_orbitals(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -6256,11 +6500,18 @@ def band_dos_element_orbitals(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -6306,6 +6557,7 @@ def band_dos_element_orbitals(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6365,6 +6617,7 @@ def band_dos_plain_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     unfold=False,
     M=None,
@@ -6393,11 +6646,18 @@ def band_dos_plain_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -6436,6 +6696,7 @@ def band_dos_plain_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6449,6 +6710,7 @@ def band_dos_plain_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6524,6 +6786,7 @@ def band_dos_spd_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -6567,11 +6830,18 @@ def band_dos_spd_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -6620,6 +6890,7 @@ def band_dos_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6634,6 +6905,7 @@ def band_dos_spd_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6790,6 +7062,7 @@ def band_dos_atom_orbitals_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     display_order=None,
     unfold=False,
@@ -6835,11 +7108,18 @@ def band_dos_atom_orbitals_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -6888,6 +7168,7 @@ def band_dos_atom_orbitals_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -6902,6 +7183,7 @@ def band_dos_atom_orbitals_spin_polarized(
 	interpolate=interpolate,
 	new_n=new_n,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
@@ -7058,6 +7340,7 @@ def band_dos_orbitals_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
@@ -7114,11 +7397,18 @@ def band_dos_orbitals_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -7163,6 +7453,7 @@ def band_dos_orbitals_spin_polarized(
         spin='up',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -7171,6 +7462,7 @@ def band_dos_orbitals_spin_polarized(
         spin='down',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -7319,6 +7611,7 @@ def band_dos_atoms_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
@@ -7358,11 +7651,18 @@ def band_dos_atoms_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -7407,6 +7707,7 @@ def band_dos_atoms_spin_polarized(
         spin='up',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -7415,6 +7716,7 @@ def band_dos_atoms_spin_polarized(
         spin='down',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -7562,6 +7864,7 @@ def band_dos_atom_spd_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
@@ -7602,11 +7905,18 @@ def band_dos_atom_spd_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -7651,6 +7961,7 @@ def band_dos_atom_spd_spin_polarized(
         spin='up',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -7659,6 +7970,7 @@ def band_dos_atom_spd_spin_polarized(
         spin='down',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -7807,6 +8119,7 @@ def band_dos_elements_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
@@ -7845,11 +8158,18 @@ def band_dos_elements_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -7894,6 +8214,7 @@ def band_dos_elements_spin_polarized(
         spin='up',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -7902,6 +8223,7 @@ def band_dos_elements_spin_polarized(
         spin='down',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -8050,6 +8372,7 @@ def band_dos_element_orbitals_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
@@ -8090,11 +8413,18 @@ def band_dos_element_orbitals_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -8139,6 +8469,7 @@ def band_dos_element_orbitals_spin_polarized(
         spin='up',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -8147,6 +8478,7 @@ def band_dos_element_orbitals_spin_polarized(
         spin='down',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -8295,6 +8627,7 @@ def band_dos_element_spd_spin_polarized(
     width_ratios=[7, 3],
     erange=[-6, 6],
     kpath=None,
+    custom_kpath=None,
     n=None,
     fontsize=8,
     annotations=['$\\uparrow$ ', '$\\downarrow$ '],
@@ -8335,11 +8668,18 @@ def band_dos_element_spd_spin_polarized(
         figsize (list / tuple): Desired size of the image in inches (width, height)
         width_ratios (list / tuple): Width ration of the band plot and dos plot. 
         erange (list / tuple): Range of energy to show in the plot [low, high]
-        kpath (str): High symmetry k-point path of band structure calculation
+        kpath (list[list]): High symmetry k-point path of band structure calculation
             Due to the nature of the KPOINTS file for unfolded calculations this
             information is a required input for proper labeling of the figure
             for unfolded calculations. This information is extracted from the KPOINTS
-            files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
+            files for non-unfolded calculations. (G is automatically converted to \\Gamma)
+	    (e.g. For the path X-G-X, kpath=[['X', 'G'], ['G', 'X']])
+	custom_kpath (list): This gives the option to only plot specific segments of a given band structure
+	    calculation. For example if the kpath was G-X-W-L then there are three segements to choose from:
+	    G-X, X-W, and W-L. In this case the default kpath could be plotted by defining custom_kpath=[1,2,3],
+	    where 1 -> G-X, 2 -> X-W, and 3 -> W-L. If only G-X and X-W were desired then custom_kpath=[1,2].
+	    If one of the segements should be flipped it can be done by making its value negative
+	    (e.g. -1 -> X-G, -2 -> W-X, -3 -> L-W)
         n (int): Number of points between each high symmetry points.
             This is also only required for unfolded calculations and band unfolding. This number should be 
             known by the user, as it was used to generate the KPOINTS file.
@@ -8384,6 +8724,7 @@ def band_dos_element_spd_spin_polarized(
         spin='up',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -8392,6 +8733,7 @@ def band_dos_element_spd_spin_polarized(
         spin='down',
         projected=True,
         kpath=kpath,
+	custom_kpath=custom_kpath,
         n=n,
     )
 
@@ -8741,135 +9083,18 @@ def dos_layers(
 
 
 def _main():
-    #  band_folder = '../../vaspvis_data/InAsAl'
-    #  dos_plain_spin_polarized(
-        #  folder='../../vaspvis_data/Fe-sp/dos/',
-        #  output='sp.png',
-        #  sigma=0,
+    #  band_plain_spin_polarized(
+        #  folder='../../vaspvis_data/band_Cr2O3',
+        #  figsize=(7,3),
+        #  #  interpolate=True
     #  )
-    #  dos_plain_spin_polarized(
-        #  folder='../../vaspvis_data/Fe/',
-        #  output='soc_sp.png',
-        #  sigma=0,
-        #  soc_axis='z',
-    #  )
-    #  dos_plain(
-        #  folder='../../vaspvis_data/Fe/',
-        #  output='soc_up.png',
-        #  sigma=0,
-    #  )
-    fig, ax = band_plain_spin_polarized(
-        folder='/home/derek/for_James/band',
-        #  erange=[-0.5, 0.5],
-        erange=[-2, 2],
-        down_linestyle='-',
-        figsize=(4,3),
-        save=False,
+    band_spd(
+        folder='../../vaspvis_data/band_Cr2O3',
+        interpolate=False,
+        orbitals='s',
+        erange=[0,10],
+        custom_kpath=[1,2,3]
     )
-    from utils import get_bandgap
-    bg_up, vbm_up, cbm_up = get_bandgap(
-        folder='/home/derek/for_James/band',
-        spin='up',
-        method=1,
-        return_vbm_cbm=True,
-    )
-    bg_down, vbm_down, cbm_down = get_bandgap(
-        folder='/home/derek/for_James/band',
-        spin='down',
-        method=1,
-        return_vbm_cbm=True,
-    )
-    ax.axhspan(
-        vbm_up,
-        cbm_up,
-        facecolor='red',
-        alpha=0.2,
-    )
-    ax.axhspan(
-        vbm_down,
-        cbm_down,
-        facecolor='blue',
-        alpha=0.2,
-    )
-    #  ax.axhline(
-        #  y=vbm_up,
-        #  color='red',
-        #  linestyle=':',
-    #  )
-    #  ax.axhline(
-        #  y=cbm_up,
-        #  color='red',
-        #  linestyle=':',
-    #  )
-    #  ax.axhline(
-        #  y=vbm_down,
-        #  color='blue',
-        #  linestyle=':',
-    #  )
-    #  ax.axhline(
-        #  y=cbm_down,
-        #  color='blue',
-        #  linestyle=':',
-    #  )
-    #  fig.tight_layout(pad=0.4)
-    fig.savefig('band_plain_spin_polarized.png')
-    #  band_plain(
-        #  folder='/home/derek/for_James/band',
-        #  spin='down',
-        #  output='down.png'
-    #  )
-    #  band_spd(
-        #  #  folder='../../vaspvis_data/AGL_band',
-        #  folder='../../vaspvis_data/band_InAs',
-        #  interpolate=False,
-        #  erange=[-6, 6],
-    #  )
-    #  band_spd(
-        #  folder='../../vaspvis_data/band_InAs',
-        #  orbitals='spd',
-        #  scale_factor=0.01,
-        #  #  display_order='dominant',
-        #  new_n=300,
-        #  #  interpolate=False,
-        #  output='band_spd_interp.png'
-        #  #  heatmap=True,
-        #  #  orbitals=range(8),
-    #  )
-
-    #  import os
-    #  from vaspvis.utils import convert_slab
-    #  def get_M(folder):
-        #  M = convert_slab(
-            #  bulk_path='/home/derek/Python_Sample/brett_sp/POSCAR_bulk',
-            #  slab_path=os.path.join(folder, 'POSCAR'),
-            #  index=[0, 0, 1],
-            #  generate=False,
-            #  print_M=True,
-        #  )
-        #  return M
-#
-    #  folder = '/home/derek/Python_Sample/brett_sp/to_DD'
-#
-    #  high_symm_points = [
-        #  [0.000, 0.000, 0.000],  # G             #bath path in the reciprocal space to plot band structures
-        #  [0.500, 0.500, 0.500],  # L
-        #  [0.500, 0.000, 0.500],  # X
-        #  [0.000, 0.000, 0.000],  # G
-    #  ]
-#
-    #  band_spd(
-        #  folder=folder,
-        #  unfold=True,
-        #  M=get_M(folder),
-        #  kpath='GLXG',
-        #  high_symm_points=high_symm_points,
-        #  n=20,
-        #  figsize=(4, 3),
-        #  erange=[-4, 4],
-        #  scale_factor=10,
-        #  #  heatmap=True,
-        #  new_n=500,
-    #  )
 
 
 if __name__ == "__main__":
