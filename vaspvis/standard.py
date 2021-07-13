@@ -4,7 +4,7 @@ such as band structures and density of states put together, and spin
 projected plots. 
 """
 
-from band import Band
+from vaspvis.band import Band
 from vaspvis.dos import Dos
 from vaspvis.utils import get_bandgap
 import matplotlib.pyplot as plt
@@ -9089,11 +9089,9 @@ def _main():
         #  #  interpolate=True
     #  )
     band_spd(
-        folder='../../vaspvis_data/band_Cr2O3',
+        folder='../../vaspvis_data/band_InAs',
         interpolate=False,
-        orbitals='s',
-        erange=[0,10],
-        custom_kpath=[1,2,3]
+        custom_kpath=[1,2,3,4,5,-5,-4,-3,-2,-1]
     )
 
 
