@@ -747,7 +747,7 @@ class Band:
 
                 high_sym_points_inds.extend(seg)
         else:
-            high_sym_points_inds = list(np.concatenate(index))
+            high_sym_points_inds = list(np.concatenate(segements))
 
         full_segments = []
         for i in range(0, len(high_sym_points_inds) - 1):
