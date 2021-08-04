@@ -8902,6 +8902,8 @@ def dos_layers(
     vbm_linestyle=':',
     cbm_linestyle=':',
     cbar_orientation='vertical',
+    show_bounds=False,
+    set_bounds=None,
 ):
     """
     This function is used to plot a layer by layer density of states heat map for slab structures. It is useful for
@@ -9033,6 +9035,8 @@ def dos_layers(
         custom_cbar_label=custom_cbar_label,
         custom_layer_inds=custom_layer_inds,
         cbar_orientation=cbar_orientation,
+        show_bounds=show_bounds,
+        set_bounds=set_bounds,
     )
 
     if plot_vbm_cbm:
