@@ -1431,7 +1431,7 @@ class Band:
                 projected_data_slice = np.c_[
                     [np.sum(projected_data_slice[...,u], axis=2) for u in unique_inds]
                 ].transpose((1,2,0))
-                colors = unique_colors
+                plot_colors = unique_colors
 
             wave_vectors_old = wave_vectors
 
@@ -1460,14 +1460,14 @@ class Band:
                             kind='linear',
                         )
 
-                    spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
+                    spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data_slice.shape[-1])
 
                 projected_data_ravel = np.ravel(projected_data_slice)
                 wave_vectors_tile = np.tile(
                     np.repeat(wave_vectors, projected_data_slice.shape[-1]), projected_data_slice.shape[0]
                 )
                 eigenvalues_tile = np.repeat(np.ravel(eigenvalues), projected_data_slice.shape[-1])
-                colors_tile = np.tile(colors, np.prod(projected_data_slice.shape[:-1]))
+                colors_tile = np.tile(plot_colors, np.prod(projected_data_slice.shape[:-1]))
 
                 if display_order is None:
                     pass

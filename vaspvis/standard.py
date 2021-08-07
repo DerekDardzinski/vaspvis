@@ -8904,6 +8904,7 @@ def dos_layers(
     cbar_orientation='vertical',
     show_bounds=False,
     set_bounds=None,
+    sp_method='percentage',
 ):
     """
     This function is used to plot a layer by layer density of states heat map for slab structures. It is useful for
@@ -9011,7 +9012,14 @@ def dos_layers(
         
     _figure_setup_layer_dos(ax=dos_ax, fontsize=fontsize, energyaxis=energyaxis)
 
-    dos = Dos(shift_efermi=shift_efermi, folder=folder, spin=spin, soc_axis=soc_axis, combination_method=combination_method)
+    dos = Dos(
+        shift_efermi=shift_efermi,
+        folder=folder,
+        spin=spin,
+        soc_axis=soc_axis,
+        combination_method=combination_method,
+        sp_method=sp_method,
+    )
     dos.plot_layers(
         ax=dos_ax,
         sigma_layers=sigma_layers,
