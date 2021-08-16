@@ -426,14 +426,10 @@ class Dos:
                 pdos = pdos_up + pdos_down
             if self.combination_method == 'sub':
                 if self.sp_method == 'percentage':
-                    pdos = (pdos_up - pdos_down) / (pdos_up + pdos_down)
+                    pdos = np.array([pdos_up, pdos_down])
+                    #  pdos = (pdos_up - pdos_down) / (pdos_up + pdos_down)
                 elif self.sp_method == 'absolute':
                     pdos = pdos_up - pdos_down
-
-        #  tdos = self.tdos_array[:,-1]
-        #  summed_pdos = np.sum(np.sum(pdos, axis=1), axis=1)
-        #  scale_factor = np.nan_to_num(np.divide(tdos, summed_pdos))
-        #  pdos = np.multiply(pdos, scale_factor[:,None,None])
 
         return pdos
 
@@ -460,15 +456,37 @@ class Dos:
             spd_indices[2][4:9] = True
             spd_indices[3][9:] = True
 
-        orbital_contributions = np.sum(self.pdos_array, axis=1)
 
-        spd_contributions = np.transpose(
-            np.array([
-                np.sum(orbital_contributions[:,ind], axis=1) for ind in spd_indices
-            ]), axes=[1,0]
-        )
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            orbital_contributions_up = np.sum(self.pdos_array[0], axis=1)
+            orbital_contributions_down = np.sum(self.pdos_array[1], axis=1)
 
-        spd_contributions = spd_contributions[:,[self.spd_relations[orb] for orb in spd]]
+            spd_contributions_up = np.transpose(
+                np.array([
+                    np.sum(orbital_contributions_up[:,ind], axis=1) for ind in spd_indices
+                ]), axes=[1,0]
+            )
+            spd_contributions_down = np.transpose(
+                np.array([
+                    np.sum(orbital_contributions_down[:,ind], axis=1) for ind in spd_indices
+                ]), axes=[1,0]
+            )
+
+            spd_contributions_up = spd_contributions_up[:,[self.spd_relations[orb] for orb in spd]]
+            spd_contributions_down = spd_contributions_down[:,[self.spd_relations[orb] for orb in spd]]
+
+            spd_contributions = (spd_contributions_up - spd_contributions_down) / (spd_contributions_up + spd_contributions_down)
+
+        else:
+            orbital_contributions = np.sum(self.pdos_array, axis=1)
+
+            spd_contributions = np.transpose(
+                np.array([
+                    np.sum(orbital_contributions[:,ind], axis=1) for ind in spd_indices
+                ]), axes=[1,0]
+            )
+
+            spd_contributions = spd_contributions[:,[self.spd_relations[orb] for orb in spd]]
 
         return spd_contributions
 
@@ -502,8 +520,17 @@ class Dos:
         Returns:
             orbital_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected weights of the selected orbitals.
         """
-        orbital_contributions = self.pdos_array.sum(axis=1)
-        orbital_contributions = orbital_contributions[:,orbitals]
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            orbital_contributions_up = self.pdos_array[0].sum(axis=1)
+            orbital_contributions_down = self.pdos_array[1].sum(axis=1)
+
+            orbital_contributions_up = orbital_contributions_up[:,orbitals]
+            orbital_contributions_down = orbital_contributions_down[:,orbitals]
+
+            orbital_contributions = (orbital_contributions_up - orbital_contributions_down) / (orbital_contributions_up + orbital_contributions_down)
+        else:
+            orbital_contributions = self.pdos_array.sum(axis=1)
+            orbital_contributions = orbital_contributions[:,orbitals]
 
         return orbital_contributions
 
@@ -535,13 +562,28 @@ class Dos:
                 spd_indices[2][4:9] = True
                 spd_indices[3][9:] = True
 
-            atoms_spd = np.transpose(np.array([
-                np.sum(self.pdos_array[:,:,ind], axis=2) for ind in spd_indices
-            ]), axes=(1,2,0))
+            if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+                atoms_spd_up = np.transpose(np.array([
+                    np.sum(self.pdos_array[0,:,:,ind], axis=2) for ind in spd_indices
+                ]), axes=(1,2,0))
+                atoms_spd_down = np.transpose(np.array([
+                    np.sum(self.pdos_array[1,:,:,ind], axis=2) for ind in spd_indices
+                ]), axes=(1,2,0))
+                atoms_spd = (atoms_spd_up - atoms_spd_down) / (atoms_spd_up + atoms_spd_down)
+            else:
+                atoms_spd = np.transpose(np.array([
+                    np.sum(self.pdos_array[:,:,ind], axis=2) for ind in spd_indices
+                ]), axes=(1,2,0))
 
             return atoms_spd
         else:
-            atoms_array = self.pdos_array.sum(axis=2)
+            if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+                atoms_array_up = self.pdos_array[0].sum(axis=2)
+                atoms_array_down = self.pdos_array[1].sum(axis=2)
+                atoms_array = (atoms_array_up - atoms_array_down) / (atoms_array_up + atoms_array_down)
+            else:
+                atoms_array = self.pdos_array.sum(axis=2)
+
             if atoms is not None:
                 atoms_array = atoms_array[:,atoms]
 
@@ -570,44 +612,102 @@ class Dos:
         poscar = self.poscar
         natoms = poscar.natoms
         symbols = poscar.site_symbols
-        pdos_array = self.pdos_array
 
-        element_list = np.hstack(
-            [[symbols[i] for j in range(natoms[i])] for i in range(len(symbols))]
-        )
 
-        element_indices = [np.where(np.isin(element_list, element))[0] for element in elements]
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            pdos_array_up = self.pdos_array[0]
+            pdos_array_down = self.pdos_array[1]
 
-        element_orbitals = np.transpose(
-            np.array([
-                np.sum(pdos_array[:,ind,:], axis=1) for ind in element_indices
-            ]), axes=(1,0,2)
-        )
+            element_list = np.hstack(
+                [[symbols[i] for j in range(natoms[i])] for i in range(len(symbols))]
+            )
 
-        if orbitals:
-            return element_orbitals
-        elif spd:
-            if not self.forbitals:
-                spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
-                spd_indices[0][0] = True
-                spd_indices[1][1:4] = True
-                spd_indices[2][4:] = True
+            element_indices = [np.where(np.isin(element_list, element))[0] for element in elements]
+
+            element_orbitals_up = np.transpose(
+                np.array([
+                    np.sum(pdos_array_up[:,ind,:], axis=1) for ind in element_indices
+                ]), axes=(1,0,2)
+            )
+            element_orbitals_down = np.transpose(
+                np.array([
+                    np.sum(pdos_array_down[:,ind,:], axis=1) for ind in element_indices
+                ]), axes=(1,0,2)
+            )
+
+            if orbitals:
+                element_orbitals = (element_orbitals_up - element_orbitals_down) / (element_orbitals_up + element_orbitals_down)
+                return element_orbitals
+            elif spd:
+                if not self.forbitals:
+                    spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+                    spd_indices[0][0] = True
+                    spd_indices[1][1:4] = True
+                    spd_indices[2][4:] = True
+                else:
+                    spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+                    spd_indices[0][0] = True
+                    spd_indices[1][1:4] = True
+                    spd_indices[2][4:9] = True
+                    spd_indices[3][9:] = True
+
+                element_spd_up = np.transpose(np.array([
+                    np.sum(element_orbitals_up[:,:,ind], axis=2) for ind in spd_indices
+                ]), axes=(1,2,0))
+
+                element_spd_down = np.transpose(np.array([
+                    np.sum(element_orbitals_down[:,:,ind], axis=2) for ind in spd_indices
+                ]), axes=(1,2,0))
+
+                element_spd = (element_spd_up - element_spd_down) / (element_spd_up + element_spd_down)
+
+                return element_spd
             else:
-                spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
-                spd_indices[0][0] = True
-                spd_indices[1][1:4] = True
-                spd_indices[2][4:9] = True
-                spd_indices[3][9:] = True
+                element_array_up = np.sum(element_orbitals_up, axis=2)
+                element_array_down = np.sum(element_orbitals_down, axis=2)
 
-            element_spd = np.transpose(np.array([
-                np.sum(element_orbitals[:,:,ind], axis=2) for ind in spd_indices
-            ]), axes=(1,2,0))
+                element_array = (element_array_up - element_array_down) / (element_array_up + element_array_down)
 
-            return element_spd
+                return element_array
         else:
-            element_array = np.sum(element_orbitals, axis=2)
+            pdos_array = self.pdos_array
 
-            return element_array
+            element_list = np.hstack(
+                [[symbols[i] for j in range(natoms[i])] for i in range(len(symbols))]
+            )
+
+            element_indices = [np.where(np.isin(element_list, element))[0] for element in elements]
+
+            element_orbitals = np.transpose(
+                np.array([
+                    np.sum(pdos_array[:,ind,:], axis=1) for ind in element_indices
+                ]), axes=(1,0,2)
+            )
+
+            if orbitals:
+                return element_orbitals
+            elif spd:
+                if not self.forbitals:
+                    spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+                    spd_indices[0][0] = True
+                    spd_indices[1][1:4] = True
+                    spd_indices[2][4:] = True
+                else:
+                    spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+                    spd_indices[0][0] = True
+                    spd_indices[1][1:4] = True
+                    spd_indices[2][4:9] = True
+                    spd_indices[3][9:] = True
+
+                element_spd = np.transpose(np.array([
+                    np.sum(element_orbitals[:,:,ind], axis=2) for ind in spd_indices
+                ]), axes=(1,2,0))
+
+                return element_spd
+            else:
+                element_array = np.sum(element_orbitals, axis=2)
+
+                return element_array
 
 
     def _smear(self, dos, sigma):
@@ -1720,7 +1820,7 @@ class Dos:
         cbar.ax.tick_params(labelsize=fontsize)
         if custom_cbar_label is None:
             if self.combination_method == "sub" and self.spin == "both":
-                cbar.set_label('Spin Polarization (arb. units)', fontsize=fontsize)
+                cbar.set_label('Spin Polarization', fontsize=fontsize)
                 min_val = im.norm.vmin
                 max_val = im.norm.vmax
                 cbar.set_ticks([min_val, max_val])
