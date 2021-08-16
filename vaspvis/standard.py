@@ -3616,6 +3616,7 @@ def dos_ldos(
     shift_efermi=0,
     log_scale=False,
     atol=None,
+    custom_layer_inds=None,
 ):
     """
     This function plots the local density of states for atomic layers. Useful for comparing 
@@ -3664,6 +3665,7 @@ def dos_ldos(
         erange=erange,
         log_scale=log_scale,
         atol=atol,
+        custom_layer_inds=custom_layer_inds,
     )
 
     plt.tight_layout(pad=0.4)
@@ -9100,10 +9102,28 @@ def _main():
         #  figsize=(7,3),
         #  #  interpolate=True
     #  )
-    band_spd(
-        folder='../../vaspvis_data/band_InAs',
-        interpolate=False,
-        custom_kpath=[1,2,3,4,5,-5,-4,-3,-2,-1]
+    #  band_spd(
+        #  folder='../../vaspvis_data/band_InAs',
+        #  interpolate=False,
+        #  custom_kpath=[1,2,3,4,5,-5,-4,-3,-2,-1]
+    #  )
+    dos_layers(
+        folder='../../vaspvis_data/Fe-slab',
+        spin='both',
+        combination_method='sub',
+        sp_method='percentage',
+        output='percentage.png',
+        log_scale=False,
+        show_bounds=True,
+    )
+    dos_layers(
+        folder='../../vaspvis_data/Fe-slab',
+        spin='both',
+        combination_method='sub',
+        sp_method='absolute',
+        output='absolute.png',
+        log_scale=False,
+        show_bounds=True,
     )
 
 
