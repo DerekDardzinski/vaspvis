@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
 from matplotlib.collections import PatchCollection
 import matplotlib.colors as colors
-from matplotlib.colors import Normalize, to_rgba, LinearSegmentedColormap
+from matplotlib.colors import Normalize, to_rgba, to_rgb, LinearSegmentedColormap
 import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
@@ -64,6 +64,7 @@ class Band:
         interpolate=True,
         new_n=200,
         custom_kpath=None,
+        soc_axis=None,
     ):
         """
         Initialize parameters upon the generation of this class
@@ -100,9 +101,16 @@ class Band:
                 plot only the path G-X-W they can set custom_kpath=[1,2]. If a user wanted
                 to flip the k-path of a segment, then the index should be made negative, so
                 if the desired path was G-X|L-W then custom_kpath=[1,-3]
+            soc_axis (None or str): This parameter can either take the value of None or the
+                it can take the value of 'x', 'y', or 'z'. If either 'x', 'y', or 'z' are given
+                then spin='up' states will be defined by positive values of this spin-component
+                and spin='down' states will be defined by negative values of this spin-component.
+                This will only be used for showing a pseudo-spin-polarized plot for calculations
+                that have SOC enabled.
         """
 
         self.interpolate = interpolate
+        self.soc_axis = soc_axis
         self.new_n = new_n
         self.bandgap = bandgap
         self.printbg = printbg
@@ -220,6 +228,10 @@ class Band:
         if projected:
             self.pre_loaded_projections = os.path.isfile(os.path.join(folder, 'projected_eigenvalues.npy'))
             self.projected_eigenvalues = self._load_projected_bands()
+
+        if soc_axis is not None and self.lsorbit:
+            self.pre_loaded_spin_projections = os.path.isfile(os.path.join(folder, 'spin_projections.npy'))
+            self.spin_projections = self._load_soc_spin_projection()
 
     def _get_custom_kpath(self):
         flip = (-np.sign(self.custom_kpath)+1).astype(bool)
@@ -340,7 +352,10 @@ class Band:
         if self.spin == 'up':
             spin = 0
         if self.spin == 'down':
-            spin = 1
+            if self.lsorbit:
+                spin = 0
+            else:
+                spin = 1
 
         kpath = make_kpath(self.high_symm_points, nseg=self.n)
 
@@ -430,6 +445,65 @@ class Band:
         projected_eigenvalues = np.square(projected_eigenvalues)
 
         return projected_eigenvalues
+
+
+    def _load_soc_spin_projection(self):
+        """
+        This function loads the project weights of the orbitals in each band
+        from vasprun.xml into a dictionary of the form:
+        band index --> atom index --> weights of orbitals
+
+        Returns:
+            projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
+        """
+        
+        if not self.lsorbit:
+            raise BaseException(f"You selected soc_axis='{self.soc_axis}' for a non-soc axis calculation, please set soc_axis=None")
+        if self.lsorbit and self.soc_axis == 'x':
+            spin = 1
+        if self.lsorbit and self.soc_axis == 'y':
+            spin = 2
+        if self.lsorbit and self.soc_axis == 'z':
+            spin = 3
+
+        if not os.path.isfile(os.path.join(self.folder, 'PROCAR_repaired')):
+            UtilsProcar().ProcarRepair(
+                os.path.join(self.folder, 'PROCAR'),
+                os.path.join(self.folder, 'PROCAR_repaired'),
+            )
+
+        if self.pre_loaded_spin_projections:
+            with open(os.path.join(self.folder, 'spin_projections.npy'), 'rb') as spin_projs:
+                spin_projections = np.load(spin_projs) 
+        else:
+            parser = ProcarParser()
+            parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
+            spin_projections = np.transpose(parser.spd[:,:,:,-1, -1], axes=(1,0,2))
+
+            np.save(os.path.join(self.folder, 'spin_projections.npy'), spin_projections)
+
+
+        spin_projections = spin_projections[:,:,spin]
+
+        if self.hse:
+            kpoint_weights = np.array(self.eigenval.kpoints_weights)
+            zero_weight = np.where(kpoint_weights == 0)[0]
+            spin_projections = spin_projections[:,zero_weight]
+
+        separated_projections = np.zeros((spin_projections.shape[0], spin_projections.shape[1], 2))
+        separated_projections[spin_projections > 0, 0] = spin_projections[spin_projections > 0]
+        separated_projections[spin_projections < 0, 1] = -spin_projections[spin_projections < 0]
+
+        separated_projections = separated_projections / separated_projections.max()
+        
+        if self.spin == 'up':
+            separated_projections = separated_projections[:,:,0]
+        elif self.spin == 'down':
+            separated_projections = separated_projections[:,:,1]
+        else:
+            raise BaseException("The soc_axis feature does not work with spin='both'")
+
+        return separated_projections
 
 
     def _sum_spd(self, spd):
@@ -1146,14 +1220,10 @@ class Band:
             norm=norm,
         )
 
-    def _alpha_cmap(color):
+    def _alpha_cmap(self, color, repeats=3):
         cmap = LinearSegmentedColormap.from_list(
             'custom_cmap',
-            [
-                (1,1,1,0),
-                to_rgba(color),
-                to_rgba(color),
-            ],
+            [to_rgb(color) + (0,)] + [to_rgba(color) for _ in range(repeats)],
             N=10000
         )
         return cmap
@@ -1177,6 +1247,8 @@ class Band:
         highlight_band=False,
         highlight_band_color='red',
         band_index=None,
+        sp_color='red',
+        sp_scale_factor=10,
     ):
         """
         This function plots a plain band structure.
@@ -1191,6 +1263,17 @@ class Band:
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         wave_vector_segments = self._get_k_distance()
 
+        if self.soc_axis is not None and self.lsorbit:
+            color = 'black'
+            linestyle='-'
+
+        if self.soc_axis is not None and self.lsorbit:
+            if self.unfold:
+                K_indices = np.array(self.K_indices[0], dtype=int)
+                spin_projection_full_k = self.spin_projections[:, K_indices]
+            else:
+                spin_projection_full_k = self.spin_projections
+
         if self.custom_kpath is not None:
             kpath_inds = self.custom_kpath_inds
             kpath_flip = self.custom_kpath_flip
@@ -1201,8 +1284,12 @@ class Band:
         for i, f, wave_vectors in zip(kpath_inds, kpath_flip, wave_vector_segments):
             if f:
                 eigenvalues = np.flip(self.eigenvalues[bands_in_plot, slices[i]], axis=1)
+                if self.soc_axis is not None and self.lsorbit:
+                    spin_projections = np.flip(spin_projection_full_k[bands_in_plot, slices[i]], axis=1)
             else:
                 eigenvalues = self.eigenvalues[bands_in_plot, slices[i]]
+                if self.soc_axis is not None and self.lsorbit:
+                    spin_projections = spin_projection_full_k[bands_in_plot, slices[i]]
 
             if highlight_band:
                 if band_index is not None:
@@ -1218,6 +1305,13 @@ class Band:
                     wave_vectors_for_kpoints,
                     eigenvalues,
                 )
+                if self.soc_axis is not None and self.lsorbit:
+                    _, spin_projections = self._get_interpolated_data_segment(
+                        wave_vectors_for_kpoints,
+                        spin_projections,
+                        crop_zero=True,
+                        kind='linear',
+                    )
 
                 if highlight_band:
                     if band_index is not None:
@@ -1228,6 +1322,11 @@ class Band:
 
             eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
             wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
+
+            if self.soc_axis is not None and self.lsorbit:
+                #  spin_cmap = self._alpha_cmap(color=spin_projection_color, repeats=1)
+                spin_projections_ravel = np.ravel(np.c_[spin_projections, np.empty(spin_projections.shape[0]) * np.nan])
+                #  spin_colors = [spin_cmap(s) for s in spin_projections_ravel]
 
             if self.unfold:
                 spectral_weights = self.spectral_weights[bands_in_plot, slices[i]]
@@ -1300,6 +1399,14 @@ class Band:
                                     s=scale_factor * np.ravel(highlight_spectral_weights),
                                     zorder=100,
                                 )
+                    if self.soc_axis is not None and self.lsorbit:
+                        ax.scatter(
+                            wave_vectors_tile,
+                            eigenvalues_ravel,
+                            s=spectral_weights_ravel * sp_scale_factor * spin_projections_ravel,
+                            c=sp_color,
+                            zorder=100,
+                        )
             else:
                 if heatmap:
                     self._heatmap(
@@ -1343,6 +1450,14 @@ class Band:
                                     linestyle=linestyle,
                                     zorder=100,
                                 )
+                    if self.soc_axis is not None and self.lsorbit:
+                        ax.scatter(
+                            wave_vectors_tile,
+                            eigenvalues_ravel,
+                            s=sp_scale_factor * spin_projections_ravel,
+                            c=sp_color,
+                            zorder=100,
+                        )
 
         if self.hse:
             self._get_kticks_hse(
@@ -2415,11 +2530,11 @@ class Band:
 
 
 if __name__ == "__main__":
-    M = [
-        [0,1,-1],
-        [1,-1,0],
-        [-14,-14,-14]
-    ]
+    #  M = [
+        #  [0,1,-1],
+        #  [1,-1,0],
+        #  [-14,-14,-14]
+    #  ]
 #
     #  high_symm_points = [
         #  [2/3, 1/3, 1/3],
@@ -2427,52 +2542,83 @@ if __name__ == "__main__":
         #  [2/3, 1/3, 1/3],
     #  ]
 #
-    high_symm_points = [
-        [0.1, 0.1, 0],
-        [0.0, 0.0, 0],
-        [0.1, 0.1, 0],
-    ]
+    #  high_symm_points = [
+        #  [0.1, 0.1, 0],
+        #  [0.0, 0.0, 0],
+        #  [0.1, 0.1, 0],
+    #  ]
 
-    band = Band(
-        folder="../../vaspvis_data/bandAGA",
-        projected=True,
+    #  band = Band(
+        #  folder="../../vaspvis_data/bandAGA",
+        #  projected=True,
+        #  interpolate=False,
+        #  unfold=True,
+        #  M=M,
+        #  high_symm_points=high_symm_points,
+        #  n=40,
+        #  kpath=[['A', 'G'], ['G', 'A']],
+        #  custom_kpath=[1,2,2,-1],
+    #  )
+    #  fig, ax = plt.subplots(figsize=(4,3), dpi=400)
+    #  band.plot_spd(ax=ax, scale_factor=100)
+    #  ax.set_ylim(-2,2)
+    #  fig.tight_layout()
+    #  fig.savefig('test.png')
+
+    M = [[-0.,  0., -1.],[ 1., -1.,  0.],[-16., -16.,  16.]]
+
+    high_symm_points = [
+         [0.5, 0.0, 0.5],     
+         [0.0, 0.0, 0.0],          
+         [0.5, 0.0, 0.5],
+    ]
+        
+
+    band_up = Band(
+        #  folder="../../vaspvis_data/band_EuS_bulk/band",
+        folder="../../vaspvis_data/band_EuS_slab/band",
         interpolate=False,
+        soc_axis='z',
+        spin='up',
         unfold=True,
         M=M,
         high_symm_points=high_symm_points,
-        n=40,
-        kpath=[['A', 'G'], ['G', 'A']],
-        custom_kpath=[1,2,2,-1],
+        n=30,
+        new_n=50,
+        kpath=[['X', 'G'], ['G', 'X']]
     )
-    fig, ax = plt.subplots(figsize=(4,3), dpi=400)
-    band.plot_spd(ax=ax, scale_factor=100)
-    ax.set_ylim(-2,2)
+    band_down = Band(
+        #  folder="../../vaspvis_data/band_EuS_bulk/band",
+        folder="../../vaspvis_data/band_EuS_slab/band",
+        interpolate=False,
+        soc_axis='z',
+        spin='down',
+        unfold=True,
+        M=M,
+        high_symm_points=high_symm_points,
+        n=30,
+        new_n=50,
+        kpath=[['X', 'G'], ['G', 'X']]
+    )
+    fig, ax = plt.subplots(figsize=(2.5,4), dpi=400)
+    band_up.plot_plain(
+        ax=ax,
+        sp_color='red',
+        erange=[-6,3],
+        sp_scale_factor=3,
+        scale_factor=10,
+    )
+    band_down.plot_plain(
+        ax=ax,
+        sp_color='blue',
+        erange=[-6,3],
+        sp_scale_factor=3,
+        scale_factor=10,
+    )
+    ax.set_ylim(-6,3)
     fig.tight_layout()
-    fig.savefig('test.png')
-    #  band._get_bandgap()
-    #  #  band.plot_spd(ax=ax, orbitals='sd', display_order='all', scale_factor=35, erange=[-5,0])
-    #  #  band.plot_orbitals(ax=ax, scale_factor=35, orbitals=range(8), display_order=None)
-    #  band.plot_plain(
-        #  ax=ax,
-        #  scale_factor=20,
-        #  erange=[-4,0.5],
-        #  heatmap=True,
-        #  cmap='hot',
-        #  bins=800,
-        #  sigma=3,
-        #  powernorm=False,
-        #  gamma=0.5,
-        #  vlinecolor='white'
-    #  )
-    #  #  ax.set_aspect(3, adjustable='datalim')
-    #  end = time.time()
-    #  ax.set_ylabel('$E - E_{F}$ $(eV)$', fontsize=6)
-    #  ax.tick_params(labelsize=6, length=2.5)
-    #  ax.tick_params(axis='x', length=0)
-    #  ax.set_ylim(-4, 0.5)
-    #  plt.tight_layout(pad=0.2)
-    #  plt.savefig('heatmap_powernorm.png')
-        
+    fig.savefig('unfold_test.png')
+    #  fig.savefig('bulk_test.png')
         
 
 

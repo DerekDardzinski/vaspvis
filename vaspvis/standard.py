@@ -121,6 +121,9 @@ def band_plain(
     highlight_band=False,
     highlight_band_color='red',
     band_index=None,
+    soc_axis=None,
+    sp_scale_factor=5,
+    sp_color='red',
 ):
     """
     This function generates a plain band structure
@@ -183,6 +186,7 @@ def band_plain(
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
+        soc_axis=soc_axis,
     )
 
     if heatmap:
@@ -231,6 +235,8 @@ def band_plain(
         highlight_band=highlight_band,
         highlight_band_color=highlight_band_color,
         band_index=band_index,
+        sp_color=sp_color,
+        sp_scale_factor=sp_scale_factor,
     )
 
     if heatmap:
@@ -1664,6 +1670,8 @@ def band_plain_spin_polarized(
     cbar_orientation='horizontal',
     powernorm=True,
     gamma=0.7,
+    soc_axis=None,
+    sp_scale_factor=5,
 ):
     """
     This function generates a plain spin polarized band structure.
@@ -1726,6 +1734,7 @@ def band_plain_spin_polarized(
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
+        soc_axis=soc_axis,
     )
     band_down = Band(
         folder=folder,
@@ -1739,6 +1748,7 @@ def band_plain_spin_polarized(
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
+        soc_axis=soc_axis,
     )
 
     if heatmap:
@@ -1865,6 +1875,8 @@ def band_plain_spin_polarized(
             vlinecolor=vlinecolor,
             powernorm=powernorm,
             gamma=gamma,
+            sp_color=up_color,
+            sp_scale_factor=sp_scale_factor,
         )
 
         band_down.plot_plain(
@@ -1880,9 +1892,30 @@ def band_plain_spin_polarized(
             vlinecolor=vlinecolor,
             powernorm=powernorm,
             gamma=gamma,
+            sp_color=down_color,
+            sp_scale_factor=sp_scale_factor,
         )
 
         if unfold:
+            legend_lines = [
+                plt.Line2D(
+                    [0],
+                    [0],
+                    color=up_color,
+                    linestyle='',
+                    marker='o',
+                    markersize=3,
+                ),
+                plt.Line2D(
+                    [0],
+                    [0],
+                    color=down_color,
+                    linestyle='',
+                    marker='o',
+                    markersize=3,
+                )
+            ]
+        elif soc_axis is not None and band_up.lsorbit:
             legend_lines = [
                 plt.Line2D(
                     [0],
@@ -9132,10 +9165,16 @@ def _main():
         #  log_scale=False,
         #  show_bounds=True,
     #  )
+    #  band_plain_spin_polarized(
+        #  folder='../../vaspvis_data/Fe-sp/band',
+        #  up_linestyle='-',
+        #  down_linestyle='-',
+        #  output='Fe_sp.png',
+    #  )
     band_plain(
-        folder='../../vaspvis_data/band_InAs/',
-        highlight_band=True,
-        band_index=6,
+        folder='../../vaspvis_data/Fe/',
+        output='Fe_soc_up.png',
+        soc_axis='z',
     )
 
 

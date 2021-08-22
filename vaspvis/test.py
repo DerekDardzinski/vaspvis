@@ -1,10 +1,13 @@
+from pyprocar.utilsprocar import UtilsProcar
+from pyprocar.procarparser import ProcarParser
 import numpy as np
+import os
 
-up = np.ones((4,5)) * np.arange(5)
-down = np.ones((4,5)) * np.flip(np.arange(5,10))
-print(up)
-print(down)
+folder = '../../vaspvis_data/band_InAs'
 
-print(up-down)
-print(up+down)
-print((up-down) / (up+down))
+parser = ProcarParser()
+parser.readFile(os.path.join(folder, 'PROCAR_repaired'))
+
+projected_eigenvals = np.transpose(parser.spd[:, :, -1, -1, -1])
+
+print(projected_eigenvals[:, 0])
