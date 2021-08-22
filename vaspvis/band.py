@@ -1206,7 +1206,10 @@ class Band:
 
             if highlight_band:
                 if band_index is not None:
-                    highlight_eigenvalues = self.eigenvalues[int(band_index), slices[i]]
+                    if type(band_index) == int:
+                        highlight_eigenvalues = self.eigenvalues[int(band_index), slices[i]]
+                    else:
+                        highlight_eigenvalues = self.eigenvalues[band_index, slices[i]]
 
             wave_vectors_for_kpoints = wave_vectors
 
@@ -1279,14 +1282,24 @@ class Band:
                     )
                     if highlight_band:
                         if band_index is not None:
-                            ax.scatter(
-                                wave_vectors,
-                                highlight_eigenvalues,
-                                c=highlight_band_color,
-                                ec=None,
-                                s=scale_factor * highlight_spectral_weights,
-                                zorder=100,
-                            )
+                            if type(band_index) == int:
+                                ax.scatter(
+                                    wave_vectors,
+                                    highlight_eigenvalues,
+                                    c=highlight_band_color,
+                                    ec=None,
+                                    s=scale_factor * highlight_spectral_weights,
+                                    zorder=100,
+                                )
+                            else:
+                                ax.scatter(
+                                    np.tile(np.append(wave_vectors, np.nan), highlight_eigenvalues.shape[0]),
+                                    np.ravel(np.c_[highlight_eigenvalues, np.empty(highlight_eigenvalues.shape[0]) * np.nan]),
+                                    c=highlight_band_color,
+                                    ec=None,
+                                    s=scale_factor * np.ravel(highlight_spectral_weights),
+                                    zorder=100,
+                                )
             else:
                 if heatmap:
                     self._heatmap(
@@ -1312,14 +1325,24 @@ class Band:
                     )
                     if highlight_band:
                         if band_index is not None:
-                            ax.plot(
-                                wave_vectors,
-                                highlight_eigenvalues,
-                                color=highlight_band_color,
-                                linewidth=linewidth,
-                                linestyle=linestyle,
-                                zorder=100,
-                            )
+                            if type(band_index) == int:
+                                ax.plot(
+                                    wave_vectors,
+                                    highlight_eigenvalues,
+                                    color=highlight_band_color,
+                                    linewidth=linewidth,
+                                    linestyle=linestyle,
+                                    zorder=100,
+                                )
+                            else:
+                                ax.plot(
+                                    np.tile(np.append(wave_vectors, np.nan), highlight_eigenvalues.shape[0]),
+                                    np.ravel(np.c_[highlight_eigenvalues, np.empty(highlight_eigenvalues.shape[0]) * np.nan]),
+                                    color=highlight_band_color,
+                                    linewidth=linewidth,
+                                    linestyle=linestyle,
+                                    zorder=100,
+                                )
 
         if self.hse:
             self._get_kticks_hse(
@@ -1424,7 +1447,7 @@ class Band:
             projected_data_slice = projected_data_slice.reshape(shapes)
 
             if len(unique_colors) == len(colors):
-                pass
+                plot_colors = colors
             else:
                 unique_inds = [np.isin(colors, c) for c in unique_colors]
                 projected_data_slice = np.squeeze(projected_data_slice)

@@ -475,7 +475,8 @@ class Dos:
             spd_contributions_up = spd_contributions_up[:,[self.spd_relations[orb] for orb in spd]]
             spd_contributions_down = spd_contributions_down[:,[self.spd_relations[orb] for orb in spd]]
 
-            spd_contributions = (spd_contributions_up - spd_contributions_down) / (spd_contributions_up + spd_contributions_down)
+            #  spd_contributions = (spd_contributions_up - spd_contributions_down) / (spd_contributions_up + spd_contributions_down)
+            spd_contributions = np.array([spd_contributions_up, spd_contributions_down])
 
         else:
             orbital_contributions = np.sum(self.pdos_array, axis=1)
@@ -527,7 +528,8 @@ class Dos:
             orbital_contributions_up = orbital_contributions_up[:,orbitals]
             orbital_contributions_down = orbital_contributions_down[:,orbitals]
 
-            orbital_contributions = (orbital_contributions_up - orbital_contributions_down) / (orbital_contributions_up + orbital_contributions_down)
+            #  orbital_contributions = (orbital_contributions_up - orbital_contributions_down) / (orbital_contributions_up + orbital_contributions_down)
+            orbital_contributions = np.array([orbital_contributions_up, orbital_contributions_down])
         else:
             orbital_contributions = self.pdos_array.sum(axis=1)
             orbital_contributions = orbital_contributions[:,orbitals]
@@ -563,13 +565,16 @@ class Dos:
                 spd_indices[3][9:] = True
 
             if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+                atoms_spd_up = self.pdos_array[0]
+                atoms_spd_down = self.pdos_array[1]
                 atoms_spd_up = np.transpose(np.array([
-                    np.sum(self.pdos_array[0,:,:,ind], axis=2) for ind in spd_indices
+                    np.sum(atoms_spd_up[:,:,ind], axis=2) for ind in spd_indices
                 ]), axes=(1,2,0))
                 atoms_spd_down = np.transpose(np.array([
-                    np.sum(self.pdos_array[1,:,:,ind], axis=2) for ind in spd_indices
+                    np.sum(atoms_spd_down[:,:,ind], axis=2) for ind in spd_indices
                 ]), axes=(1,2,0))
-                atoms_spd = (atoms_spd_up - atoms_spd_down) / (atoms_spd_up + atoms_spd_down)
+                #  atoms_spd = (atoms_spd_up - atoms_spd_down) / (atoms_spd_up + atoms_spd_down)
+                atoms_spd = np.array([atoms_spd_up, atoms_spd_down])
             else:
                 atoms_spd = np.transpose(np.array([
                     np.sum(self.pdos_array[:,:,ind], axis=2) for ind in spd_indices
@@ -580,12 +585,17 @@ class Dos:
             if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
                 atoms_array_up = self.pdos_array[0].sum(axis=2)
                 atoms_array_down = self.pdos_array[1].sum(axis=2)
-                atoms_array = (atoms_array_up - atoms_array_down) / (atoms_array_up + atoms_array_down)
+                #  atoms_array = (atoms_array_up - atoms_array_down) / (atoms_array_up + atoms_array_down)
+                if atoms is not None:
+                    atoms_array_up = atoms_array_up[:, atoms]
+                    atoms_array_down = atoms_array_down[:, atoms]
+
+                atoms_array = np.array([atoms_array_up, atoms_array_down])
             else:
                 atoms_array = self.pdos_array.sum(axis=2)
 
-            if atoms is not None:
-                atoms_array = atoms_array[:,atoms]
+                if atoms is not None:
+                    atoms_array = atoms_array[:,atoms]
 
             return atoms_array
 
@@ -636,7 +646,8 @@ class Dos:
             )
 
             if orbitals:
-                element_orbitals = (element_orbitals_up - element_orbitals_down) / (element_orbitals_up + element_orbitals_down)
+                #  element_orbitals = (element_orbitals_up - element_orbitals_down) / (element_orbitals_up + element_orbitals_down)
+                element_orbitals = np.array([element_orbitals_up, element_orbitals_down])
                 return element_orbitals
             elif spd:
                 if not self.forbitals:
@@ -659,14 +670,16 @@ class Dos:
                     np.sum(element_orbitals_down[:,:,ind], axis=2) for ind in spd_indices
                 ]), axes=(1,2,0))
 
-                element_spd = (element_spd_up - element_spd_down) / (element_spd_up + element_spd_down)
+                #  element_spd = (element_spd_up - element_spd_down) / (element_spd_up + element_spd_down)
+                element_spd = np.array([element_spd_up, element_spd_down])
 
                 return element_spd
             else:
                 element_array_up = np.sum(element_orbitals_up, axis=2)
                 element_array_down = np.sum(element_orbitals_down, axis=2)
 
-                element_array = (element_array_up - element_array_down) / (element_array_up + element_array_down)
+                #  element_array = (element_array_up - element_array_down) / (element_array_up + element_array_down)
+                element_array = np.array([element_array_up, element_array_down])
 
                 return element_array
         else:
@@ -729,7 +742,20 @@ class Dos:
 
         return _smeared_dos
 
-    def _set_density_lims(self, ax, tdensity, tenergy, erange, energyaxis, spin, partial=False, is_dict=False, idx=None, multiple=False, log_scale=False):
+    def _set_density_lims(
+        self,
+        ax,
+        tdensity,
+        tenergy,
+        erange,
+        energyaxis,
+        spin,
+        partial=False,
+        is_dict=False,
+        idx=None,
+        multiple=False,
+        log_scale=False
+    ):
         energy_in_plot_index = np.where(
             (tenergy >= erange[0]) & (tenergy <= erange[1])
         )[0]
@@ -794,32 +820,6 @@ class Dos:
                     elif spin == 'down':
                         ax.set_ylim(np.min(density_in_plot) * 1.1, 0)
 
-
-    #  def _group_layers(self):
-        #  poscar = self.poscar
-        #  sites = poscar.structure.sites
-        #  zvals = np.array([site.c for site in sites])
-        #  unique_values = np.sort(np.unique(np.round(zvals, 3)))
-        #  diff = np.mean(np.diff(unique_values)) * 0.2
-#
-        #  grouped = False
-        #  groups = []
-        #  group_heights = []
-        #  zvals_copy = copy.deepcopy(zvals)
-        #  while not grouped:
-            #  if len(zvals_copy) > 0:
-                #  group_index = np.where(
-                    #  np.isclose(zvals, np.min(zvals_copy), atol=diff)
-                #  )[0]
-                #  group_heights.append(np.min(zvals_copy))
-                #  zvals_copy = np.delete(zvals_copy, np.where(
-                    #  np.isin(zvals_copy, zvals[group_index]))[0])
-                #  groups.append(group_index)
-            #  else:
-                #  grouped = True
-#
-        #  return groups, np.array(group_heights)
-
     def _sum_layers(self, layers, atol=None, custom_layer_inds=None):
         from vaspvis.utils import group_layers
         if custom_layer_inds is None:
@@ -827,8 +827,16 @@ class Dos:
         else:
             groups = custom_layer_inds
         atom_densities = self._sum_atoms(atoms=None)
-        densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
-        summed_layers = np.sum(densities[layers], axis=0)
+
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            densities_up = np.vstack([np.sum(np.vstack(atom_densities[0, :,[group]]), axis=1) for group in groups])
+            densities_down = np.vstack([np.sum(np.vstack(atom_densities[1, :,[group]]), axis=1) for group in groups])
+            summed_layers_up = np.sum(densities_up[layers], axis=0)
+            summed_layers_down = np.sum(densities_down[layers], axis=0)
+            summed_layers = np.array([summed_layers_up, summed_layers_down])
+        else:
+            densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
+            summed_layers = np.sum(densities[layers], axis=0)
 
         return summed_layers
 
@@ -877,25 +885,56 @@ class Dos:
             (energy >= erange[0] - 0.5) & (energy <= erange[1] + 0.5)
         )[0]
         energy = energy[energy_in_plot_index]
-        projected_data = projected_data[energy_in_plot_index]
 
-        unique_colors = np.unique(colors)
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            projected_data_up = projected_data[0]
+            projected_data_down = projected_data[1]
 
-        if len(unique_colors) == len(colors):
-            pass
+            projected_data_up = projected_data_up[energy_in_plot_index]
+            projected_data_down = projected_data_down[energy_in_plot_index]
+
+            unique_colors = np.unique(colors)
+
+            if len(unique_colors) == len(colors):
+                plot_colors = colors
+            else:
+                unique_inds = [np.isin(colors, c) for c in unique_colors]
+                projected_data_up = np.c_[
+                    [np.sum(projected_data_up[:,i], axis=1) for i in unique_inds]
+                ].transpose()
+                projected_data_down = np.c_[
+                    [np.sum(projected_data_down[:,i], axis=1) for i in unique_inds]
+                ].transpose()
+                plot_colors = unique_colors
+
+            projected_data = (projected_data_up - projected_data_down) / (projected_data_up + projected_data_down)
+
+            if sigma > 0:
+                for i in range(projected_data.shape[-1]):
+                    projected_data[:,i] = self._smear(
+                        projected_data[:,i],
+                        sigma=sigma,
+                    )
         else:
-            unique_inds = [np.isin(colors, c) for c in unique_colors]
-            projected_data = np.c_[
-                [np.sum(projected_data[:,i], axis=1) for i in unique_inds]
-            ].transpose()
-            colors = unique_colors
+            projected_data = projected_data[energy_in_plot_index]
 
-        if sigma > 0:
-            for i in range(projected_data.shape[-1]):
-                projected_data[:,i] = self._smear(
-                    projected_data[:,i],
-                    sigma=sigma,
-                )
+            unique_colors = np.unique(colors)
+
+            if len(unique_colors) == len(colors):
+                plot_colors = colors
+            else:
+                unique_inds = [np.isin(colors, c) for c in unique_colors]
+                projected_data = np.c_[
+                    [np.sum(projected_data[:,i], axis=1) for i in unique_inds]
+                ].transpose()
+                plot_colors = unique_colors
+
+            if sigma > 0:
+                for i in range(projected_data.shape[-1]):
+                    projected_data[:,i] = self._smear(
+                        projected_data[:,i],
+                        sigma=sigma,
+                    )
 
         if total:
             self.plot_plain(
@@ -927,7 +966,7 @@ class Dos:
                 ax.plot(
                     pdensity,
                     energy,
-                    color=colors[i],
+                    color=plot_colors[i],
                     linewidth=linewidth,
                     alpha=alpha_line
                 )
@@ -937,7 +976,7 @@ class Dos:
                         energy,
                         pdensity,
                         0,
-                        color=colors[i],
+                        color=plot_colors[i],
                         alpha=alpha,
                     )
 
@@ -945,7 +984,7 @@ class Dos:
                 ax.plot(
                     energy,
                     pdensity,
-                    color=colors[i],
+                    color=plot_colors[i],
                     linewidth=linewidth,
                     alpha=alpha_line
                 )
@@ -955,7 +994,7 @@ class Dos:
                         energy,
                         pdensity,
                         0,
-                        color=colors[i],
+                        color=plot_colors[i],
                         alpha=alpha,
                     )
 
@@ -1069,21 +1108,18 @@ class Dos:
         #  tdos_array = self._sum_layers(layers=layers)
         tdos_array = self.tdos_array
 
+        tdensity = self._sum_layers(
+            layers=layers,
+            atol=atol,
+            custom_layer_inds=custom_layer_inds
+        )
+
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            tdensity = (tdensity[0] - tdensity[1]) / (tdensity[0] + tdensity[1])
+
         if sigma > 0:
-            tdensity = self._smear(
-                self._sum_layers(
-                    layers=layers,
-                    atol=atol,
-                    custom_layer_inds=custom_layer_inds
-                ),
-                sigma=sigma
-            )
-        else:
-            tdensity = self._sum_layers(
-                layers=layers,
-                atol=atol,
-                custom_layer_inds=custom_layer_inds
-            )
+            tdensity = self._smear(tdensity, sigma=sigma)
+
 
         if log_scale:
             tdensity = np.log10(tdensity)
@@ -1225,9 +1261,19 @@ class Dos:
         indices = np.vstack([atom_indices, orbital_indices_long]).T
 
         projected_data = self.pdos_array
-        projected_data = np.transpose(np.array([
-            projected_data[:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,0))
+
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            projected_data_up = np.transpose(np.array([
+                projected_data[0,:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data_down = np.transpose(np.array([
+                projected_data[1,:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data = np.array([projected_data_up, projected_data_down])
+        else:
+            projected_data = np.transpose(np.array([
+                projected_data[:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
 
         if color_list is None:
             colors = np.array([self.color_dict[i] for i in range(len(orbital_indices_long))])
@@ -1330,9 +1376,14 @@ class Dos:
 
         projected_data = self._sum_atoms(atoms=atoms)
 
-        if sum_atoms:
-            projected_data = np.sum(projected_data, axis=1).reshape(-1,1)
-            colors = [colors[0]]
+        #  if sum_atoms:
+            #  if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+                #  projected_data_up = np.sum(projected_data[0], axis=1).reshape(-1,1)
+                #  projected_data_up = np.sum(projected_data[1], axis=1).reshape(-1,1)
+                #  colors = [colors[0]]
+            #  else:
+                #  projected_data = np.sum(projected_data, axis=1).reshape(-1,1)
+                #  colors = [colors[0]]
 
         self._plot_projected_general(
             ax=ax,
@@ -1388,9 +1439,19 @@ class Dos:
         indices = np.vstack([atom_indices, orbital_indices]).T
 
         projected_data = self._sum_atoms(atoms=atom_indices, spd=True)
-        projected_data = np.transpose(np.array([
-            projected_data[:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,0))
+
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            projected_data_up = np.transpose(np.array([
+                projected_data[0,:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data_down = np.transpose(np.array([
+                projected_data[1,:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data = np.array([projected_data_up, projected_data_down])
+        else:
+            projected_data = np.transpose(np.array([
+                projected_data[:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
 
         if color_list is None:
             colors = np.array([self.color_dict[i] for i in range(len(orbital_symbols_long))])
@@ -1499,9 +1560,19 @@ class Dos:
         indices = np.vstack([element_indices, orbital_indices_long]).T
 
         projected_data = self._sum_elements(elements=element_symbols, orbitals=True)
-        projected_data = np.transpose(np.array([
-            projected_data[:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,0))
+
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            projected_data_up = np.transpose(np.array([
+                projected_data[0, :,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data_down = np.transpose(np.array([
+                projected_data[1, :,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data = np.array([projected_data_up, projected_data_down])
+        else:
+            projected_data = np.transpose(np.array([
+                projected_data[:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
 
         if color_list is None:
             colors = np.array([self.color_dict[i] for i in range(len(orbital_indices_long))])
@@ -1565,9 +1636,19 @@ class Dos:
         indices = np.vstack([element_indices, orbital_indices]).T
 
         projected_data = self._sum_elements(elements=element_symbols, spd=True)
-        projected_data = np.transpose(np.array([
-            projected_data[:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,0))
+
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            projected_data_up = np.transpose(np.array([
+                projected_data[0,:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data_down = np.transpose(np.array([
+                projected_data[1,:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
+            projected_data = np.array([projected_data_up, projected_data_down])
+        else:
+            projected_data = np.transpose(np.array([
+                projected_data[:,ind[0],ind[1]] for ind in indices
+            ]), axes=(1,0))
 
         if color_list is None:
             colors = np.array([self.color_dict[i] for i in range(len(orbital_symbols_long))])
@@ -1676,8 +1757,19 @@ class Dos:
 
         atom_index = range(len(groups))
         energies = energy[ind]
-        atom_densities = self._sum_atoms(atoms=None)[ind]
-        densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
+        
+        atom_densities = self._sum_atoms(atoms=None)
+
+        if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
+            atom_densities_up = atom_densities[0, ind].squeeze()
+            atom_densities_down = atom_densities[1, ind].squeeze()
+            densities_up = np.vstack([np.sum(np.vstack(atom_densities_up[:, [group]]), axis=1) for group in groups])
+            densities_down = np.vstack([np.sum(np.vstack(atom_densities_down[:, [group]]), axis=1) for group in groups])
+            densities = (densities_up - densities_down) / (densities_up + densities_down)
+        else:
+            atom_densities = atom_densities[ind]
+            densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
+
         densities = np.transpose(densities)
 
         if lrange is not None:

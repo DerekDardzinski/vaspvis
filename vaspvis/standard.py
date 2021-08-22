@@ -9107,23 +9107,35 @@ def _main():
         #  interpolate=False,
         #  custom_kpath=[1,2,3,4,5,-5,-4,-3,-2,-1]
     #  )
-    dos_layers(
-        folder='../../vaspvis_data/Fe-slab',
-        spin='both',
-        combination_method='sub',
-        sp_method='percentage',
-        output='percentage.png',
-        log_scale=False,
-        show_bounds=True,
-    )
-    dos_layers(
-        folder='../../vaspvis_data/Fe-slab',
-        spin='both',
-        combination_method='sub',
-        sp_method='absolute',
-        output='absolute.png',
-        log_scale=False,
-        show_bounds=True,
+    #  dos_orbitals(
+        #  folder='../../vaspvis_data/Fe-slab/',
+        #  orbitals=[0,1,2,3],
+        #  spin='both',
+        #  combination_method='sub',
+        #  color_list=['red' for _ in range(4)]
+    #  )
+    #  dos_layers(
+        #  folder='../../vaspvis_data/Fe-slab',
+        #  spin='both',
+        #  combination_method='sub',
+        #  sp_method='percentage',
+        #  output='percentage.png',
+        #  log_scale=False,
+        #  show_bounds=True,
+    #  )
+    #  dos_layers(
+        #  folder='../../vaspvis_data/Fe-slab',
+        #  spin='both',
+        #  combination_method='sub',
+        #  sp_method='absolute',
+        #  output='absolute.png',
+        #  log_scale=False,
+        #  show_bounds=True,
+    #  )
+    band_plain(
+        folder='../../vaspvis_data/band_InAs/',
+        highlight_band=True,
+        band_index=6,
     )
 
 
