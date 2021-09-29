@@ -160,19 +160,13 @@ class Dos:
             self.pdos_array = self._load_pdos()
 
             if self.lsorbit and self.soc_axis is not None:
-                if self.spin == 'both':
-                    if self.sp_method == 'absolute':
-                        self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
-                    elif self.sp_method == 'percentage':
-                        if self.combination_method == 'add':
-                            raise BaseException("If using combination_method='add' and spin orbit coupling is applied, just set spin='up'")
-                        else:
-                            self.tdos_array[:,1] = (self.pdos_array[0].sum(axis=1).sum(axis=1) - self.pdos_array[1].sum(axis=1).sum(axis=1)) / (self.pdos_array[0].sum(axis=1).sum(axis=1) + self.pdos_array[1].sum(axis=1).sum(axis=1))
-                elif self.spin == 'up':
-                    print(self.pdos_array.sum(axis=1).sum(axis=1))
+                if self.sp_method == 'absolute':
                     self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
-                elif self.spin == 'down':
-                    self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
+                elif self.sp_method == 'percentage':
+                    if self.combination_method == 'add':
+                        raise BaseException("If using combination_method='add' and spin orbit coupling is applied, just set spin='up'")
+                    else:
+                        self.tdos_array[:,1] = (self.pdos_array[0].sum(axis=1).sum(axis=1) - self.pdos_array[1].sum(axis=1).sum(axis=1)) / (self.pdos_array[0].sum(axis=1).sum(axis=1) + self.pdos_array[1].sum(axis=1).sum(axis=1))
 
 
     def _check_f_orb(self):
