@@ -376,6 +376,18 @@ class Band:
         eigenvalues = eigenvalues - self.efermi
         kpath = np.array(kpath)
 
+        path_len = len(self.kpath)
+        n = self.n
+        inserts = [n*(i+1) for i in range(path_len-1)]
+        inds = list(range(n*path_len+1))
+        for i in reversed(inserts):
+            inds.insert(i,i)
+
+        kpath = kpath[inds]
+        spectral_weights = spectral_weights[:, inds]
+        K_indices = K_indices[:, inds]
+        eigenvalues = eigenvalues[:, inds]
+
         return eigenvalues, spectral_weights, K_indices, kpath
 
 
@@ -390,11 +402,19 @@ class Band:
         """
         
         if self.lsorbit:
-            spin = 0
-        elif self.spin == 'up':
-            spin = 0
-        elif self.spin == 'down':
-            spin = 1
+            if self.soc_axis is None:
+                spin = 0
+            elif self.soc_axis == 'x':
+                spin = 1
+            elif self.soc_axis == 'y':
+                spin = 2
+            elif self.soc_axis == 'z':
+                spin = 3
+        else:
+            if self.spin == 'up':
+                spin = 0
+            elif self.spin == 'down':
+                spin = 1
 
         if not os.path.isfile(os.path.join(self.folder, 'PROCAR_repaired')):
             UtilsProcar().ProcarRepair(
@@ -436,6 +456,19 @@ class Band:
 
 
         projected_eigenvalues = projected_eigenvalues[:,:,spin,:,:]
+
+        if self.lsorbit and self.soc_axis is not None:
+            separated_projections = np.zeros(projected_eigenvalues.shape + (2,))
+            separated_projections[projected_eigenvalues > 0, 0] = projected_eigenvalues[projected_eigenvalues > 0]
+            separated_projections[projected_eigenvalues < 0, 1] = -projected_eigenvalues[projected_eigenvalues < 0]
+
+            if self.spin == 'up':
+                soc_spin = 0
+            elif self.spin == 'down':
+                soc_spin = 1
+
+            projected_eigenvalues = separated_projections[...,soc_spin]
+
 
         if self.hse:
             kpoint_weights = np.array(self.eigenval.kpoints_weights)
@@ -919,7 +952,8 @@ class Band:
                     merged_label = '|'.join([k[0], k[1]]).replace('$|$', '|')
                     labels.append(merged_label)
 
-        kpoints_index = [0] + [(self.n * i) for i in range(1, len(labels))]
+        n = int(len(self.kpoints) / len(self.kpath))
+        kpoints_index = [0] + [(n * i) for i in range(1, len(labels))]
         kpoints_index[-1] -= 1
 
         for k in kpoints_index:
@@ -1042,8 +1076,9 @@ class Band:
             ]
 
         if unfold and not hse:
+            n = int(len(self.kpoints) / len(self.kpath))
             slices = [
-                slice(i*self.n, (i+1)*self.n, None) for i in range(int(len(self.kpath)))
+                slice(i*n, (i+1)*n, None) for i in range(int(len(self.kpath)))
             ]
 
         return slices
@@ -1080,9 +1115,12 @@ class Band:
             ]
 
         if unfold and not hse:
+            n = int(len(self.kpoints) / len(self.kpath))
+            print(n)
             slices = [
-                slice(i*self.n, (i+1)*self.n, None) for i in range(int(len(self.kpath)-1))
+                slice(i*n, (i+1)*n, None) for i in range(int(len(self.kpath)-1))
             ]
+            print(slices)
 
         return slices
 
@@ -1248,7 +1286,7 @@ class Band:
         highlight_band_color='red',
         band_index=None,
         sp_color='red',
-        sp_scale_factor=10,
+        sp_scale_factor=5,
     ):
         """
         This function plots a plain band structure.
@@ -1262,6 +1300,7 @@ class Band:
         bands_in_plot = self._filter_bands(erange=erange)
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         wave_vector_segments = self._get_k_distance()
+
 
         if self.soc_axis is not None and self.lsorbit:
             color = 'black'
@@ -1299,6 +1338,7 @@ class Band:
                         highlight_eigenvalues = self.eigenvalues[band_index, slices[i]]
 
             wave_vectors_for_kpoints = wave_vectors
+
 
             if self.interpolate:
                 wave_vectors, eigenvalues = self._get_interpolated_data_segment(
@@ -1538,6 +1578,7 @@ class Band:
             vlinecolor=vlinecolor,
             projection=projected_data,
             scale_factor=plain_scale_factor,
+            sp_scale_factor=0,
         )
 
         wave_vector_segments = self._get_k_distance()
@@ -2585,7 +2626,7 @@ if __name__ == "__main__":
         high_symm_points=high_symm_points,
         n=30,
         new_n=50,
-        kpath=[['X', 'G'], ['G', 'X']]
+        kpath=[['X', 'G'], ['G', 'X']],
     )
     band_down = Band(
         #  folder="../../vaspvis_data/band_EuS_bulk/band",
@@ -2605,19 +2646,33 @@ if __name__ == "__main__":
         ax=ax,
         sp_color='red',
         erange=[-6,3],
-        sp_scale_factor=3,
-        scale_factor=10,
+        sp_scale_factor=1,
+        scale_factor=4,
     )
     band_down.plot_plain(
         ax=ax,
         sp_color='blue',
         erange=[-6,3],
-        sp_scale_factor=3,
-        scale_factor=10,
+        sp_scale_factor=1,
+        scale_factor=4,
     )
     ax.set_ylim(-6,3)
     fig.tight_layout()
     fig.savefig('unfold_test.png')
+
+    fig1, ax1 = plt.subplots(figsize=(2.5,4), dpi=400)
+    band_hse = Band(
+        folder='../../vaspvis_data/band_InAs_hse',
+        interpolate=False,
+        projected=True,
+        custom_kpath=[-1,1]
+    )
+    band_hse.plot_spd(
+       ax=ax1, 
+    )
+    ax1.set_ylim([-3,3])
+    fig1.tight_layout(pad=0.4)
+    fig1.savefig('hse.png')
     #  fig.savefig('bulk_test.png')
         
 

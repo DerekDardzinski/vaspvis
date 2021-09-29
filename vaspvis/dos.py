@@ -160,7 +160,13 @@ class Dos:
             self.pdos_array = self._load_pdos()
 
             if self.lsorbit and self.soc_axis is not None:
-                self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
+                if self.sp_method == 'absolute':
+                    self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
+                elif self.sp_method == 'percentage':
+                    if self.combination_method == 'add':
+                        raise BaseException("If using combination_method='add' and spin orbit coupling is applied, just set spin='up'")
+                    else:
+                        self.tdos_array[:,1] = (self.pdos_array[0].sum(axis=1).sum(axis=1) - self.pdos_array[1].sum(axis=1).sum(axis=1)) / (self.pdos_array[0].sum(axis=1).sum(axis=1) + self.pdos_array[1].sum(axis=1).sum(axis=1))
 
 
     def _check_f_orb(self):
@@ -908,6 +914,7 @@ class Dos:
                 plot_colors = unique_colors
 
             projected_data = (projected_data_up - projected_data_down) / (projected_data_up + projected_data_down)
+            projected_data[np.isnan(projected_data)] = 1e-9
 
             if sigma > 0:
                 for i in range(projected_data.shape[-1]):
@@ -999,7 +1006,19 @@ class Dos:
                     )
 
 
-    def plot_plain(self, ax, linewidth=1.5, fill=True, alpha=0.3, alpha_line=1.0, sigma=0.05, energyaxis='y', color='black', erange=[-6, 6]):
+    def plot_plain(
+        self,
+        ax,
+        linewidth=1.5,
+        fill=True,
+        alpha=0.3,
+        alpha_line=1.0,
+        sigma=0.05,
+        energyaxis='y',
+        color='black',
+        erange=[-6, 6],
+        log_scale=False,
+    ):
         """
         This function plots the total density of states
 
@@ -1029,6 +1048,12 @@ class Dos:
         else:
             tdensity = tdos_array[:,1]
 
+        if log_scale:
+            tdensity = np.log10(tdensity)
+            neg_inf_loc = np.isin(tdensity, -np.inf)
+            min_val = np.min(tdensity[np.logical_not(neg_inf_loc)])
+            tdensity[neg_inf_loc] = min_val
+
         self._set_density_lims(
             ax=ax,
             tdensity=tdensity,
@@ -1036,6 +1061,7 @@ class Dos:
             erange=erange,
             energyaxis=energyaxis,
             spin=self.spin,
+            log_scale=log_scale,
         )
 
         if energyaxis == 'y':
@@ -1116,6 +1142,7 @@ class Dos:
 
         if self.spin == 'both' and self.combination_method == 'sub' and self.sp_method == 'percentage':
             tdensity = (tdensity[0] - tdensity[1]) / (tdensity[0] + tdensity[1])
+            tdensity[np.isnan(tdensity)] = 1e-9
 
         if sigma > 0:
             tdensity = self._smear(tdensity, sigma=sigma)
@@ -1766,6 +1793,7 @@ class Dos:
             densities_up = np.vstack([np.sum(np.vstack(atom_densities_up[:, [group]]), axis=1) for group in groups])
             densities_down = np.vstack([np.sum(np.vstack(atom_densities_down[:, [group]]), axis=1) for group in groups])
             densities = (densities_up - densities_down) / (densities_up + densities_down)
+            densities[np.isnan(densities)] = 1e-9
         else:
             atom_densities = atom_densities[ind]
             densities = np.vstack([np.sum(np.vstack(atom_densities[:,[group]]), axis=1) for group in groups])
@@ -1784,6 +1812,7 @@ class Dos:
                 )
         if sigma_layers > 0:
             densities = gaussian_filter(densities, sigma=sigma_layers)
+
 
         f = interp2d(atom_index, energies, densities, kind='cubic')
         atom_index = np.arange(np.min(atom_index), np.max(atom_index), 0.1)
@@ -1820,7 +1849,17 @@ class Dos:
 
                 norm = colors.Normalize(vmin=-norm_val, vmax=norm_val)
             else:
-                norm = colors.Normalize(vmin=np.min(densities), vmax=np.max(densities))
+                if max_cutoff is not None:
+                    max_val = max_cutoff
+                else:
+                    max_val = np.max(densities)
+
+                if min_cutoff is not None:
+                    min_val = min_cutoff
+                else:
+                    min_val = np.min(densities)
+
+                norm = colors.Normalize(vmin=min_val, vmax=max_val)
 
 
         if log_scale:

@@ -180,7 +180,7 @@ def band_plain(
         unfold=unfold,
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
-	new_n=new_n, 
+	new_n=new_n,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -293,6 +293,7 @@ def band_spd(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a s, p, d projected band structure.
@@ -355,6 +356,7 @@ def band_spd(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -464,6 +466,7 @@ def band_atom_orbitals(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a projected band structure on specific [atom, orbital] pairs.
@@ -526,6 +529,7 @@ def band_atom_orbitals(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -635,6 +639,7 @@ def band_orbitals(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a projected band structure on specific orbitals.
@@ -713,6 +718,7 @@ def band_orbitals(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -822,6 +828,7 @@ def band_atoms(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a projected band structure on specific atoms in the POSCAR.
@@ -882,6 +889,7 @@ def band_atoms(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -990,6 +998,7 @@ def band_atom_spd(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a s, p, d projected band structure on specific atoms.
@@ -1052,6 +1061,7 @@ def band_atom_spd(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -1161,6 +1171,7 @@ def band_elements(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a projected band structure on specific elements.
@@ -1221,6 +1232,7 @@ def band_elements(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -1330,6 +1342,7 @@ def band_element_orbitals(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a projected band structure on orbitals of specific elements.
@@ -1392,6 +1405,7 @@ def band_element_orbitals(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -1501,6 +1515,7 @@ def band_element_spd(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a s, p, d projected band structure on specific elements.
@@ -1563,6 +1578,7 @@ def band_element_spd(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -1729,12 +1745,12 @@ def band_plain_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
         M=M,
 	shift_efermi=shift_efermi,
-        soc_axis=soc_axis,
     )
     band_down = Band(
         folder=folder,
@@ -2013,6 +2029,7 @@ def band_spd_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a spin polarized s, p, d projected band structure. This will plot two plots
@@ -2082,6 +2099,7 @@ def band_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2097,6 +2115,7 @@ def band_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2123,6 +2142,7 @@ def band_spd_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2132,6 +2152,7 @@ def band_spd_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2150,6 +2171,7 @@ def band_spd_spin_polarized(
         band_color=band_color,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -2168,6 +2190,7 @@ def band_spd_spin_polarized(
         band_color=band_color,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -2210,6 +2233,7 @@ def band_atom_orbitals_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates an atom orbital spin polarized band structure. This will plot two plots
@@ -2279,6 +2303,7 @@ def band_atom_orbitals_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2294,6 +2319,7 @@ def band_atom_orbitals_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2320,6 +2346,7 @@ def band_atom_orbitals_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2329,6 +2356,7 @@ def band_atom_orbitals_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2347,6 +2375,7 @@ def band_atom_orbitals_spin_polarized(
         erange=erange,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -2365,6 +2394,7 @@ def band_atom_orbitals_spin_polarized(
         erange=erange,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -2404,6 +2434,7 @@ def band_orbitals_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates an orbital spin polarized band structure. This will plot two plots
@@ -2489,6 +2520,7 @@ def band_orbitals_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2504,6 +2536,7 @@ def band_orbitals_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2526,17 +2559,19 @@ def band_orbitals_spin_polarized(
 
     bbox = dict(boxstyle="round", fc="white")
     ax1.annotate(
-        '$\\uparrow$',
+        '$\\uparrow$ ',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
     )
     ax2.annotate(
-        '$\\downarrow$',
+        '$\\downarrow$ ',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2554,6 +2589,7 @@ def band_orbitals_spin_polarized(
         band_color=band_color,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=0.5,
@@ -2572,6 +2608,7 @@ def band_orbitals_spin_polarized(
         band_color=band_color,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=0.5,
@@ -2611,6 +2648,7 @@ def band_atoms_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates an atom spin polarized band structure. This will plot two plots
@@ -2679,6 +2717,7 @@ def band_atoms_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2694,6 +2733,7 @@ def band_atoms_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2716,17 +2756,19 @@ def band_atoms_spin_polarized(
 
     bbox = dict(boxstyle="round", fc="white")
     ax1.annotate(
-        '$\\uparrow$',
+        '$\\uparrow$ ',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
     )
     ax2.annotate(
-        '$\\downarrow$',
+        '$\\downarrow$ ',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2745,6 +2787,7 @@ def band_atoms_spin_polarized(
         erange=erange,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=0.5,
@@ -2763,6 +2806,7 @@ def band_atoms_spin_polarized(
         erange=erange,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=0.5,
@@ -2804,6 +2848,7 @@ def band_atom_spd_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific atoms. This will plot two plots
@@ -2873,6 +2918,7 @@ def band_atom_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2888,6 +2934,7 @@ def band_atom_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -2914,6 +2961,7 @@ def band_atom_spd_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2923,6 +2971,7 @@ def band_atom_spd_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -2941,6 +2990,7 @@ def band_atom_spd_spin_polarized(
         erange=erange,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -2959,6 +3009,7 @@ def band_atom_spd_spin_polarized(
         erange=erange,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -2998,6 +3049,7 @@ def band_elements_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates an element spin polarized band structure. This will plot two plots
@@ -3065,6 +3117,7 @@ def band_elements_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -3080,6 +3133,7 @@ def band_elements_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -3102,17 +3156,19 @@ def band_elements_spin_polarized(
 
     bbox = dict(boxstyle="round", fc="white")
     ax1.annotate(
-        '$\\uparrow$',
+        '$\\uparrow$ ',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
     )
     ax2.annotate(
-        '$\\downarrow$',
+        '$\\downarrow$ ',
         xy=(0.02, 0.98),
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -3130,6 +3186,7 @@ def band_elements_spin_polarized(
         erange=erange,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=0.5,
@@ -3148,6 +3205,7 @@ def band_elements_spin_polarized(
         erange=erange,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=0.5,
@@ -3190,6 +3248,7 @@ def band_element_orbital_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates an element orbital spin polarized band structure. This will plot two plots
@@ -3259,6 +3318,7 @@ def band_element_orbital_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -3274,6 +3334,7 @@ def band_element_orbital_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -3300,6 +3361,7 @@ def band_element_orbital_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -3309,6 +3371,7 @@ def band_element_orbital_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -3327,6 +3390,7 @@ def band_element_orbital_spin_polarized(
         erange=erange,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -3345,6 +3409,7 @@ def band_element_orbital_spin_polarized(
         erange=erange,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -3387,6 +3452,7 @@ def band_element_spd_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
 ):
     """
     This function generates a s, p, d spin polarized band structure on specific elements. This will plot two plots
@@ -3456,6 +3522,7 @@ def band_element_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -3471,6 +3538,7 @@ def band_element_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -3497,6 +3565,7 @@ def band_element_spd_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -3506,6 +3575,7 @@ def band_element_spd_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -3524,6 +3594,7 @@ def band_element_spd_spin_polarized(
         erange=erange,
     )
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -3542,6 +3613,7 @@ def band_element_spd_spin_polarized(
         erange=erange,
     )
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax2,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -3577,6 +3649,7 @@ def dos_plain(
     fontsize=12,
     save=True,
     shift_efermi=0,
+    log_scale=False,
 ):
     """
     This function plots the total density of states.
@@ -3620,6 +3693,7 @@ def dos_plain(
         energyaxis=energyaxis,
         color=color,
         erange=erange,
+        log_scale=log_scale,
     )
 
     plt.tight_layout(pad=0.4)
@@ -5240,6 +5314,7 @@ def band_dos_plain(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5307,6 +5382,7 @@ def band_dos_plain(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -5374,6 +5450,7 @@ def band_dos_spd(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5460,6 +5537,7 @@ def band_dos_spd(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -5534,6 +5612,7 @@ def band_dos_atom_orbitals(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5620,6 +5699,7 @@ def band_dos_atom_orbitals(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -5694,6 +5774,7 @@ def band_dos_orbitals(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5796,6 +5877,7 @@ def band_dos_orbitals(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -5870,6 +5952,7 @@ def band_dos_atoms(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -5955,6 +6038,7 @@ def band_dos_atoms(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6028,6 +6112,7 @@ def band_dos_atom_spd(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6114,6 +6199,7 @@ def band_dos_atom_spd(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6187,6 +6273,7 @@ def band_dos_elements(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6271,6 +6358,7 @@ def band_dos_elements(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6345,6 +6433,7 @@ def band_dos_element_spd(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6431,6 +6520,7 @@ def band_dos_element_spd(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6505,6 +6595,7 @@ def band_dos_element_orbitals(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6591,6 +6682,7 @@ def band_dos_element_orbitals(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6662,6 +6754,7 @@ def band_dos_plain_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6730,6 +6823,7 @@ def band_dos_plain_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6744,6 +6838,7 @@ def band_dos_plain_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6755,6 +6850,7 @@ def band_dos_plain_spin_polarized(
     dos_down = Dos(shift_efermi=shift_efermi, folder=dos_folder, spin='down')
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=up_color,
         linewidth=linewidth,
@@ -6763,6 +6859,7 @@ def band_dos_plain_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax1,
         color=down_color,
         linewidth=linewidth,
@@ -6834,6 +6931,7 @@ def band_dos_spd_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -6924,6 +7022,7 @@ def band_dos_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6939,6 +7038,7 @@ def band_dos_spd_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -6956,6 +7056,7 @@ def band_dos_spd_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -6965,6 +7066,7 @@ def band_dos_spd_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -6984,6 +7086,7 @@ def band_dos_spd_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7032,6 +7135,7 @@ def band_dos_spd_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7110,6 +7214,7 @@ def band_dos_atom_orbitals_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7202,6 +7307,7 @@ def band_dos_atom_orbitals_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -7217,6 +7323,7 @@ def band_dos_atom_orbitals_spin_polarized(
         high_symm_points=high_symm_points, 
 	interpolate=interpolate,
 	new_n=new_n,
+        soc_axis=soc_axis,
         kpath=kpath,
 	custom_kpath=custom_kpath,
         n=n,
@@ -7234,6 +7341,7 @@ def band_dos_atom_orbitals_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -7243,6 +7351,7 @@ def band_dos_atom_orbitals_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -7262,6 +7371,7 @@ def band_dos_atom_orbitals_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7310,6 +7420,7 @@ def band_dos_atom_orbitals_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7384,6 +7495,7 @@ def band_dos_orbitals_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7511,6 +7623,7 @@ def band_dos_orbitals_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -7520,6 +7633,7 @@ def band_dos_orbitals_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -7537,6 +7651,7 @@ def band_dos_orbitals_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7582,6 +7697,7 @@ def band_dos_orbitals_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7655,6 +7771,7 @@ def band_dos_atoms_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -7765,6 +7882,7 @@ def band_dos_atoms_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -7774,6 +7892,7 @@ def band_dos_atoms_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -7791,6 +7910,7 @@ def band_dos_atoms_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7836,6 +7956,7 @@ def band_dos_atoms_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -7908,6 +8029,7 @@ def band_dos_atom_spd_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -8019,6 +8141,7 @@ def band_dos_atom_spd_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8028,6 +8151,7 @@ def band_dos_atom_spd_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8045,6 +8169,7 @@ def band_dos_atom_spd_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -8090,6 +8215,7 @@ def band_dos_atom_spd_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -8163,6 +8289,7 @@ def band_dos_elements_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -8272,6 +8399,7 @@ def band_dos_elements_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8281,6 +8409,7 @@ def band_dos_elements_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8298,6 +8427,7 @@ def band_dos_elements_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -8343,6 +8473,7 @@ def band_dos_elements_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -8416,6 +8547,7 @@ def band_dos_element_orbitals_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -8527,6 +8659,7 @@ def band_dos_element_orbitals_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8536,6 +8669,7 @@ def band_dos_element_orbitals_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8553,6 +8687,7 @@ def band_dos_element_orbitals_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -8598,6 +8733,7 @@ def band_dos_element_orbitals_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -8671,6 +8807,7 @@ def band_dos_element_spd_spin_polarized(
     shift_efermi=0,
     interpolate=False,
     new_n=200,
+    soc_axis=None,
     fill=True,
     alpha=0.3,
     sigma=0.05,
@@ -8782,6 +8919,7 @@ def band_dos_element_spd_spin_polarized(
         annotations[0],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8791,6 +8929,7 @@ def band_dos_element_spd_spin_polarized(
         annotations[1],
         xy=annotation_xy,
         xycoords='axes fraction',
+        zorder=200,
         va='top',
         ha='left',
         bbox=bbox,
@@ -8808,6 +8947,7 @@ def band_dos_element_spd_spin_polarized(
     )
 
     band_down.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_up,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -8853,6 +8993,7 @@ def band_dos_element_spd_spin_polarized(
     )
 
     band_up.plot_plain(
+        sp_scale_factor=0,
         ax=ax_band_down,
         color=unprojected_band_color,
         linewidth=unprojected_linewidth,
@@ -9171,12 +9312,39 @@ def _main():
         #  down_linestyle='-',
         #  output='Fe_sp.png',
     #  )
-    band_plain(
-        folder='../../vaspvis_data/Fe/',
-        output='Fe_soc_up.png',
-        soc_axis='z',
-    )
+    #  dos_layers(
+        #  folder='../../vaspvis_data/slabdos',
+        #  soc_axis='z',
+        #  spin='both',
+        #  sp_method='absolute',
+        #  combination_method='sub',
+        #  log_scale=False,
+    #  )
+    M = [[-0.,  0., -1.],[ 1., -1.,  0.],[-16., -16.,  16.]]
 
+    high_symm_points = [
+         [0.5, 0.0, 0.5],     
+         [0.0, 0.0, 0.0],          
+         [0.5, 0.0, 0.5],
+    ]
+    #  band_spd(
+    #  band_spd_spin_polarized(
+        #  folder="../../vaspvis_data/band_EuS_slab/band",
+        #  #  atoms=[0,1,3,4],
+        #  #  color_list=['green', 'green', 'orange', 'orange'],
+        #  interpolate=False,
+        #  soc_axis='z',
+        #  unfold=True,
+        #  M=M,
+        #  high_symm_points=high_symm_points,
+        #  n=30,
+        #  new_n=50,
+        #  kpath=[['X', 'G'], ['G', 'X']],
+        #  erange=[-6,3],
+        #  #  sp_scale_factor=3,
+        #  scale_factor=1000,
+    #  )
+    dos_plain(folder='../../vaspvis_data/dos_InAs', fill=False, log_scale=False)
 
 if __name__ == "__main__":
     _main()
