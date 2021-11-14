@@ -38,6 +38,12 @@ The `utils` module is used to generate files for band unfolding calculations.
 pip install vaspvis
 ```
 
+# How to Cite
+
+To cite VaspVis please reference the following paper:
+
+https://link.aps.org/doi/10.1103/PhysRevMaterials.5.064606
+
 # Loading Data
 
 ```python
