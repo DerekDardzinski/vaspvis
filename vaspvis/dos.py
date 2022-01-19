@@ -1121,6 +1121,7 @@ class Dos:
         erange=[-6, 6],
         atol=None,
         custom_layer_inds=None,
+        linestyle='-',
     ):
         """
         This function plots the total density of states
@@ -1176,7 +1177,8 @@ class Dos:
                 tdos_array[:,0],
                 linewidth=linewidth,
                 color=color,
-                alpha=alpha_line
+                alpha=alpha_line,
+                linestyle=linestyle,
             )
 
             if fill:
@@ -1194,7 +1196,8 @@ class Dos:
                 tdensity,
                 linewidth=linewidth,
                 color=color,
-                alpha=alpha_line
+                alpha=alpha_line,
+                linestyle=linestyle,
             )
 
             if fill:

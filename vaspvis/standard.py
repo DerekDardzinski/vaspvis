@@ -3724,6 +3724,7 @@ def dos_ldos(
     log_scale=False,
     atol=None,
     custom_layer_inds=None,
+    linestyle='-',
 ):
     """
     This function plots the local density of states for atomic layers. Useful for comparing 
@@ -3773,6 +3774,7 @@ def dos_ldos(
         log_scale=log_scale,
         atol=atol,
         custom_layer_inds=custom_layer_inds,
+        linestyle=linestyle,
     )
 
     plt.tight_layout(pad=0.4)
