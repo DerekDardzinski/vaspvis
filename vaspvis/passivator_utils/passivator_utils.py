@@ -111,6 +111,7 @@ def _get_bot_index(z_pos, to_delete=None, tol=0.0001):
         bot_index = np.where(
             np.isclose(z_pos, np.min(np.delete(z_pos, to_delete)), atol=tol)
         )[0]
+        bot_index = np.array([i for i in bot_index if i not in to_delete])
 
     return bot_index
 
@@ -136,6 +137,7 @@ def _get_top_index(z_pos, to_delete=None, tol=0.0001):
         top_index = np.where(
             np.isclose(z_pos, np.max(np.delete(z_pos, to_delete)), atol=tol)
         )[0]
+        top_index = np.array([i for i in top_index if i not in to_delete])
 
     return top_index
 
@@ -196,7 +198,7 @@ def _append_H(struc, index, neighbor_sph_coords, side, new_radius=True):
     center_coords = struc[index].coords
     center_frac_coords = struc[index].frac_coords
     c_norm = np.linalg.norm(struc.lattice.matrix[-1])
-    tol = 0.1 / c_norm
+    tol = 0.01 / c_norm
 
     if new_radius:
         element = struc[index].species.elements[0]

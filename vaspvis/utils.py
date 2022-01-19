@@ -1,6 +1,6 @@
 from vaspvis.unfold import make_kpath,removeDuplicateKpoints, find_K_from_k, save2VaspKPOINTS
 from vaspvis.unfold import convert
-from vaspvis.passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart, _center_slab
+from passivator_utils import _append_H, _cart2sph, _get_bot_index, _get_neighbors, _get_top_index,_sort_by_z, _sph2cart, _center_slab
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import JmolNN, CrystalNN, EconNN
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -847,18 +847,12 @@ if __name__ == "__main__":
         #  vacuum=40,
         #  write_file=True
     #  )
-    bg = get_bandgap(
-        folder='/home/derek/for_James/band/',
-        return_vbm_cbm=True,
-        printbg=True,
-        method=0,
-        spin='up',
-    )
-    bg = get_bandgap(
-        folder='/home/derek/for_James/band/',
-        return_vbm_cbm=True,
-        printbg=True,
-        method=0,
-        spin='down',
-    )
-    #  print(bg)
+    slab = passivator(
+            struc=Poscar.from_file('./POSCAR_2').structure,
+            # struc='POSCAR_pas',
+            write_file=True,
+            output='POSCAR_transfer',
+            passivated_struc='./CONTCAR',
+            symmetrize=False,
+            tol=0.005,
+            )
