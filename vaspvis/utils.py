@@ -19,6 +19,8 @@ from ase.build import niggli_reduce, sort
 from ase.io import read, write
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+from pyprocar.utilsprocar import UtilsProcar
+from pyprocar.procarparser import ProcarParser
 import matplotlib.pyplot as plt
 from fastdtw import fastdtw
 import numpy as np
@@ -119,7 +121,388 @@ def generate_kpoints(M, high_symmetry_points, n, output='KPOINTS'):
     save2VaspKPOINTS(reducedK, output)
 
 
+class BandGap():
+    """
+    Determines the band gap from a band structure or density of states calculation
+
+    Parameters:
+        folder (str): Folder that contains the VASP input and outputs files
+        printbg (bool): Determines if the band gap value is printed out or not.
+        return_vbm_cbm (bool): Determines if the vbm and cbm are returned.
+        spin (str): 'both' returns the bandgap for all spins, 'up' returns the 
+            bandgap for only the spin up states and 'down' returns the bandgap
+            for only the spin down states.
+        method (int): method=0 gets the band gap by finding the values closest to
+            the fermi level. method=1 gets the band gap based on the average energy
+            of each band.
+    """
+    def __init__(self, folder, spin='both', soc_axis=None) -> None:
+        self.folder = folder
+        self.spin = spin
+        self.soc_axis = soc_axis
+        self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
+        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
+
+        self.incar = Incar.from_file(
+            os.path.join(folder, 'INCAR')
+        )
+        if 'LSORBIT' in self.incar:
+            if self.incar['LSORBIT']:
+                self.lsorbit = True
+            else:
+                self.lsorbit = False
+        else:
+            self.lsorbit = False
+
+        if 'ISPIN' in self.incar:
+            if self.incar['ISPIN'] == 2:
+                self.ispin = True
+            else:
+                self.ispin = False
+        else:
+            self.ispin = False
+
+        if 'LHFCALC' in self.incar:
+            if self.incar['LHFCALC']:
+                self.hse = True
+            else:
+                self.hse = False
+        else:
+            self.hse = False
+
+        self.pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
+
+        if soc_axis is not None and self.lsorbit:
+            self.pre_loaded_spin_projections = os.path.isfile(os.path.join(folder, 'spin_projections.npy'))
+
+        self.bg, self.vbm, self.cbm = self._get_bandgap(method=0)
+
+
+    def _load_soc_spin_projection(self):
+        """
+        This function loads the project weights of the orbitals in each band
+        from vasprun.xml into a dictionary of the form:
+        band index --> atom index --> weights of orbitals
+
+        Returns:
+            projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
+        """
+        if not self.lsorbit:
+            raise BaseException(f"You selected soc_axis='{self.soc_axis}' for a non-soc axis calculation, please set soc_axis=None")
+        if self.lsorbit and self.soc_axis == 'x':
+            spin = 1
+        elif self.lsorbit and self.soc_axis == 'y':
+            spin = 2
+        elif self.lsorbit and self.soc_axis == 'z':
+            spin = 3
+
+        if not os.path.isfile(os.path.join(self.folder, 'PROCAR_repaired')):
+            UtilsProcar().ProcarRepair(
+                os.path.join(self.folder, 'PROCAR'),
+                os.path.join(self.folder, 'PROCAR_repaired'),
+            )
+
+        if self.pre_loaded_spin_projections:
+            with open(os.path.join(self.folder, 'spin_projections.npy'), 'rb') as spin_projs:
+                spin_projections = np.load(spin_projs) 
+        else:
+            parser = ProcarParser()
+            parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
+            spin_projections = np.transpose(parser.spd[:,:,:,-1, -1], axes=(1,0,2))
+
+            np.save(os.path.join(self.folder, 'spin_projections.npy'), spin_projections)
+
+
+        spin_projections = spin_projections[:,:,spin]
+
+        if self.hse:
+            kpoint_weights = np.array(self.eigenval.kpoints_weights)
+            zero_weight = np.where(kpoint_weights == 0)[0]
+            spin_projections = spin_projections[:,zero_weight]
+
+        separated_projections = np.zeros((spin_projections.shape[0], spin_projections.shape[1], 2), dtype=bool)
+        # separated_projections[spin_projections > 0, 0] = spin_projections[spin_projections > 0]
+        # separated_projections[spin_projections < 0, 1] = -spin_projections[spin_projections < 0]
+        separated_projections[spin_projections > 0, 0] = True
+        separated_projections[spin_projections < 0, 1] = True
+
+        # separated_projections = separated_projections / separated_projections.max()
+        
+        if self.spin == 'up':
+            separated_projections = separated_projections[:,:,0]
+        elif self.spin == 'down':
+            separated_projections = separated_projections[:,:,1]
+        else:
+            raise BaseException("The soc_axis feature does not work with spin='both'")
+
+        return separated_projections
+
+    def _load_eigenvals(self):
+        if self.pre_loaded_bands:
+            with open(os.path.join(self.folder, 'eigenvalues.npy'), 'rb') as eigenvals:
+                band_data = np.load(eigenvals)
+
+            if self.ispin and not self.lsorbit:
+                eigenvalues = band_data[:,:,[0,2]]
+                kpoints = band_data[0,:,4:]
+                eigenvalues_up = band_data[:,:,[0,1]]
+                eigenvalues_down = band_data[:,:,[2,3]]
+                if self.spin == 'both':
+                    eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+                elif self.spin == 'up':
+                    eigenvalues_bg = eigenvalues_up
+                elif self.spin == 'down':
+                    eigenvalues_bg = eigenvalues_down
+            else:
+                eigenvalues = band_data[:,:,0]
+                kpoints = band_data[0,:,2:]
+                eigenvalues_bg = band_data[:,:,[0,1]]
+        else:
+            if len(self.eigenval.eigenvalues.keys()) > 1:
+                eigenvalues_up = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
+                eigenvalues_down = np.transpose(self.eigenval.eigenvalues[Spin.down], axes=(1,0,2))
+                eigenvalues_up[:,:,0] = eigenvalues_up[:,:,0] - self.efermi
+                eigenvalues_down[:,:,0] = eigenvalues_down[:,:,0] - self.efermi
+                eigenvalues = np.concatenate(
+                    [eigenvalues_up, eigenvalues_down],
+                    axis=2
+                )
+                if self.spin == 'both':
+                    eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+                elif self.spin == 'up':
+                    eigenvalues_bg = eigenvalues_up
+                elif self.spin == 'down':
+                    eigenvalues_bg = eigenvalues_down
+            else:
+                eigenvalues = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
+                eigenvalues[:,:,0] = eigenvalues[:,:,0] - self.efermi
+                eigenvalues_bg = eigenvalues
+
+            kpoints = np.array(self.eigenval.kpoints)
+
+            if self.hse:
+                kpoint_weights = np.array(self.eigenval.kpoints_weights)
+                zero_weight = np.where(kpoint_weights == 0)[0]
+                eigenvalues = eigenvalues[:,zero_weight]
+                eigenvalues_bg = eigenvalues_bg[:, zero_weight]
+                kpoints = kpoints[zero_weight]
+
+            band_data = np.append(
+                eigenvalues,
+                np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+                axis=2,
+            )
+            np.save(os.path.join(self.folder, 'eigenvalues.npy'), band_data)
+
+        return eigenvalues_bg
+
+    def _method_0(self, eigenvalues):
+        if len(eigenvalues.shape) == 3:
+            eigenvalues = eigenvalues[:,:,0]
+
+        occupied = eigenvalues[np.where(eigenvalues < 0)]
+        unoccupied = eigenvalues[np.where(eigenvalues > 0)]
+
+        vbm = np.nanmax(occupied)
+        cbm = np.nanmin(unoccupied)
+
+        if np.nansum(np.abs(np.diff(np.sign(eigenvalues))) > 0) == 0:
+            bg = cbm - vbm
+        else:
+            bg = 0
+
+        return bg, vbm, cbm
+
+    def _method_1(self, eigenvalues):
+        if len(eigenvalues.shape) == 3:
+            eigenvalues = eigenvalues[:,:,0]
+
+        band_mean = np.nanmean(eigenvalues, axis=1)
+
+        below_index = np.where(band_mean < 0)[0]
+        above_index = np.where(band_mean >= 0)[0]
+
+        vbm = np.nanmax(eigenvalues[below_index])
+        cbm = np.nanmin(eigenvalues[above_index])
+
+        if np.nansum(np.abs(np.diff(np.sign(eigenvalues))) > 0) == 0:
+            bg = cbm - vbm
+        else:
+            bg = 0
+
+        return bg, vbm, cbm
+
+    def _get_bandgap(self, method=0):
+        bg, vbm, cbm = np.nan, np.nan, np.nan
+        eigenvalues = self._load_eigenvals()
+
+        if self.lsorbit:
+            if self.spin == "both":
+                if method == 0:
+                    bg, vbm, cbm = self._method_0(eigenvalues)
+                elif method == 1:
+                    bg, vbm, cbm = self._method_1(eigenvalues)
+            else:
+                if self.soc_axis is not None:
+                    mask = self._load_soc_spin_projection()
+                    eigenvalues[mask] = np.nan
+                    if method == 0:
+                        bg, vbm, cbm = self._method_0(eigenvalues)
+                    elif method == 1:
+                        bg, vbm, cbm = self._method_1(eigenvalues)
+                else:
+                    if method == 0:
+                        bg, vbm, cbm = self._method_0(eigenvalues)
+                    elif method == 1:
+                        bg, vbm, cbm = self._method_1(eigenvalues)
+        elif self.ispin and not self.lsorbit:
+            if method == 0:
+                bg, vbm, cbm = self._method_0(eigenvalues)
+            elif method == 1:
+                bg, vbm, cbm = self._method_1(eigenvalues)
+        elif not self.lsorbit and not self.ispin:
+            if method == 0:
+                bg, vbm, cbm = self._method_0(eigenvalues)
+            elif method == 1:
+                bg, vbm, cbm = self._method_1(eigenvalues)
+
+        return bg, vbm, cbm
+
+            
+
+
 def get_bandgap(
+    folder,
+    printbg=True,
+    return_vbm_cbm=False,
+    spin='both',
+    method=0,
+):
+    """
+    Determines the band gap from a band structure calculation
+
+    Parameters:
+        folder (str): Folder that contains the VASP input and outputs files
+        printbg (bool): Determines if the band gap value is printed out or not.
+        return_vbm_cbm (bool): Determines if the vbm and cbm are returned.
+        spin (str): 'both' returns the bandgap for all spins, 'up' returns the 
+            bandgap for only the spin up states and 'down' returns the bandgap
+            for only the spin down states.
+        method (int): method=0 gets the band gap by finding the values closest to
+            the fermi level. method=1 gets the band gap based on the average energy
+            of each band.
+
+    Returns:
+        if return_vbm_cbm is False: The band gap is returned in eV
+        if return_vbm_cbm is True: The band gap, vbm, and cbm are returned in eV in that order
+    """
+    from band import Band
+
+    pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
+    pre_loaded_spin_projections = os.path.isfile(os.path.join(folder, 'spin_projections.npy'))
+    spin_projections = self._load_soc_spin_projection()
+    eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
+    efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
+    incar = Incar.from_file(
+        os.path.join(folder, 'INCAR')
+    )
+    if 'LSORBIT' in incar:
+        if incar['LSORBIT']:
+            lsorbit = True
+        else:
+            lsorbit = False
+    else:
+        lsorbit = False
+
+    if 'ISPIN' in incar:
+        if incar['ISPIN'] == 2:
+            ispin = True
+        else:
+            ispin = False
+    else:
+        ispin = False
+
+    if 'LHFCALC' in incar:
+        if incar['LHFCALC']:
+            hse = True
+        else:
+            hse = False
+    else:
+        hse = False
+
+    if pre_loaded_bands:
+        with open(os.path.join(folder, 'eigenvalues.npy'), 'rb') as eigenvals:
+            band_data = np.load(eigenvals)
+
+        if ispin and not lsorbit:
+            eigenvalues = band_data[:,:,[0,2]]
+            kpoints = band_data[0,:,4:]
+            eigenvalues_up = band_data[:,:,[0,1]]
+            eigenvalues_down = band_data[:,:,[2,3]]
+            if spin == 'both':
+                eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+            elif spin == 'up':
+                eigenvalues_bg = eigenvalues_up
+            elif spin == 'down':
+                eigenvalues_bg = eigenvalues_down
+        else:
+            eigenvalues = band_data[:,:,0]
+            kpoints = band_data[0,:,2:]
+            eigenvalues_bg = band_data[:,:,[0,1]]
+        
+        if method == 0:
+            band_gap = _get_bandgap_0(eigenvalues=eigenvalues_bg)
+        elif method == 1:
+            band_gap = _get_bandgap_1(eigenvalues=eigenvalues_bg)
+
+    else:
+        if len(eigenval.eigenvalues.keys()) > 1:
+            eigenvalues_up = np.transpose(eigenval.eigenvalues[Spin.up], axes=(1,0,2))
+            eigenvalues_down = np.transpose(eigenval.eigenvalues[Spin.down], axes=(1,0,2))
+            eigenvalues_up[:,:,0] = eigenvalues_up[:,:,0] - efermi
+            eigenvalues_down[:,:,0] = eigenvalues_down[:,:,0] - efermi
+            eigenvalues = np.concatenate(
+                [eigenvalues_up, eigenvalues_down],
+                axis=2
+            )
+            if spin == 'both':
+                eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
+            elif spin == 'up':
+                eigenvalues_bg = eigenvalues_up
+            elif spin == 'down':
+                eigenvalues_bg = eigenvalues_down
+        else:
+            eigenvalues = np.transpose(eigenval.eigenvalues[Spin.up], axes=(1,0,2))
+            eigenvalues[:,:,0] = eigenvalues[:,:,0] - efermi
+            eigenvalues_bg = eigenvalues
+
+        kpoints = np.array(eigenval.kpoints)
+
+        if hse:
+            kpoint_weights = np.array(eigenval.kpoints_weights)
+            zero_weight = np.where(kpoint_weights == 0)[0]
+            eigenvalues = eigenvalues[:,zero_weight]
+            eigenvalues_bg = eigenvalues_bg[:, zero_weight]
+            kpoints = kpoints[zero_weight]
+
+        if method == 0:
+            band_gap = _get_bandgap_0(eigenvalues=eigenvalues_bg)
+        elif method == 1:
+            band_gap = _get_bandgap_1(eigenvalues=eigenvalues_bg)
+
+        band_data = np.append(
+            eigenvalues,
+            np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+            axis=2,
+        )
+
+        np.save(os.path.join(folder, 'eigenvalues.npy'), band_data)
+
+    return band_gap
+
+
+
+def get_bandgap_old(
     folder,
     printbg=True,
     return_vbm_cbm=False,
@@ -192,8 +575,6 @@ def get_bandgap(
             return bg, vbm, cbm
         else:
             return bg
-        
-
 
     pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
     eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
@@ -847,12 +1228,29 @@ if __name__ == "__main__":
         #  vacuum=40,
         #  write_file=True
     #  )
-    slab = passivator(
-            struc=Poscar.from_file('./POSCAR_2').structure,
-            # struc='POSCAR_pas',
-            write_file=True,
-            output='POSCAR_transfer',
-            passivated_struc='./CONTCAR',
-            symmetrize=False,
-            tol=0.005,
-            )
+    # slab = passivator(
+    #         struc=Poscar.from_file('./POSCAR_2').structure,
+    #         # struc='POSCAR_pas',
+    #         write_file=True,
+    #         output='POSCAR_transfer',
+    #         passivated_struc='./CONTCAR',
+    #         symmetrize=False,
+    #         tol=0.005,
+    #         )
+    gap_both = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='both', soc_axis=None)
+    print('Both')
+    print('Gap =', np.round(gap_both.bg, 3))
+    print('VBM =', np.round(gap_both.vbm, 3))
+    print('CBM =', np.round(gap_both.cbm, 3))
+    print('')
+    gap_up = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='up', soc_axis='z')
+    print('Up')
+    print('Gap =', np.round(gap_up.bg, 3))
+    print('VBM =', np.round(gap_up.vbm, 3))
+    print('CBM =', np.round(gap_up.cbm, 3))
+    print('')
+    gap_down = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='down', soc_axis='z')
+    print('Down')
+    print('Gap =', np.round(gap_down.bg, 3))
+    print('VBM =', np.round(gap_down.vbm, 3))
+    print('CBM =', np.round(gap_down.cbm, 3))
