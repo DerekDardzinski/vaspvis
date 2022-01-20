@@ -127,17 +127,22 @@ class BandGap():
 
     Parameters:
         folder (str): Folder that contains the VASP input and outputs files
-        printbg (bool): Determines if the band gap value is printed out or not.
-        return_vbm_cbm (bool): Determines if the vbm and cbm are returned.
         spin (str): 'both' returns the bandgap for all spins, 'up' returns the 
             bandgap for only the spin up states and 'down' returns the bandgap
             for only the spin down states.
+        soc_axis (None or str): This parameter can either take the value of None or the
+            it can take the value of 'x', 'y', or 'z'. If either 'x', 'y', or 'z' are given
+            then spin='up' states will be defined by positive values of this spin-component
+            and spin='down' states will be defined by negative values of this spin-component.
+            This will only be used for showing a pseudo-spin-polarized plot for calculations
+            that have SOC enabled.
         method (int): method=0 gets the band gap by finding the values closest to
             the fermi level. method=1 gets the band gap based on the average energy
             of each band.
     """
-    def __init__(self, folder, spin='both', soc_axis=None) -> None:
+    def __init__(self, folder, spin='both', soc_axis=None, method=0) -> None:
         self.folder = folder
+        self.method = method
         self.spin = spin
         self.soc_axis = soc_axis
         self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
@@ -175,7 +180,7 @@ class BandGap():
         if soc_axis is not None and self.lsorbit:
             self.pre_loaded_spin_projections = os.path.isfile(os.path.join(folder, 'spin_projections.npy'))
 
-        self.bg, self.vbm, self.cbm = self._get_bandgap(method=0)
+        self.bg, self.vbm, self.cbm = self._get_bandgap(method=self.method)
 
 
     def _load_soc_spin_projection(self):
@@ -367,139 +372,6 @@ class BandGap():
                 bg, vbm, cbm = self._method_1(eigenvalues)
 
         return bg, vbm, cbm
-
-            
-
-
-def get_bandgap(
-    folder,
-    printbg=True,
-    return_vbm_cbm=False,
-    spin='both',
-    method=0,
-):
-    """
-    Determines the band gap from a band structure calculation
-
-    Parameters:
-        folder (str): Folder that contains the VASP input and outputs files
-        printbg (bool): Determines if the band gap value is printed out or not.
-        return_vbm_cbm (bool): Determines if the vbm and cbm are returned.
-        spin (str): 'both' returns the bandgap for all spins, 'up' returns the 
-            bandgap for only the spin up states and 'down' returns the bandgap
-            for only the spin down states.
-        method (int): method=0 gets the band gap by finding the values closest to
-            the fermi level. method=1 gets the band gap based on the average energy
-            of each band.
-
-    Returns:
-        if return_vbm_cbm is False: The band gap is returned in eV
-        if return_vbm_cbm is True: The band gap, vbm, and cbm are returned in eV in that order
-    """
-    from band import Band
-
-    pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
-    pre_loaded_spin_projections = os.path.isfile(os.path.join(folder, 'spin_projections.npy'))
-    spin_projections = self._load_soc_spin_projection()
-    eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
-    efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2])
-    incar = Incar.from_file(
-        os.path.join(folder, 'INCAR')
-    )
-    if 'LSORBIT' in incar:
-        if incar['LSORBIT']:
-            lsorbit = True
-        else:
-            lsorbit = False
-    else:
-        lsorbit = False
-
-    if 'ISPIN' in incar:
-        if incar['ISPIN'] == 2:
-            ispin = True
-        else:
-            ispin = False
-    else:
-        ispin = False
-
-    if 'LHFCALC' in incar:
-        if incar['LHFCALC']:
-            hse = True
-        else:
-            hse = False
-    else:
-        hse = False
-
-    if pre_loaded_bands:
-        with open(os.path.join(folder, 'eigenvalues.npy'), 'rb') as eigenvals:
-            band_data = np.load(eigenvals)
-
-        if ispin and not lsorbit:
-            eigenvalues = band_data[:,:,[0,2]]
-            kpoints = band_data[0,:,4:]
-            eigenvalues_up = band_data[:,:,[0,1]]
-            eigenvalues_down = band_data[:,:,[2,3]]
-            if spin == 'both':
-                eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
-            elif spin == 'up':
-                eigenvalues_bg = eigenvalues_up
-            elif spin == 'down':
-                eigenvalues_bg = eigenvalues_down
-        else:
-            eigenvalues = band_data[:,:,0]
-            kpoints = band_data[0,:,2:]
-            eigenvalues_bg = band_data[:,:,[0,1]]
-        
-        if method == 0:
-            band_gap = _get_bandgap_0(eigenvalues=eigenvalues_bg)
-        elif method == 1:
-            band_gap = _get_bandgap_1(eigenvalues=eigenvalues_bg)
-
-    else:
-        if len(eigenval.eigenvalues.keys()) > 1:
-            eigenvalues_up = np.transpose(eigenval.eigenvalues[Spin.up], axes=(1,0,2))
-            eigenvalues_down = np.transpose(eigenval.eigenvalues[Spin.down], axes=(1,0,2))
-            eigenvalues_up[:,:,0] = eigenvalues_up[:,:,0] - efermi
-            eigenvalues_down[:,:,0] = eigenvalues_down[:,:,0] - efermi
-            eigenvalues = np.concatenate(
-                [eigenvalues_up, eigenvalues_down],
-                axis=2
-            )
-            if spin == 'both':
-                eigenvalues_bg = np.vstack([eigenvalues_up, eigenvalues_down])
-            elif spin == 'up':
-                eigenvalues_bg = eigenvalues_up
-            elif spin == 'down':
-                eigenvalues_bg = eigenvalues_down
-        else:
-            eigenvalues = np.transpose(eigenval.eigenvalues[Spin.up], axes=(1,0,2))
-            eigenvalues[:,:,0] = eigenvalues[:,:,0] - efermi
-            eigenvalues_bg = eigenvalues
-
-        kpoints = np.array(eigenval.kpoints)
-
-        if hse:
-            kpoint_weights = np.array(eigenval.kpoints_weights)
-            zero_weight = np.where(kpoint_weights == 0)[0]
-            eigenvalues = eigenvalues[:,zero_weight]
-            eigenvalues_bg = eigenvalues_bg[:, zero_weight]
-            kpoints = kpoints[zero_weight]
-
-        if method == 0:
-            band_gap = _get_bandgap_0(eigenvalues=eigenvalues_bg)
-        elif method == 1:
-            band_gap = _get_bandgap_1(eigenvalues=eigenvalues_bg)
-
-        band_data = np.append(
-            eigenvalues,
-            np.tile(kpoints, (eigenvalues.shape[0],1,1)),
-            axis=2,
-        )
-
-        np.save(os.path.join(folder, 'eigenvalues.npy'), band_data)
-
-    return band_gap
-
 
 
 def get_bandgap_old(
@@ -1237,20 +1109,24 @@ if __name__ == "__main__":
     #         symmetrize=False,
     #         tol=0.005,
     #         )
-    gap_both = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='both', soc_axis=None)
+    gap_both = BandGap(
+            folder='../../vaspvis_data/band_InAs',
+            spin='both',
+            soc_axis=None
+            )
     print('Both')
     print('Gap =', np.round(gap_both.bg, 3))
     print('VBM =', np.round(gap_both.vbm, 3))
     print('CBM =', np.round(gap_both.cbm, 3))
-    print('')
-    gap_up = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='up', soc_axis='z')
-    print('Up')
-    print('Gap =', np.round(gap_up.bg, 3))
-    print('VBM =', np.round(gap_up.vbm, 3))
-    print('CBM =', np.round(gap_up.cbm, 3))
-    print('')
-    gap_down = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='down', soc_axis='z')
-    print('Down')
-    print('Gap =', np.round(gap_down.bg, 3))
-    print('VBM =', np.round(gap_down.vbm, 3))
-    print('CBM =', np.round(gap_down.cbm, 3))
+    # print('')
+    # gap_up = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='up', soc_axis='z')
+    # print('Up')
+    # print('Gap =', np.round(gap_up.bg, 3))
+    # print('VBM =', np.round(gap_up.vbm, 3))
+    # print('CBM =', np.round(gap_up.cbm, 3))
+    # print('')
+    # gap_down = BandGap(folder='../../vaspvis_data/Ti2MnIn_band', spin='down', soc_axis='z')
+    # print('Down')
+    # print('Gap =', np.round(gap_down.bg, 3))
+    # print('VBM =', np.round(gap_down.vbm, 3))
+    # print('CBM =', np.round(gap_down.cbm, 3))
