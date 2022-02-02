@@ -58,8 +58,8 @@ class Band:
         n=None,
         M=None,
         high_symm_points=None,
-        bandgap=False,
-        printbg=True,
+        # bandgap=False,
+        # printbg=True,
         shift_efermi=0,
         interpolate=True,
         new_n=200,
@@ -89,8 +89,6 @@ class Band:
                 the conver_slab function in the utils module.
             high_symm_points (list[list]): Coordinates of the high symmetry points of the bulk 
                 Brilloin zone for an unfolded calculation.
-            bandgap (bool): Determines is the band gap should be determined or not.
-            printbg (bool): Determines is the band gap value should be printed while plotting
             shift_efermi (float): Gives the option to shift the fermi energy by the specified value
             interpolate (bool): Determines is the data between each high symmetry point should be
                 interpolated or not.
@@ -112,8 +110,8 @@ class Band:
         self.interpolate = interpolate
         self.soc_axis = soc_axis
         self.new_n = new_n
-        self.bandgap = bandgap
-        self.printbg = printbg
+        # self.bandgap = bandgap
+        # self.printbg = printbg
         self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
         self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2]) + shift_efermi
         self.poscar = Poscar.from_file(
@@ -214,10 +212,10 @@ class Band:
             'd': 2,
             'f': 3,
         }
-        if self.bandgap:
-            self.bg = self._get_bandgap()
-        else:
-            self.bg = None
+        # if self.bandgap:
+        #     self.bg = self._get_bandgap()
+        # else:
+        #     self.bg = None
 
         self.custom_kpath = custom_kpath
         if self.custom_kpath is not None:
@@ -239,12 +237,12 @@ class Band:
 
         return inds, flip
 
-    def _get_bandgap(self):
-        from vaspvis.utils import get_bandgap
-        self.bg = get_bandgap(
-            folder=self.folder,
-            printbg=self.printbg,
-        )
+    # def _get_bandgap(self):
+    #     from vaspvis.utils import BandGap
+    #     self.bg = BandGap(
+    #         folder=self.folder,
+    #         printbg=self.printbg,
+    #     )
 
     def _check_f_orb(self):
         f_elements = [

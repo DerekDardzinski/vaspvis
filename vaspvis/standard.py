@@ -5,8 +5,8 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from vaspvis.dos import Dos
-from vaspvis.utils import get_bandgap
+from dos import Dos
+from vaspvis.utils import BandGap
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import Normalize, to_rgba, LinearSegmentedColormap
@@ -9063,6 +9063,7 @@ def dos_layers(
     antialiased=False,
     show_structure=False,
     interface_layer=None,
+    show_interface_line=False,
     interface_line_color='white',
     interface_line_style='--',
     interface_line_width=2,
@@ -9109,8 +9110,10 @@ def dos_layers(
         lrange (list): Upper and lower bounds of the layers included in the plot.
         antialiased (bool): Determines if antialiasing is used or not.
         fontsize (float): Fontsize of all the text in the group.
-        interface_layer (float or None): If a value is provided, then a line will be drawn
-            on the plot to identify the interface layer.
+        interface_layer (float or None): If a value is provided, then the axis labels will be
+            shifted accordingly so that the defined interface layer is zero.
+        show_interface_line (bool): If True, then a line will be drawn
+            on the plot to identify the interface layer defined by interface_layer.
         interface_line_color (str): Color of the line drawn on the plot to mark the 
             interface.
         interface_line_width (float): Line with of the line marking the interface.
@@ -9209,6 +9212,7 @@ def dos_layers(
         fontsize=fontsize,
         energyaxis=energyaxis,
         interface_layer=interface_layer,
+        show_interface_line=show_interface_line,
         interface_line_color=interface_line_color,
         interface_line_style=interface_line_style,
         interface_line_width=interface_line_width,
@@ -9226,7 +9230,10 @@ def dos_layers(
     )
 
     if plot_vbm_cbm:
-        _, vbm, cbm = get_bandgap(folder=folder, printbg=False, return_vbm_cbm=True)
+        gap = BandGap(folder=folder)
+        vbm = gap.vbm
+        cbm = gap.cbm
+        # _, vbm, cbm = get_bandgap(folder=folder, printbg=False, return_vbm_cbm=True)
 
         if energyaxis == 'y':
             dos_ax.axhline(
@@ -9290,15 +9297,16 @@ def _main():
         #  combination_method='sub',
         #  color_list=['red' for _ in range(4)]
     #  )
-    #  dos_layers(
-        #  folder='../../vaspvis_data/Fe-slab',
-        #  spin='both',
-        #  combination_method='sub',
-        #  sp_method='percentage',
-        #  output='percentage.png',
-        #  log_scale=False,
-        #  show_bounds=True,
-    #  )
+     dos_layers(
+         folder='../../vaspvis_data/Fe-slab',
+         spin='both',
+         combination_method='sub',
+         sp_method='percentage',
+         output='percentage_shift.png',
+         log_scale=False,
+         show_bounds=True,
+         interface_layer=10,
+     )
     #  dos_layers(
         #  folder='../../vaspvis_data/Fe-slab',
         #  spin='both',
@@ -9322,13 +9330,13 @@ def _main():
         #  combination_method='sub',
         #  log_scale=False,
     #  )
-    M = [[-0.,  0., -1.],[ 1., -1.,  0.],[-16., -16.,  16.]]
+    # M = [[-0.,  0., -1.],[ 1., -1.,  0.],[-16., -16.,  16.]]
 
-    high_symm_points = [
-         [0.5, 0.0, 0.5],     
-         [0.0, 0.0, 0.0],          
-         [0.5, 0.0, 0.5],
-    ]
+    # high_symm_points = [
+    #      [0.5, 0.0, 0.5],     
+    #      [0.0, 0.0, 0.0],          
+    #      [0.5, 0.0, 0.5],
+    # ]
     #  band_spd(
     #  band_spd_spin_polarized(
         #  folder="../../vaspvis_data/band_EuS_slab/band",
@@ -9346,7 +9354,7 @@ def _main():
         #  #  sp_scale_factor=3,
         #  scale_factor=1000,
     #  )
-    dos_plain(folder='../../vaspvis_data/dos_InAs', fill=False, log_scale=False)
+    # dos_plain(folder='../../vaspvis_data/dos_InAs', fill=False, log_scale=False)
 
 if __name__ == "__main__":
     _main()

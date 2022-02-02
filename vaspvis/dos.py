@@ -169,7 +169,6 @@ class Dos:
                         else:
                             self.tdos_array[:,1] = (self.pdos_array[0].sum(axis=1).sum(axis=1) - self.pdos_array[1].sum(axis=1).sum(axis=1)) / (self.pdos_array[0].sum(axis=1).sum(axis=1) + self.pdos_array[1].sum(axis=1).sum(axis=1))
                 elif self.spin == 'up':
-                    print(self.pdos_array.sum(axis=1).sum(axis=1))
                     self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
                 elif self.spin == 'down':
                     self.tdos_array[:,1] = self.pdos_array.sum(axis=1).sum(axis=1)
@@ -1725,6 +1724,7 @@ class Dos:
         antialiased=False,
         fontsize=6,
         interface_layer=None,
+        show_interface_line=False,
         interface_line_color='white',
         interface_line_width=2,
         interface_line_style='--',
@@ -1757,8 +1757,10 @@ class Dos:
             lrange (list): Upper and lower bounds of the layers included in the plot.
             antialiased (bool): Determines if antialiasing is used or not.
             fontsize (float): Fontsize of all the text in the group.
-            interface_layer (float or None): If a value is provided, then a line will be drawn
-                on the plot to identify the interface layer.
+            interface_layer (float or None): If a value is provided, then the axis labels will be
+                shifted accordingly so that the defined interface layer is zero.
+            show_interface_line (bool): If True, then a line will be drawn
+                on the plot to identify the interface layer defined by interface_layer.
             interface_line_color (str): Color of the line drawn on the plot to mark the 
                 interface.
             interface_line_width (float): Line with of the line marking the interface.
@@ -1893,6 +1895,9 @@ class Dos:
                     )
             levels = np.power(10, lev_exp)
 
+        if interface_layer is not None:
+            atom_index -= int(interface_layer)
+
         if energyaxis == 'y':
 
             if contour:
@@ -1917,9 +1922,9 @@ class Dos:
             ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
-            if interface_layer is not None:
+            if interface_layer is not None and show_interface_line:
                 ax.axvline(
-                    x=interface_layer,
+                    x=0,
                     color=interface_line_color,
                     linestyle=interface_line_style,
                     linewidth=interface_line_width,
@@ -1947,9 +1952,9 @@ class Dos:
                 )
             ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
-            if interface_layer is not None:
+            if interface_layer is not None and show_interface_line:
                 ax.axhline(
-                    y=interface_layer,
+                    y=0,
                     color=interface_line_color,
                     linestyle=interface_line_style,
                     linewidth=interface_line_width,

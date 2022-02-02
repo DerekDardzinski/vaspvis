@@ -44,6 +44,13 @@ vaspvis.stm module
    :undoc-members:
    :show-inheritance:
 
+vaspvis.charge module
+-----------------------
+
+.. automodule:: vaspvis.charge
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
