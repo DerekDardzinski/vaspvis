@@ -5,7 +5,7 @@ projected plots.
 """
 
 from vaspvis.band import Band
-from dos import Dos
+from vaspvis.dos import Dos
 from vaspvis.utils import BandGap
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator

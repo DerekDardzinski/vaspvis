@@ -225,11 +225,11 @@ class BandGap():
             zero_weight = np.where(kpoint_weights == 0)[0]
             spin_projections = spin_projections[:,zero_weight]
 
-        separated_projections = np.zeros((spin_projections.shape[0], spin_projections.shape[1], 2), dtype=bool)
+        separated_projections = np.ones((spin_projections.shape[0], spin_projections.shape[1], 2), dtype=bool)
         # separated_projections[spin_projections > 0, 0] = spin_projections[spin_projections > 0]
         # separated_projections[spin_projections < 0, 1] = -spin_projections[spin_projections < 0]
-        separated_projections[spin_projections > 0, 0] = True
-        separated_projections[spin_projections < 0, 1] = True
+        separated_projections[spin_projections > 0, 0] = False
+        separated_projections[spin_projections < 0, 1] = False
 
         # separated_projections = separated_projections / separated_projections.max()
         
