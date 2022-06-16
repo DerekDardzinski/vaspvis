@@ -25,6 +25,7 @@ class STM:
     def __init__(
         self,
         folder,
+        custom_color_dict = None,
     ):
         self.folder = folder
         self.preloaded_data = os.path.isfile(os.path.join(folder, 'parchg.npy'))
@@ -280,6 +281,7 @@ class STM:
         atom_axis_bounds,
         atoms_box,
         legend_atom_size,
+        custom_color_dict=None,
     ):
         supercell = make_supercell(
             structure,
@@ -305,6 +307,11 @@ class STM:
             surface_atom_sizes[np.isin(surface_atom_symbols, unique_species[i])] = z.atomic_radius
 
         surface_atom_sizes /= surface_atom_sizes.max()
+
+        if custom_color_dict is not None:
+            for element in custom_color_dict:
+                z = Element(element).Z
+                jmol_colors[z] = np.array(custom_color_dict[element]) / 255
 
         colors = jmol_colors[surface_atom_species]
 
@@ -406,6 +413,7 @@ class STM:
                 ncol=1,
                 loc='upper right',
                 framealpha=1,
+                fontsize=16,
             )
             l.set_zorder(200)
             frame = l.get_frame()
@@ -474,6 +482,7 @@ class STM:
         rotation=0,
         atom_axis_bounds=[0.5,0.0,0.5,0.5],
         atoms_box=False,
+        custom_color_dict=None,
     ):
         if rotation != 0:
             structure = self._rotate_structure(self.poscar.structure, angle=rotation)
@@ -516,6 +525,7 @@ class STM:
                 atom_axis_bounds=atom_axis_bounds,
                 atoms_box=atoms_box,
                 legend_atom_size=legend_atom_size,
+                custom_color_dict=custom_color_dict,
             )
 
 
@@ -529,6 +539,7 @@ if __name__ == "__main__":
     )
 
     stm = STM(folder='../../vaspvis_data/InAs111A_stm/')
+    color_dict = {'In': [215, 128, 187], 'As': [116, 208, 87]}
     stm.plot_constant_current(
         ax=ax,
         current=0.009,
@@ -536,22 +547,25 @@ if __name__ == "__main__":
         scan_size=40,
         plot_atoms=True,
         sigma=5,
-        cmap='afmhot',
+        cmap='Greys_r',
         atol=0.03,
         legend=True,
-        rotation=-90,
+        rotation=0,
         #  atom_size=20,
         #  bond_line_width=0.5,
-        legend_atom_size=50,
+        legend_atom_size=80,
         atom_axis_bounds=[0.5, 0.0, 0.5, 1],
         atoms_box=True,
+        custom_color_dict=color_dict,
     )
     stm.add_scale_bar(
         ax=ax,
-        width=10,
-        height=1.5,
-        #  offset_x=3,
-        #  fontsize=14,
+        width=5,
+        height=0.5,
+        units='A',
+        offset_x=2,
+        offset_y=2,
+        fontsize=20,
     )
     fig.tight_layout(pad=0)
     fig.savefig('InAs111A_with_atoms.png')
