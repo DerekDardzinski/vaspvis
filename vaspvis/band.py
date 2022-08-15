@@ -65,6 +65,7 @@ class Band:
         new_n=200,
         custom_kpath=None,
         soc_axis=None,
+        stretch_factor=1.0,
     ):
         """
         Initialize parameters upon the generation of this class
@@ -105,11 +106,14 @@ class Band:
                 and spin='down' states will be defined by negative values of this spin-component.
                 This will only be used for showing a pseudo-spin-polarized plot for calculations
                 that have SOC enabled.
+            stretch_factor (float): Used to scale the eigenvalues by a certain constant. Useful for comparing to ARPES data.
+                Default is scale_factor = 1.0 (i.e. no scaling)
         """
 
         self.interpolate = interpolate
         self.soc_axis = soc_axis
         self.new_n = new_n
+        self.stretch_factor = stretch_factor
         # self.bandgap = bandgap
         # self.printbg = printbg
         self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
@@ -170,6 +174,10 @@ class Band:
         else:
             self.pre_loaded_bands = os.path.isfile(os.path.join(folder, 'unfolded_eigenvalues.npy'))
             self.eigenvalues, self.spectral_weights, self.K_indices, self.kpoints = self._load_bands_unfold()
+
+        if self.stretch_factor != 1.0:
+            self.eigenvalues *= self.stretch_factor
+
         self.color_dict = {
             0: '#FF0000',
             1: '#0000FF',
