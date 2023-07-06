@@ -12,7 +12,12 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
 from matplotlib.collections import PatchCollection
 import matplotlib.colors as colors
-from matplotlib.colors import Normalize, to_rgba, to_rgb, LinearSegmentedColormap
+from matplotlib.colors import (
+    Normalize,
+    to_rgba,
+    to_rgb,
+    LinearSegmentedColormap,
+)
 import matplotlib.transforms as transforms
 import numpy as np
 import pandas as pd
@@ -23,6 +28,7 @@ from scipy.ndimage import gaussian_filter
 from scipy.interpolate import interp1d
 
 import matplotlib as mpl
+
 mpl.rcParams.update(mpl.rcParamsDefault)
 
 
@@ -44,7 +50,7 @@ class Band:
             for unfolded calculations. This information is extracted from the KPOINTS
             files for non-unfolded calculations. (G is automaticall converted to \\Gamma)
         n (int): Number of points between each high symmetry point.
-            This is also only required for unfolded calculations. This number should be 
+            This is also only required for unfolded calculations. This number should be
             known by the user, as it was used to generate the KPOINTS file.
     """
 
@@ -53,7 +59,7 @@ class Band:
         folder,
         projected=False,
         unfold=False,
-        spin='up',
+        spin="up",
         kpath=None,
         n=None,
         M=None,
@@ -84,19 +90,19 @@ class Band:
                 for unfolded calculations. This information is extracted from the KPOINTS
                 files for non-unfolded calculations. (G is automatically converted to \\Gamma)
             n (int): Number of points between each high symmetry point.
-                This is also only required for unfolded calculations. This number should be 
+                This is also only required for unfolded calculations. This number should be
                 known by the user, as it was used to generate the KPOINTS file.
             M (list[list]): Transformation matrix for unfolding calculations. Can be found using
                 the conver_slab function in the utils module.
-            high_symm_points (list[list]): Coordinates of the high symmetry points of the bulk 
+            high_symm_points (list[list]): Coordinates of the high symmetry points of the bulk
                 Brilloin zone for an unfolded calculation.
             shift_efermi (float): Gives the option to shift the fermi energy by the specified value
             interpolate (bool): Determines is the data between each high symmetry point should be
                 interpolated or not.
             new_n (int): New number of k-points in between each high symmetry point.
-            custom_kpath (list): Custom kpath that can be selected is the user desires. 
+            custom_kpath (list): Custom kpath that can be selected is the user desires.
                 Given a path G-X-W-L-G-K then there are 5 segements to choose from
-                [1 -> G-X, 2 -> X-W, 3 -> W-L, 4 -> L-G, 5 -> G-K]. If a user wanted to 
+                [1 -> G-X, 2 -> X-W, 3 -> W-L, 4 -> L-G, 5 -> G-K]. If a user wanted to
                 plot only the path G-X-W they can set custom_kpath=[1,2]. If a user wanted
                 to flip the k-path of a segment, then the index should be made negative, so
                 if the desired path was G-X|L-W then custom_kpath=[1,-3]
@@ -109,50 +115,54 @@ class Band:
             stretch_factor (float): Used to scale the eigenvalues by a certain constant. Useful for comparing to ARPES data.
                 Default is scale_factor = 1.0 (i.e. no scaling)
         """
-
         self.interpolate = interpolate
         self.soc_axis = soc_axis
         self.new_n = new_n
         self.stretch_factor = stretch_factor
         # self.bandgap = bandgap
         # self.printbg = printbg
-        self.eigenval = Eigenval(os.path.join(folder, 'EIGENVAL'))
-        self.efermi = float(os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}').read().split()[2]) + shift_efermi
+        self.eigenval = Eigenval(os.path.join(folder, "EIGENVAL"))
+        self.efermi = (
+            float(
+                os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}')
+                .read()
+                .split()[2]
+            )
+            + shift_efermi
+        )
         self.poscar = Poscar.from_file(
-            os.path.join(folder, 'POSCAR'),
+            os.path.join(folder, "POSCAR"),
             check_for_POTCAR=False,
-            read_velocities=False
+            read_velocities=False,
         )
-        self.incar = Incar.from_file(
-            os.path.join(folder, 'INCAR')
-        )
-        if 'LSORBIT' in self.incar:
-            if self.incar['LSORBIT']:
+        self.incar = Incar.from_file(os.path.join(folder, "INCAR"))
+        if "LSORBIT" in self.incar:
+            if self.incar["LSORBIT"]:
                 self.lsorbit = True
             else:
                 self.lsorbit = False
         else:
             self.lsorbit = False
 
-        if 'ISPIN' in self.incar:
-            if self.incar['ISPIN'] == 2:
+        if "ISPIN" in self.incar:
+            if self.incar["ISPIN"] == 2:
                 self.ispin = True
             else:
                 self.ispin = False
         else:
             self.ispin = False
 
-        if 'LHFCALC' in self.incar:
-            if self.incar['LHFCALC']:
+        if "LHFCALC" in self.incar:
+            if self.incar["LHFCALC"]:
                 self.hse = True
             else:
                 self.hse = False
         else:
             self.hse = False
 
-        self.kpoints_file = Kpoints.from_file(os.path.join(folder, 'KPOINTS'))
+        self.kpoints_file = Kpoints.from_file(os.path.join(folder, "KPOINTS"))
 
-        self.wavecar = os.path.join(folder, 'WAVECAR')
+        self.wavecar = os.path.join(folder, "WAVECAR")
         self.projected = projected
 
         self.forbitals = self._check_f_orb()
@@ -167,58 +177,67 @@ class Band:
         self.high_symm_points = high_symm_points
         self.folder = folder
         self.spin = spin
-        self.spin_dict = {'up': Spin.up, 'down': Spin.down}
+        self.spin_dict = {"up": Spin.up, "down": Spin.down}
         if not self.unfold:
-            self.pre_loaded_bands = os.path.isfile(os.path.join(folder, 'eigenvalues.npy'))
+            self.pre_loaded_bands = os.path.isfile(
+                os.path.join(folder, "eigenvalues.npy")
+            )
             self.eigenvalues, self.kpoints = self._load_bands()
         else:
-            self.pre_loaded_bands = os.path.isfile(os.path.join(folder, 'unfolded_eigenvalues.npy'))
-            self.eigenvalues, self.spectral_weights, self.K_indices, self.kpoints = self._load_bands_unfold()
+            self.pre_loaded_bands = os.path.isfile(
+                os.path.join(folder, "unfolded_eigenvalues.npy")
+            )
+            (
+                self.eigenvalues,
+                self.spectral_weights,
+                self.K_indices,
+                self.kpoints,
+            ) = self._load_bands_unfold()
 
         if self.stretch_factor != 1.0:
             self.eigenvalues *= self.stretch_factor
 
         self.color_dict = {
-            0: '#FF0000',
-            1: '#0000FF',
-            2: '#008000',
-            3: '#800080',
-            4: '#E09200',
-            5: '#FF5C77',
-            6: '#778392',
-            7: '#07C589',
-            8: '#40BAF2',
-            9: '#FF0000',
-            10: '#0000FF',
-            11: '#008000',
-            12: '#800080',
-            13: '#E09200',
-            14: '#FF5C77',
-            15: '#778392',
+            0: "#FF0000",
+            1: "#0000FF",
+            2: "#008000",
+            3: "#800080",
+            4: "#E09200",
+            5: "#FF5C77",
+            6: "#778392",
+            7: "#07C589",
+            8: "#40BAF2",
+            9: "#FF0000",
+            10: "#0000FF",
+            11: "#008000",
+            12: "#800080",
+            13: "#E09200",
+            14: "#FF5C77",
+            15: "#778392",
         }
         self.orbital_labels = {
-            0: 's',
-            1: 'p_{y}',
-            2: 'p_{z}',
-            3: 'p_{x}',
-            4: 'd_{xy}',
-            5: 'd_{yz}',
-            6: 'd_{z^{2}}',
-            7: 'd_{xz}',
-            8: 'd_{x^{2}-y^{2}}',
-            9: 'f_{y^{3}x^{2}}',
-            10: 'f_{xyz}',
-            11: 'f_{yz^{2}}',
-            12: 'f_{z^{3}}',
-            13: 'f_{xz^{2}}',
-            14: 'f_{zx^{3}}',
-            15: 'f_{x^{3}}',
+            0: "s",
+            1: "p_{y}",
+            2: "p_{z}",
+            3: "p_{x}",
+            4: "d_{xy}",
+            5: "d_{yz}",
+            6: "d_{z^{2}}",
+            7: "d_{xz}",
+            8: "d_{x^{2}-y^{2}}",
+            9: "f_{y^{3}x^{2}}",
+            10: "f_{xyz}",
+            11: "f_{yz^{2}}",
+            12: "f_{z^{3}}",
+            13: "f_{xz^{2}}",
+            14: "f_{zx^{3}}",
+            15: "f_{x^{3}}",
         }
         self.spd_relations = {
-            's': 0,
-            'p': 1,
-            'd': 2,
-            'f': 3,
+            "s": 0,
+            "p": 1,
+            "d": 2,
+            "f": 3,
         }
         # if self.bandgap:
         #     self.bg = self._get_bandgap()
@@ -227,20 +246,27 @@ class Band:
 
         self.custom_kpath = custom_kpath
         if self.custom_kpath is not None:
-            self.custom_kpath_inds, self.custom_kpath_flip = self._get_custom_kpath()
+            (
+                self.custom_kpath_inds,
+                self.custom_kpath_flip,
+            ) = self._get_custom_kpath()
         #  else:
-            #  self.custom_kpath_inds, self.custom_kpath_flip = None, None
+        #  self.custom_kpath_inds, self.custom_kpath_flip = None, None
 
         if projected:
-            self.pre_loaded_projections = os.path.isfile(os.path.join(folder, 'projected_eigenvalues.npy'))
+            self.pre_loaded_projections = os.path.isfile(
+                os.path.join(folder, "projected_eigenvalues.npy")
+            )
             self.projected_eigenvalues = self._load_projected_bands()
 
         if soc_axis is not None and self.lsorbit:
-            self.pre_loaded_spin_projections = os.path.isfile(os.path.join(folder, 'spin_projections.npy'))
+            self.pre_loaded_spin_projections = os.path.isfile(
+                os.path.join(folder, "spin_projections.npy")
+            )
             self.spin_projections = self._load_soc_spin_projection()
 
     def _get_custom_kpath(self):
-        flip = (-np.sign(self.custom_kpath)+1).astype(bool)
+        flip = (-np.sign(self.custom_kpath) + 1).astype(bool)
         inds = (np.abs(self.custom_kpath) - 1).astype(int)
 
         return inds, flip
@@ -254,37 +280,35 @@ class Band:
 
     def _check_f_orb(self):
         f_elements = [
-            'La',
-            'Ac',
-            'Ce',
-            'Tb',
-            'Th',
-            'Pr',
-            'Dy',
-            'Pa',
-            'Nd',
-            'Ho',
-            'U',
-            'Pm',
-            'Er',
-            'Np',
-            'Sm',
-            'Tm',
-            'Pu',
-            'Eu',
-            'Yb',
-            'Am',
-            'Gd',
-            'Lu',
+            "La",
+            "Ac",
+            "Ce",
+            "Tb",
+            "Th",
+            "Pr",
+            "Dy",
+            "Pa",
+            "Nd",
+            "Ho",
+            "U",
+            "Pm",
+            "Er",
+            "Np",
+            "Sm",
+            "Tm",
+            "Pu",
+            "Eu",
+            "Yb",
+            "Am",
+            "Gd",
+            "Lu",
         ]
         f = False
         for element in self.poscar.site_symbols:
             if element in f_elements:
                 f = True
-        
-        return f
-                    
 
+        return f
 
     def _load_bands(self):
         """
@@ -297,67 +321,75 @@ class Band:
                 the eigenvalues for each band
         """
 
-        if self.spin == 'up':
+        if self.spin == "up":
             spin = 0
-        if self.spin == 'down':
+        if self.spin == "down":
             spin = 1
 
         if self.pre_loaded_bands:
-            with open(os.path.join(self.folder, 'eigenvalues.npy'), 'rb') as eigenvals:
+            with open(
+                os.path.join(self.folder, "eigenvalues.npy"), "rb"
+            ) as eigenvals:
                 band_data = np.load(eigenvals)
 
             if self.ispin and not self.lsorbit:
-                eigenvalues = band_data[:,:,[0,2]]
-                kpoints = band_data[0,:,4:]
+                eigenvalues = band_data[:, :, [0, 2]]
+                kpoints = band_data[0, :, 4:]
             else:
-                eigenvalues = band_data[:,:,0]
-                kpoints = band_data[0,:,2:]
+                eigenvalues = band_data[:, :, 0]
+                kpoints = band_data[0, :, 2:]
         else:
             if len(self.eigenval.eigenvalues.keys()) > 1:
-                eigenvalues_up = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
-                eigenvalues_down = np.transpose(self.eigenval.eigenvalues[Spin.down], axes=(1,0,2))
-                eigenvalues_up[:,:,0] = eigenvalues_up[:,:,0] - self.efermi
-                eigenvalues_down[:,:,0] = eigenvalues_down[:,:,0] - self.efermi
+                eigenvalues_up = np.transpose(
+                    self.eigenval.eigenvalues[Spin.up], axes=(1, 0, 2)
+                )
+                eigenvalues_down = np.transpose(
+                    self.eigenval.eigenvalues[Spin.down], axes=(1, 0, 2)
+                )
+                eigenvalues_up[:, :, 0] = eigenvalues_up[:, :, 0] - self.efermi
+                eigenvalues_down[:, :, 0] = (
+                    eigenvalues_down[:, :, 0] - self.efermi
+                )
                 eigenvalues = np.concatenate(
-                    [eigenvalues_up, eigenvalues_down],
-                    axis=2
+                    [eigenvalues_up, eigenvalues_down], axis=2
                 )
             else:
-                eigenvalues = np.transpose(self.eigenval.eigenvalues[Spin.up], axes=(1,0,2))
-                eigenvalues[:,:,0] = eigenvalues[:,:,0] - self.efermi
+                eigenvalues = np.transpose(
+                    self.eigenval.eigenvalues[Spin.up], axes=(1, 0, 2)
+                )
+                eigenvalues[:, :, 0] = eigenvalues[:, :, 0] - self.efermi
 
             kpoints = np.array(self.eigenval.kpoints)
 
             if self.hse:
                 kpoint_weights = np.array(self.eigenval.kpoints_weights)
                 zero_weight = np.where(kpoint_weights == 0)[0]
-                eigenvalues = eigenvalues[:,zero_weight]
+                eigenvalues = eigenvalues[:, zero_weight]
                 kpoints = kpoints[zero_weight]
 
             band_data = np.append(
                 eigenvalues,
-                np.tile(kpoints, (eigenvalues.shape[0],1,1)),
+                np.tile(kpoints, (eigenvalues.shape[0], 1, 1)),
                 axis=2,
             )
 
-            np.save(os.path.join(self.folder, 'eigenvalues.npy'), band_data)
+            np.save(os.path.join(self.folder, "eigenvalues.npy"), band_data)
 
             if len(self.eigenval.eigenvalues.keys()) > 1:
-                eigenvalues = eigenvalues[:,:,[0,2]]
+                eigenvalues = eigenvalues[:, :, [0, 2]]
             else:
-                eigenvalues =  eigenvalues[:,:,0]
+                eigenvalues = eigenvalues[:, :, 0]
 
         if len(self.eigenval.eigenvalues.keys()) > 1:
-            eigenvalues = eigenvalues[:,:,spin]
+            eigenvalues = eigenvalues[:, :, spin]
 
         return eigenvalues, kpoints
 
-    
     def _load_bands_unfold(self):
-        
-        if self.spin == 'up':
+
+        if self.spin == "up":
             spin = 0
-        if self.spin == 'down':
+        if self.spin == "down":
             if self.lsorbit:
                 spin = 0
             else:
@@ -366,8 +398,10 @@ class Band:
         kpath = make_kpath(self.high_symm_points, nseg=self.n)
 
         if self.pre_loaded_bands:
-            with open(os.path.join(self.folder, 'unfolded_eigenvalues.npy'), 'rb') as eigenvals:
-                band_data = np.load(eigenvals) 
+            with open(
+                os.path.join(self.folder, "unfolded_eigenvalues.npy"), "rb"
+            ) as eigenvals:
+                band_data = np.load(eigenvals)
         else:
             wavecar_data = unfold(
                 M=self.M,
@@ -375,19 +409,22 @@ class Band:
                 lsorbit=self.lsorbit,
             )
             band_data = wavecar_data.spectral_weight(kpath)
-            np.save(os.path.join(self.folder, 'unfolded_eigenvalues.npy'), band_data)
+            np.save(
+                os.path.join(self.folder, "unfolded_eigenvalues.npy"),
+                band_data,
+            )
 
-        band_data = np.transpose(band_data[spin], axes=(2,1,0))
+        band_data = np.transpose(band_data[spin], axes=(2, 1, 0))
         eigenvalues, spectral_weights, K_indices = band_data
         eigenvalues = eigenvalues - self.efermi
         kpath = np.array(kpath)
 
         path_len = len(self.kpath)
         n = self.n
-        inserts = [n*(i+1) for i in range(path_len-1)]
-        inds = list(range(n*path_len+1))
+        inserts = [n * (i + 1) for i in range(path_len - 1)]
+        inds = list(range(n * path_len + 1))
         for i in reversed(inserts):
-            inds.insert(i,i)
+            inds.insert(i, i)
 
         kpath = kpath[inds]
         spectral_weights = spectral_weights[:, inds]
@@ -395,7 +432,6 @@ class Band:
         eigenvalues = eigenvalues[:, inds]
 
         return eigenvalues, spectral_weights, K_indices, kpath
-
 
     def _load_projected_bands(self):
         """
@@ -406,85 +442,123 @@ class Band:
         Returns:
             projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
         """
-        
+
         if self.lsorbit:
             if self.soc_axis is None:
                 spin = 0
-            elif self.soc_axis == 'x':
+            elif self.soc_axis == "x":
                 spin = 1
-            elif self.soc_axis == 'y':
+            elif self.soc_axis == "y":
                 spin = 2
-            elif self.soc_axis == 'z':
+            elif self.soc_axis == "z":
                 spin = 3
         else:
-            if self.spin == 'up':
+            if self.spin == "up":
                 spin = 0
-            elif self.spin == 'down':
+            elif self.spin == "down":
                 spin = 1
 
-        if not os.path.isfile(os.path.join(self.folder, 'PROCAR_repaired')):
+        if not os.path.isfile(os.path.join(self.folder, "PROCAR_repaired")):
             UtilsProcar().ProcarRepair(
-                os.path.join(self.folder, 'PROCAR'),
-                os.path.join(self.folder, 'PROCAR_repaired'),
+                os.path.join(self.folder, "PROCAR"),
+                os.path.join(self.folder, "PROCAR_repaired"),
             )
 
         if self.pre_loaded_projections:
-            with open(os.path.join(self.folder, 'projected_eigenvalues.npy'), 'rb') as projected_eigenvals:
-                projected_eigenvalues = np.load(projected_eigenvals) 
+            with open(
+                os.path.join(self.folder, "projected_eigenvalues.npy"), "rb"
+            ) as projected_eigenvals:
+                projected_eigenvalues = np.load(projected_eigenvals)
         else:
             parser = ProcarParser()
-            parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
-            if self.ispin and not self.lsorbit and np.sum(self.poscar.natoms) == 1:
+            parser.readFile(os.path.join(self.folder, "PROCAR_repaired"))
+            if (
+                self.ispin
+                and not self.lsorbit
+                and np.sum(self.poscar.natoms) == 1
+            ):
                 shape = int(parser.spd.shape[1] / 2)
-                projected_eigenvalues_up = np.transpose(parser.spd[:,:shape,0,:,1:-1], axes=(1,0,2,3))
-                projected_eigenvalues_down = np.transpose(parser.spd[:,shape:,0,:,1:-1], axes=(1,0,2,3))
-                projected_eigenvalues = np.concatenate(
-                    [projected_eigenvalues_up[:,:,:,:,np.newaxis], projected_eigenvalues_down[:,:,:,:,np.newaxis]],
-                    axis=4
+                projected_eigenvalues_up = np.transpose(
+                    parser.spd[:, :shape, 0, :, 1:-1], axes=(1, 0, 2, 3)
                 )
-                projected_eigenvalues = np.transpose(projected_eigenvalues, axes=(0,1,4,2,3))
-            elif self.ispin and not self.lsorbit and np.sum(self.poscar.natoms) != 1:
+                projected_eigenvalues_down = np.transpose(
+                    parser.spd[:, shape:, 0, :, 1:-1], axes=(1, 0, 2, 3)
+                )
+                projected_eigenvalues = np.concatenate(
+                    [
+                        projected_eigenvalues_up[:, :, :, :, np.newaxis],
+                        projected_eigenvalues_down[:, :, :, :, np.newaxis],
+                    ],
+                    axis=4,
+                )
+                projected_eigenvalues = np.transpose(
+                    projected_eigenvalues, axes=(0, 1, 4, 2, 3)
+                )
+            elif (
+                self.ispin
+                and not self.lsorbit
+                and np.sum(self.poscar.natoms) != 1
+            ):
                 shape = int(parser.spd.shape[1] / 2)
-                projected_eigenvalues_up = np.transpose(parser.spd[:,:shape,0,:-1,1:-1], axes=(1,0,2,3))
-                projected_eigenvalues_down = np.transpose(parser.spd[:,shape:,0,:-1,1:-1], axes=(1,0,2,3))
-                projected_eigenvalues = np.concatenate(
-                    [projected_eigenvalues_up[:,:,:,:,np.newaxis], projected_eigenvalues_down[:,:,:,:,np.newaxis]],
-                    axis=4
+                projected_eigenvalues_up = np.transpose(
+                    parser.spd[:, :shape, 0, :-1, 1:-1], axes=(1, 0, 2, 3)
                 )
-                projected_eigenvalues = np.transpose(projected_eigenvalues, axes=(0,1,4,2,3))
+                projected_eigenvalues_down = np.transpose(
+                    parser.spd[:, shape:, 0, :-1, 1:-1], axes=(1, 0, 2, 3)
+                )
+                projected_eigenvalues = np.concatenate(
+                    [
+                        projected_eigenvalues_up[:, :, :, :, np.newaxis],
+                        projected_eigenvalues_down[:, :, :, :, np.newaxis],
+                    ],
+                    axis=4,
+                )
+                projected_eigenvalues = np.transpose(
+                    projected_eigenvalues, axes=(0, 1, 4, 2, 3)
+                )
             else:
                 if np.sum(self.poscar.natoms) == 1:
-                    projected_eigenvalues = np.transpose(parser.spd[:,:,:,:, 1:-1], axes=(1,0,2,3,4))
+                    projected_eigenvalues = np.transpose(
+                        parser.spd[:, :, :, :, 1:-1], axes=(1, 0, 2, 3, 4)
+                    )
                 else:
-                    projected_eigenvalues = np.transpose(parser.spd[:,:,:,:-1, 1:-1], axes=(1,0,2,3,4))
+                    projected_eigenvalues = np.transpose(
+                        parser.spd[:, :, :, :-1, 1:-1], axes=(1, 0, 2, 3, 4)
+                    )
 
-            np.save(os.path.join(self.folder, 'projected_eigenvalues.npy'), projected_eigenvalues)
+            np.save(
+                os.path.join(self.folder, "projected_eigenvalues.npy"),
+                projected_eigenvalues,
+            )
 
-
-        projected_eigenvalues = projected_eigenvalues[:,:,spin,:,:]
+        projected_eigenvalues = projected_eigenvalues[:, :, spin, :, :]
 
         if self.lsorbit and self.soc_axis is not None:
-            separated_projections = np.zeros(projected_eigenvalues.shape + (2,))
-            separated_projections[projected_eigenvalues > 0, 0] = projected_eigenvalues[projected_eigenvalues > 0]
-            separated_projections[projected_eigenvalues < 0, 1] = -projected_eigenvalues[projected_eigenvalues < 0]
+            separated_projections = np.zeros(
+                projected_eigenvalues.shape + (2,)
+            )
+            separated_projections[
+                projected_eigenvalues > 0, 0
+            ] = projected_eigenvalues[projected_eigenvalues > 0]
+            separated_projections[
+                projected_eigenvalues < 0, 1
+            ] = -projected_eigenvalues[projected_eigenvalues < 0]
 
-            if self.spin == 'up':
+            if self.spin == "up":
                 soc_spin = 0
-            elif self.spin == 'down':
+            elif self.spin == "down":
                 soc_spin = 1
 
-            projected_eigenvalues = separated_projections[...,soc_spin]
-
+            projected_eigenvalues = separated_projections[..., soc_spin]
 
         if self.hse:
             kpoint_weights = np.array(self.eigenval.kpoints_weights)
             zero_weight = np.where(kpoint_weights == 0)[0]
-            projected_eigenvalues = projected_eigenvalues[:,zero_weight]
+            projected_eigenvalues = projected_eigenvalues[:, zero_weight]
 
         projected_eigenvalues = np.square(projected_eigenvalues)
 
         return projected_eigenvalues
-
 
     def _load_soc_spin_projection(self):
         """
@@ -495,55 +569,72 @@ class Band:
         Returns:
             projected_dict (dict([str][int][pd.DataFrame])): Dictionary containing the projected weights of all orbitals on each atom for each band.
         """
-        
+
         if not self.lsorbit:
-            raise BaseException(f"You selected soc_axis='{self.soc_axis}' for a non-soc axis calculation, please set soc_axis=None")
-        if self.lsorbit and self.soc_axis == 'x':
+            raise BaseException(
+                f"You selected soc_axis='{self.soc_axis}' for a non-soc axis calculation, please set soc_axis=None"
+            )
+        if self.lsorbit and self.soc_axis == "x":
             spin = 1
-        if self.lsorbit and self.soc_axis == 'y':
+        if self.lsorbit and self.soc_axis == "y":
             spin = 2
-        if self.lsorbit and self.soc_axis == 'z':
+        if self.lsorbit and self.soc_axis == "z":
             spin = 3
 
-        if not os.path.isfile(os.path.join(self.folder, 'PROCAR_repaired')):
+        if not os.path.isfile(os.path.join(self.folder, "PROCAR_repaired")):
             UtilsProcar().ProcarRepair(
-                os.path.join(self.folder, 'PROCAR'),
-                os.path.join(self.folder, 'PROCAR_repaired'),
+                os.path.join(self.folder, "PROCAR"),
+                os.path.join(self.folder, "PROCAR_repaired"),
             )
 
         if self.pre_loaded_spin_projections:
-            with open(os.path.join(self.folder, 'spin_projections.npy'), 'rb') as spin_projs:
-                spin_projections = np.load(spin_projs) 
+            with open(
+                os.path.join(self.folder, "spin_projections.npy"), "rb"
+            ) as spin_projs:
+                spin_projections = np.load(spin_projs)
         else:
             parser = ProcarParser()
-            parser.readFile(os.path.join(self.folder, 'PROCAR_repaired'))
-            spin_projections = np.transpose(parser.spd[:,:,:,-1, -1], axes=(1,0,2))
+            parser.readFile(os.path.join(self.folder, "PROCAR_repaired"))
+            spin_projections = np.transpose(
+                parser.spd[:, :, :, -1, -1], axes=(1, 0, 2)
+            )
 
-            np.save(os.path.join(self.folder, 'spin_projections.npy'), spin_projections)
+            np.save(
+                os.path.join(self.folder, "spin_projections.npy"),
+                spin_projections,
+            )
 
-
-        spin_projections = spin_projections[:,:,spin]
+        spin_projections = spin_projections[:, :, spin]
 
         if self.hse:
             kpoint_weights = np.array(self.eigenval.kpoints_weights)
             zero_weight = np.where(kpoint_weights == 0)[0]
-            spin_projections = spin_projections[:,zero_weight]
+            spin_projections = spin_projections[:, zero_weight]
 
-        separated_projections = np.zeros((spin_projections.shape[0], spin_projections.shape[1], 2))
-        separated_projections[spin_projections > 0, 0] = spin_projections[spin_projections > 0]
-        separated_projections[spin_projections < 0, 1] = -spin_projections[spin_projections < 0]
+        separated_projections = np.zeros(
+            (spin_projections.shape[0], spin_projections.shape[1], 2)
+        )
+        separated_projections[spin_projections > 0, 0] = spin_projections[
+            spin_projections > 0
+        ]
+        separated_projections[spin_projections < 0, 1] = -spin_projections[
+            spin_projections < 0
+        ]
 
-        separated_projections = separated_projections / separated_projections.max()
-        
-        if self.spin == 'up':
-            separated_projections = separated_projections[:,:,0]
-        elif self.spin == 'down':
-            separated_projections = separated_projections[:,:,1]
+        separated_projections = (
+            separated_projections / separated_projections.max()
+        )
+
+        if self.spin == "up":
+            separated_projections = separated_projections[:, :, 0]
+        elif self.spin == "down":
+            separated_projections = separated_projections[:, :, 1]
         else:
-            raise BaseException("The soc_axis feature does not work with spin='both'")
+            raise BaseException(
+                "The soc_axis feature does not work with spin='both'"
+            )
 
         return separated_projections
-
 
     def _sum_spd(self, spd):
         """
@@ -556,12 +647,16 @@ class Band:
         """
 
         if not self.forbitals:
-            spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+            spd_indices = [
+                np.array([False for _ in range(9)]) for i in range(3)
+            ]
             spd_indices[0][0] = True
             spd_indices[1][1:4] = True
             spd_indices[2][4:] = True
         else:
-            spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+            spd_indices = [
+                np.array([False for _ in range(16)]) for i in range(4)
+            ]
             spd_indices[0][0] = True
             spd_indices[1][1:4] = True
             spd_indices[2][4:9] = True
@@ -570,19 +665,23 @@ class Band:
         orbital_contributions = np.sum(self.projected_eigenvalues, axis=2)
 
         spd_contributions = np.transpose(
-            np.array([
-                np.sum(orbital_contributions[:,:,ind], axis=2) for ind in spd_indices
-            ]), axes=[1,2,0]
+            np.array(
+                [
+                    np.sum(orbital_contributions[:, :, ind], axis=2)
+                    for ind in spd_indices
+                ]
+            ),
+            axes=[1, 2, 0],
         )
 
         #  norm_term = np.sum(spd_contributions, axis=2)[:,:,np.newaxis]
         #  spd_contributions = np.divide(spd_contributions, norm_term, out=np.zeros_like(spd_contributions), where=norm_term!=0)
 
-        spd_contributions = spd_contributions[:,:,[self.spd_relations[orb] for orb in spd]]
+        spd_contributions = spd_contributions[
+            :, :, [self.spd_relations[orb] for orb in spd]
+        ]
 
         return spd_contributions
-
-
 
     def _sum_orbitals(self, orbitals):
         """
@@ -591,7 +690,7 @@ class Band:
             band index --> orbital index
 
         Parameters:
-            orbitals (list): List of desired orbitals. 
+            orbitals (list): List of desired orbitals.
                 0 = s
                 1 = py
                 2 = pz
@@ -615,7 +714,7 @@ class Band:
         orbital_contributions = self.projected_eigenvalues.sum(axis=2)
         #  norm_term =  np.sum(orbital_contributions, axis=2)[:,:,np.newaxis]
         #  orbital_contributions = np.divide(orbital_contributions, norm_term, out=np.zeros_like(orbital_contributions), where=norm_term!=0)
-        orbital_contributions = orbital_contributions[:,:,[orbitals]]
+        orbital_contributions = orbital_contributions[:, :, [orbitals]]
 
         return orbital_contributions
 
@@ -627,7 +726,7 @@ class Band:
 
         Parameters:
             atoms (list): List of desired atoms where atom 0 is the first atom in
-                the POSCAR file. 
+                the POSCAR file.
 
         Returns:
             atom_dict (dict[str][pd.DataFrame]): Dictionary that contains the projected
@@ -636,20 +735,32 @@ class Band:
 
         if spd:
             if not self.forbitals:
-                spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+                spd_indices = [
+                    np.array([False for _ in range(9)]) for i in range(3)
+                ]
                 spd_indices[0][0] = True
                 spd_indices[1][1:4] = True
                 spd_indices[2][4:] = True
             else:
-                spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+                spd_indices = [
+                    np.array([False for _ in range(16)]) for i in range(4)
+                ]
                 spd_indices[0][0] = True
                 spd_indices[1][1:4] = True
                 spd_indices[2][4:9] = True
                 spd_indices[3][9:] = True
 
-            atoms_spd = np.transpose(np.array([
-                np.sum(self.projected_eigenvalues[:,:,:,ind], axis=3) for ind in spd_indices
-            ]), axes=(1,2,3,0))
+            atoms_spd = np.transpose(
+                np.array(
+                    [
+                        np.sum(
+                            self.projected_eigenvalues[:, :, :, ind], axis=3
+                        )
+                        for ind in spd_indices
+                    ]
+                ),
+                axes=(1, 2, 3, 0),
+            )
 
             #  atoms_spd = atoms_spd[:,:,[atoms], :]
 
@@ -661,11 +772,13 @@ class Band:
             atoms_array = self.projected_eigenvalues.sum(axis=3)
             #  norm_term = np.sum(atoms_array, axis=2)[:,:,np.newaxis]
             #  atoms_array = np.divide(atoms_array, norm_term, out=np.zeros_like(atoms_array), where=norm_term!=0)
-            atoms_array = atoms_array[:,:,[atoms]]
+            atoms_array = atoms_array[:, :, [atoms]]
 
             return atoms_array
 
-    def _sum_elements(self, elements, orbitals=False, spd=False, spd_options=None):
+    def _sum_elements(
+        self, elements, orbitals=False, spd=False, spd_options=None
+    ):
         """
         This function sums the weights of the orbitals of specific elements within the
         calculated structure and returns a dictionary of the form:
@@ -691,35 +804,54 @@ class Band:
         projected_eigenvalues = self.projected_eigenvalues
 
         element_list = np.hstack(
-            [[symbols[i] for j in range(natoms[i])] for i in range(len(symbols))]
+            [
+                [symbols[i] for j in range(natoms[i])]
+                for i in range(len(symbols))
+            ]
         )
 
-        element_indices = [np.where(np.isin(element_list, element))[0] for element in elements]
+        element_indices = [
+            np.where(np.isin(element_list, element))[0] for element in elements
+        ]
 
         element_orbitals = np.transpose(
-            np.array([
-                np.sum(projected_eigenvalues[:,:,ind,:], axis=2) for ind in element_indices
-            ]), axes=(1,2,0,3)
+            np.array(
+                [
+                    np.sum(projected_eigenvalues[:, :, ind, :], axis=2)
+                    for ind in element_indices
+                ]
+            ),
+            axes=(1, 2, 0, 3),
         )
 
         if orbitals:
             return element_orbitals
         elif spd:
             if not self.forbitals:
-                spd_indices = [np.array([False for _ in range(9)]) for i in range(3)]
+                spd_indices = [
+                    np.array([False for _ in range(9)]) for i in range(3)
+                ]
                 spd_indices[0][0] = True
                 spd_indices[1][1:4] = True
                 spd_indices[2][4:] = True
             else:
-                spd_indices = [np.array([False for _ in range(16)]) for i in range(4)]
+                spd_indices = [
+                    np.array([False for _ in range(16)]) for i in range(4)
+                ]
                 spd_indices[0][0] = True
                 spd_indices[1][1:4] = True
                 spd_indices[2][4:9] = True
                 spd_indices[3][9:] = True
 
-            element_spd = np.transpose(np.array([
-                np.sum(element_orbitals[:,:,:,ind], axis=3) for ind in spd_indices
-            ]), axes=(1,2,3,0))
+            element_spd = np.transpose(
+                np.array(
+                    [
+                        np.sum(element_orbitals[:, :, :, ind], axis=3)
+                        for ind in spd_indices
+                    ]
+                ),
+                axes=(1, 2, 3, 0),
+            )
 
             #  norm_term = np.sum(element_spd, axis=(2,3))[:,:,np.newaxis, np.newaxis]
             #  element_spd = np.divide(element_spd, norm_term, out=np.zeros_like(element_spd), where=norm_term!=0)
@@ -732,21 +864,21 @@ class Band:
 
             return element_array
 
-
-
     def _get_k_distance_old(self):
         cell = self.poscar.structure.lattice.matrix
         kpt_c = np.dot(self.kpoints, np.linalg.inv(cell).T)
-        kdist = np.r_[0, np.cumsum(np.linalg.norm(np.diff(kpt_c,axis=0), axis=1))]
+        kdist = np.r_[
+            0, np.cumsum(np.linalg.norm(np.diff(kpt_c, axis=0), axis=1))
+        ]
 
         return kdist
 
     def _get_k_distance(self):
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         kdists = []
-        
+
         if self.custom_kpath is not None:
-        #  if self.custom_kpath is None:
+            #  if self.custom_kpath is None:
             index = self.custom_kpath_inds
         else:
             index = range(len(slices))
@@ -754,7 +886,9 @@ class Band:
         for j, i in enumerate(index):
             cell = self.poscar.structure.lattice.matrix
             kpt_c = np.dot(self.kpoints[slices[i]], np.linalg.inv(cell).T)
-            kdist = np.r_[0, np.cumsum(np.linalg.norm(np.diff(kpt_c, axis=0), axis=1))]
+            kdist = np.r_[
+                0, np.cumsum(np.linalg.norm(np.diff(kpt_c, axis=0), axis=1))
+            ]
             if j == 0:
                 kdists.append(kdist)
             else:
@@ -778,7 +912,7 @@ class Band:
         segements = []
         for i in range(0, len(high_sym_points) - 1):
             if not i % 2:
-                segements.append([i, i+1])
+                segements.append([i, i + 1])
 
         if self.custom_kpath is not None:
             high_sym_points_inds = []
@@ -793,7 +927,12 @@ class Band:
             high_sym_points_inds = list(range(len(high_sym_points)))
 
         num_kpts = self.kpoints_file.num_kpts
-        kpts_labels = np.array([f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpoints_file.labels])
+        kpts_labels = np.array(
+            [
+                f"${k}$" if k != "G" else "$\\Gamma$"
+                for k in self.kpoints_file.labels
+            ]
+        )
         all_kpoints = self.kpoints
 
         group_index = []
@@ -801,7 +940,7 @@ class Band:
             if i == 0:
                 group_index.append([j])
             if i % 2 and not i == len(high_sym_points_inds) - 1:
-                group_index.append([j, high_sym_points_inds[i+1]])
+                group_index.append([j, high_sym_points_inds[i + 1]])
             if i == len(high_sym_points_inds) - 1:
                 group_index.append([j])
 
@@ -817,38 +956,47 @@ class Band:
                     labels.append(kpts_labels[i[0]])
                     index.append(i[0])
                 else:
-                    merged_label = '|'.join([
-                        kpts_labels[i[0]],
-                        kpts_labels[i[1]],
-                    ]).replace('$|$', '|')
+                    merged_label = "|".join(
+                        [
+                            kpts_labels[i[0]],
+                            kpts_labels[i[1]],
+                        ]
+                    ).replace("$|$", "|")
                     labels.append(merged_label)
                     index.append(i[0])
 
-        kpoints_index = [0] + [(i+1)*num_kpts - 1 for i in range(int((len(high_sym_points_inds) + 1) / 2))]
+        kpoints_index = [0] + [
+            (i + 1) * num_kpts - 1
+            for i in range(int((len(high_sym_points_inds) + 1) / 2))
+        ]
 
         for k in kpoints_index:
-            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
-        
+            ax.axvline(
+                x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5
+            )
+
         ax.set_xticks([wave_vectors[k] for k in kpoints_index])
         ax.set_xticklabels(labels)
-
 
     def _get_kticks_hse(self, wave_vectors, ax, kpath, vlinecolor):
         structure = self.poscar.structure
         kpath_obj = HighSymmKpath(structure)
-        kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
-        kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
+        kpath_labels = np.array(list(kpath_obj._kpath["kpoints"].keys()))
+        kpath_coords = np.array(list(kpath_obj._kpath["kpoints"].values()))
         index = np.where(
             np.isclose(
                 self.kpoints[:, None],
                 kpath_coords,
-            ).all(-1).any(-1) == True
+            )
+            .all(-1)
+            .any(-1)
+            == True
         )[0]
 
         segements = []
         for i in range(0, len(index) - 1):
             if not i % 2:
-                segements.append([index[i], index[i+1]])
+                segements.append([index[i], index[i + 1]])
 
         if self.custom_kpath is not None:
             high_sym_points_inds = []
@@ -865,10 +1013,15 @@ class Band:
         full_segments = []
         for i in range(0, len(high_sym_points_inds) - 1):
             if not i % 2:
-                full_segments.append([high_sym_points_inds[i], high_sym_points_inds[i+1]])
+                full_segments.append(
+                    [high_sym_points_inds[i], high_sym_points_inds[i + 1]]
+                )
 
-        segment_lengths = [np.abs(i[1]-i[0]) + 1 for i in full_segments]
-        kpoints_index = [0] + [np.sum(segment_lengths[:i]) for i in range(1,len(segment_lengths)+1)]
+        segment_lengths = [np.abs(i[1] - i[0]) + 1 for i in full_segments]
+        kpoints_index = [0] + [
+            np.sum(segment_lengths[:i])
+            for i in range(1, len(segment_lengths) + 1)
+        ]
         kpoints_index[-1] -= 1
 
         group_index = []
@@ -876,7 +1029,7 @@ class Band:
             if i == 0:
                 group_index.append([j])
             if i % 2 and not i == len(high_sym_points_inds) - 1:
-                group_index.append([j, high_sym_points_inds[i+1]])
+                group_index.append([j, high_sym_points_inds[i + 1]])
             if i == len(high_sym_points_inds) - 1:
                 group_index.append([j])
 
@@ -904,21 +1057,22 @@ class Band:
                 if label[0] == label[1]:
                     labels.append(label[0])
                 else:
-                    merged_label = '|'.join([
-                        label[0],
-                        label[1],
-                    ]).replace('$|$', '|')
+                    merged_label = "|".join(
+                        [
+                            label[0],
+                            label[1],
+                        ]
+                    ).replace("$|$", "|")
                     labels.append(merged_label)
 
-        kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in labels]
+        kpath = [f"${k}$" if k != "G" else "$\\Gamma$" for k in labels]
 
         for k in kpoints_index:
-            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
+            ax.axvline(
+                x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5
+            )
 
-        plt.xticks(
-            [wave_vectors[k] for k in kpoints_index],
-            kpath
-        )
+        ax.set_xticks([wave_vectors[k] for k in kpoints_index], kpath)
 
     def _get_kticks_unfold(self, ax, wave_vectors, vlinecolor):
         if self.custom_kpath is not None:
@@ -935,14 +1089,17 @@ class Band:
             for seg in self.kpath:
                 kpath.extend(seg)
 
-        kpath = [f'${k.strip()}$' if k.strip() != 'G' else '$\\Gamma$' for k in kpath]
+        kpath = [
+            f"${k.strip()}$" if k.strip() != "G" else "$\\Gamma$"
+            for k in kpath
+        ]
 
         group_kpath = []
         for i, j in enumerate(kpath):
             if i == 0:
                 group_kpath.append([j])
             if i % 2 and not i == len(kpath) - 1:
-                group_kpath.append([j, kpath[i+1]])
+                group_kpath.append([j, kpath[i + 1]])
             if i == len(kpath) - 1:
                 group_kpath.append([j])
 
@@ -955,7 +1112,7 @@ class Band:
                 if k[0] == k[1]:
                     labels.append(k[0])
                 else:
-                    merged_label = '|'.join([k[0], k[1]]).replace('$|$', '|')
+                    merged_label = "|".join([k[0], k[1]]).replace("$|$", "|")
                     labels.append(merged_label)
 
         n = int(len(self.kpoints) / len(self.kpath))
@@ -963,7 +1120,9 @@ class Band:
         kpoints_index[-1] -= 1
 
         for k in kpoints_index:
-            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
+            ax.axvline(
+                x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5
+            )
 
         ax.set_xticks(wave_vectors[kpoints_index])
         ax.set_xticklabels(labels)
@@ -972,7 +1131,8 @@ class Band:
     def _get_kticks_unfold_old(self, ax, wave_vectors, vlinecolor):
         if type(self.kpath) == str:
             kpath = [
-                f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpath.upper().strip()
+                f"${k}$" if k != "G" else "$\\Gamma$"
+                for k in self.kpath.upper().strip()
             ]
         elif type(self.kpath) == list:
             kpath = self.kpath
@@ -981,7 +1141,9 @@ class Band:
         kpoints_index[-1] -= 1
 
         for k in kpoints_index:
-            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
+            ax.axvline(
+                x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5
+            )
 
         ax.set_xticks(wave_vectors[kpoints_index])
         ax.set_xticklabels(kpath)
@@ -997,7 +1159,12 @@ class Band:
         """
 
         high_sym_points = self.kpoints_file.kpts
-        kpts_labels = np.array([f'${k}$' if k != 'G' else '$\\Gamma$' for k in self.kpoints_file.labels])
+        kpts_labels = np.array(
+            [
+                f"${k}$" if k != "G" else "$\\Gamma$"
+                for k in self.kpoints_file.labels
+            ]
+        )
         all_kpoints = self.kpoints
 
         index = [0]
@@ -1006,7 +1173,9 @@ class Band:
                 index.append(i)
         index.append(len(high_sym_points) - 1)
 
-        kpts_loc = np.isin(np.round(all_kpoints, 3), np.round(high_sym_points, 3)).all(1)
+        kpts_loc = np.isin(
+            np.round(all_kpoints, 3), np.round(high_sym_points, 3)
+        ).all(1)
         kpoints_index = np.where(kpts_loc == True)[0]
 
         kpts_labels = kpts_labels[index]
@@ -1014,46 +1183,57 @@ class Band:
         #  kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
         for k in kpoints_index:
-            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
-        
+            ax.axvline(
+                x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5
+            )
+
         ax.set_xticks([wave_vectors[k] for k in kpoints_index])
         ax.set_xticklabels(kpts_labels)
 
     def _get_kticks_hse_old(self, wave_vectors, ax, kpath, vlinecolor):
         structure = self.poscar.structure
         kpath_obj = HighSymmKpath(structure)
-        kpath_labels = np.array(list(kpath_obj._kpath['kpoints'].keys()))
-        kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
+        kpath_labels = np.array(list(kpath_obj._kpath["kpoints"].keys()))
+        kpath_coords = np.array(list(kpath_obj._kpath["kpoints"].values()))
         index = np.where(
             np.isclose(
                 self.kpoints[:, None],
                 kpath_coords,
-            ).all(-1).any(-1) == True
+            )
+            .all(-1)
+            .any(-1)
+            == True
         )[0]
         #  index = np.where(np.isclose(self.kpoints[:, None], kpath_coords).all(-1).any(-1) == True)[0]
         #  index = np.where((self.kpoints[:, None] == kpath_coords).all(-1).any(-1) == True)[0]
-        index = [index[0]] + [index[i] for i in range(1,len(index)-1) if i % 2] + [index[-1]]
+        index = (
+            [index[0]]
+            + [index[i] for i in range(1, len(index) - 1) if i % 2]
+            + [index[-1]]
+        )
         kpoints_in_band = self.kpoints[index]
 
         label_index = []
         for i in range(kpoints_in_band.shape[0]):
             for j in range(kpath_coords.shape[0]):
-                if (np.round(kpoints_in_band[i], 5) == np.round(kpath_coords[j], 5)).all():
+                if (
+                    np.round(kpoints_in_band[i], 5)
+                    == np.round(kpath_coords[j], 5)
+                ).all():
                     label_index.append(j)
 
         kpoints_index = index
         kpath = kpath_labels[label_index]
         #  kpoints_index = ax.lines[0].get_xdata()[kpoints_index]
 
-        kpath = [f'${k}$' if k != 'G' else '$\\Gamma$' for k in kpath]
+        kpath = [f"${k}$" if k != "G" else "$\\Gamma$" for k in kpath]
 
         for k in kpoints_index:
-            ax.axvline(x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5)
+            ax.axvline(
+                x=wave_vectors[k], color=vlinecolor, alpha=0.7, linewidth=0.5
+            )
 
-        plt.xticks(
-            [wave_vectors[k] for k in kpoints_index],
-            kpath
-        )
+        plt.xticks([wave_vectors[k] for k in kpoints_index], kpath)
 
     def _get_slices(self, unfold=False, hse=False):
         if not unfold and not hse:
@@ -1062,29 +1242,35 @@ class Band:
             num_kpts = self.kpoints_file.num_kpts
             num_slices = int(len(high_sym_points) / 2)
             slices = [
-                slice(i*num_kpts, (i+1)*num_kpts, None) for i in range(num_slices)
+                slice(i * num_kpts, (i + 1) * num_kpts, None)
+                for i in range(num_slices)
             ]
 
         if hse and not unfold:
             structure = self.poscar.structure
             kpath_obj = HighSymmKpath(structure)
-            kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
+            kpath_coords = np.array(list(kpath_obj._kpath["kpoints"].values()))
             index = np.where(
                 np.isclose(
                     self.kpoints[:, None],
                     kpath_coords,
-                ).all(-1).any(-1) == True
+                )
+                .all(-1)
+                .any(-1)
+                == True
             )[0]
 
             num_kpts = int(len(self.kpoints) / (len(index) / 2))
             slices = [
-                slice(i*num_kpts, (i+1)*num_kpts, None) for i in range(int(len(index)/2))
+                slice(i * num_kpts, (i + 1) * num_kpts, None)
+                for i in range(int(len(index) / 2))
             ]
 
         if unfold and not hse:
             n = int(len(self.kpoints) / len(self.kpath))
             slices = [
-                slice(i*n, (i+1)*n, None) for i in range(int(len(self.kpath)))
+                slice(i * n, (i + 1) * n, None)
+                for i in range(int(len(self.kpath)))
             ]
 
         return slices
@@ -1101,36 +1287,44 @@ class Band:
                 num_slices = int(len(high_sym_points) / 2)
 
             slices = [
-                slice(i*num_kpts, (i+1)*num_kpts, None) for i in range(num_slices)
+                slice(i * num_kpts, (i + 1) * num_kpts, None)
+                for i in range(num_slices)
             ]
 
         if hse and not unfold:
             structure = self.poscar.structure
             kpath_obj = HighSymmKpath(structure)
-            kpath_coords = np.array(list(kpath_obj._kpath['kpoints'].values()))
+            kpath_coords = np.array(list(kpath_obj._kpath["kpoints"].values()))
             index = np.where(
                 np.isclose(
                     self.kpoints[:, None],
                     kpath_coords,
-                ).all(-1).any(-1) == True
+                )
+                .all(-1)
+                .any(-1)
+                == True
             )[0]
 
             num_kpts = int(len(self.kpoints) / (len(index) / 2))
             slices = [
-                slice(i*num_kpts, (i+1)*num_kpts, None) for i in range(int(len(index)/2))
+                slice(i * num_kpts, (i + 1) * num_kpts, None)
+                for i in range(int(len(index) / 2))
             ]
 
         if unfold and not hse:
             n = int(len(self.kpoints) / len(self.kpath))
             print(n)
             slices = [
-                slice(i*n, (i+1)*n, None) for i in range(int(len(self.kpath)-1))
+                slice(i * n, (i + 1) * n, None)
+                for i in range(int(len(self.kpath) - 1))
             ]
             print(slices)
 
         return slices
 
-    def _get_interpolated_data_segment(self, wave_vectors, data, crop_zero=False, kind='cubic'):
+    def _get_interpolated_data_segment(
+        self, wave_vectors, data, crop_zero=False, kind="cubic"
+    ):
         data_shape = data.shape
 
         if len(data_shape) == 1:
@@ -1138,30 +1332,42 @@ class Band:
         else:
             fs = interp1d(wave_vectors, data, kind=kind, axis=1)
 
-        new_wave_vectors = np.linspace(wave_vectors.min(), wave_vectors.max(), self.new_n)
-        data = fs(new_wave_vectors) 
+        new_wave_vectors = np.linspace(
+            wave_vectors.min(), wave_vectors.max(), self.new_n
+        )
+        data = fs(new_wave_vectors)
 
         if crop_zero:
             data[np.where(data < 0)] = 0
 
         return new_wave_vectors, data
 
-    def _get_interpolated_data(self, wave_vectors, data, crop_zero=False, kind='cubic'):
+    def _get_interpolated_data(
+        self, wave_vectors, data, crop_zero=False, kind="cubic"
+    ):
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         data_shape = data.shape
         if len(data_shape) == 1:
             data = [data[i] for i in slices]
         else:
-            data = [data[:,i] for i in slices]
+            data = [data[:, i] for i in slices]
 
         wave_vectors = [wave_vectors[i] for i in slices]
 
         if len(data_shape) == 1:
-            fs = [interp1d(i, j, kind=kind, axis=0) for (i,j) in zip(wave_vectors, data)]
+            fs = [
+                interp1d(i, j, kind=kind, axis=0)
+                for (i, j) in zip(wave_vectors, data)
+            ]
         else:
-            fs = [interp1d(i, j, kind=kind, axis=1) for (i,j) in zip(wave_vectors, data)]
+            fs = [
+                interp1d(i, j, kind=kind, axis=1)
+                for (i, j) in zip(wave_vectors, data)
+            ]
 
-        new_wave_vectors = [np.linspace(wv.min(), wv.max(), self.new_n) for wv in wave_vectors]
+        new_wave_vectors = [
+            np.linspace(wv.min(), wv.max(), self.new_n) for wv in wave_vectors
+        ]
         data = np.hstack([f(wv) for (f, wv) in zip(fs, new_wave_vectors)])
         wave_vectors = np.hstack(new_wave_vectors)
 
@@ -1170,10 +1376,11 @@ class Band:
 
         return wave_vectors, data
 
-
     def _filter_bands(self, erange):
         eigenvalues = self.eigenvalues
-        where = (eigenvalues >= np.min(erange) - 1) & (eigenvalues <= np.max(erange) + 1)
+        where = (eigenvalues >= np.min(erange) - 1) & (
+            eigenvalues <= np.max(erange) + 1
+        )
         is_true = np.sum(np.isin(where, True), axis=1)
         bands_in_plot = is_true > 0
 
@@ -1183,17 +1390,17 @@ class Band:
         legend_lines = []
         legend_labels = []
         for name, color in zip(names, colors):
-            legend_lines.append(plt.Line2D(
-                [0],
-                [0],
-                marker='o',
-                markersize=markersize,
-                linestyle='',
-                color=color
-            ))
-            legend_labels.append(
-                f'${name}$'
+            legend_lines.append(
+                plt.Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    markersize=markersize,
+                    linestyle="",
+                    color=color,
+                )
             )
+            legend_labels.append(f"${name}$")
 
         leg = ax.get_legend()
 
@@ -1210,7 +1417,7 @@ class Band:
             handles,
             labels,
             ncol=1,
-            loc='upper left',
+            loc="upper left",
             fontsize=fontsize,
             bbox_to_anchor=(1, 1),
             borderaxespad=0,
@@ -1229,7 +1436,7 @@ class Band:
         bins,
         projection=None,
         powernorm=True,
-        gamma=0.5
+        gamma=0.5,
     ):
         eigenvalues_ravel = np.ravel(eigenvalues)
         wave_vectors_tile = np.tile(wave_vectors, eigenvalues.shape[0])
@@ -1251,7 +1458,9 @@ class Band:
 
         data = gaussian_filter(data, sigma=sigma)
         if powernorm:
-            norm = colors.PowerNorm(gamma=gamma, vmin=np.min(data), vmax=np.max(data))
+            norm = colors.PowerNorm(
+                gamma=gamma, vmin=np.min(data), vmax=np.max(data)
+            )
         else:
             norm = colors.Normalize(vmin=np.min(data), vmax=np.max(data))
 
@@ -1259,39 +1468,39 @@ class Band:
             np.linspace(np.min(wave_vectors), np.max(wave_vectors), bins),
             np.linspace(np.min(eigenvalues), np.max(eigenvalues), bins),
             data.T,
-            shading='gouraud',
+            shading="gouraud",
             cmap=cmap,
             norm=norm,
         )
 
     def _alpha_cmap(self, color, repeats=3):
         cmap = LinearSegmentedColormap.from_list(
-            'custom_cmap',
+            "custom_cmap",
             [to_rgb(color) + (0,)] + [to_rgba(color) for _ in range(repeats)],
-            N=10000
+            N=10000,
         )
         return cmap
-        
+
     def plot_plain(
         self,
         ax,
-        color='black',
-        erange=[-6,6],
+        color="black",
+        erange=[-6, 6],
         linewidth=1.25,
         scale_factor=20,
-        linestyle='-',
+        linestyle="-",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
         projection=None,
         highlight_band=False,
-        highlight_band_color='red',
+        highlight_band_color="red",
         band_index=None,
-        sp_color='red',
+        sp_color="red",
         sp_scale_factor=5,
     ):
         """
@@ -1307,10 +1516,9 @@ class Band:
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         wave_vector_segments = self._get_k_distance()
 
-
         if self.soc_axis is not None and self.lsorbit:
-            color = 'black'
-            linestyle='-'
+            color = "black"
+            linestyle = "-"
 
         if self.soc_axis is not None and self.lsorbit:
             if self.unfold:
@@ -1326,28 +1534,43 @@ class Band:
             kpath_inds = range(len(slices))
             kpath_flip = [False for _ in range(len(slices))]
 
-        for i, f, wave_vectors in zip(kpath_inds, kpath_flip, wave_vector_segments):
+        for i, f, wave_vectors in zip(
+            kpath_inds, kpath_flip, wave_vector_segments
+        ):
             if f:
-                eigenvalues = np.flip(self.eigenvalues[bands_in_plot, slices[i]], axis=1)
+                eigenvalues = np.flip(
+                    self.eigenvalues[bands_in_plot, slices[i]], axis=1
+                )
                 if self.soc_axis is not None and self.lsorbit:
-                    spin_projections = np.flip(spin_projection_full_k[bands_in_plot, slices[i]], axis=1)
+                    spin_projections = np.flip(
+                        spin_projection_full_k[bands_in_plot, slices[i]],
+                        axis=1,
+                    )
             else:
                 eigenvalues = self.eigenvalues[bands_in_plot, slices[i]]
                 if self.soc_axis is not None and self.lsorbit:
-                    spin_projections = spin_projection_full_k[bands_in_plot, slices[i]]
+                    spin_projections = spin_projection_full_k[
+                        bands_in_plot, slices[i]
+                    ]
 
             if highlight_band:
                 if band_index is not None:
                     if type(band_index) == int:
-                        highlight_eigenvalues = self.eigenvalues[int(band_index), slices[i]]
+                        highlight_eigenvalues = self.eigenvalues[
+                            int(band_index), slices[i]
+                        ]
                     else:
-                        highlight_eigenvalues = self.eigenvalues[band_index, slices[i]]
+                        highlight_eigenvalues = self.eigenvalues[
+                            band_index, slices[i]
+                        ]
 
             wave_vectors_for_kpoints = wave_vectors
 
-
             if self.interpolate:
-                wave_vectors, eigenvalues = self._get_interpolated_data_segment(
+                (
+                    wave_vectors,
+                    eigenvalues,
+                ) = self._get_interpolated_data_segment(
                     wave_vectors_for_kpoints,
                     eigenvalues,
                 )
@@ -1356,52 +1579,76 @@ class Band:
                         wave_vectors_for_kpoints,
                         spin_projections,
                         crop_zero=True,
-                        kind='linear',
+                        kind="linear",
                     )
 
                 if highlight_band:
                     if band_index is not None:
-                        _, highlight_eigenvalues = self._get_interpolated_data_segment(
+                        (
+                            _,
+                            highlight_eigenvalues,
+                        ) = self._get_interpolated_data_segment(
                             wave_vectors_for_kpoints,
                             highlight_eigenvalues,
                         )
 
-            eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
-            wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
+            eigenvalues_ravel = np.ravel(
+                np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan]
+            )
+            wave_vectors_tile = np.tile(
+                np.append(wave_vectors, np.nan), eigenvalues.shape[0]
+            )
 
             if self.soc_axis is not None and self.lsorbit:
                 #  spin_cmap = self._alpha_cmap(color=spin_projection_color, repeats=1)
-                spin_projections_ravel = np.ravel(np.c_[spin_projections, np.empty(spin_projections.shape[0]) * np.nan])
+                spin_projections_ravel = np.ravel(
+                    np.c_[
+                        spin_projections,
+                        np.empty(spin_projections.shape[0]) * np.nan,
+                    ]
+                )
                 #  spin_colors = [spin_cmap(s) for s in spin_projections_ravel]
 
             if self.unfold:
-                spectral_weights = self.spectral_weights[bands_in_plot, slices[i]]
+                spectral_weights = self.spectral_weights[
+                    bands_in_plot, slices[i]
+                ]
                 if f:
                     spectral_weights = np.flip(spectral_weights, axis=1)
                 #  spectral_weights = spectral_weights / np.max(spectral_weights)
 
                 if highlight_band:
                     if band_index is not None:
-                        highlight_spectral_weights = self.spectral_weights[int(band_index), slices[i]]
+                        highlight_spectral_weights = self.spectral_weights[
+                            int(band_index), slices[i]
+                        ]
 
                 if self.interpolate:
                     _, spectral_weights = self._get_interpolated_data_segment(
                         wave_vectors_for_kpoints,
                         spectral_weights,
                         crop_zero=True,
-                        kind='linear',
+                        kind="linear",
                     )
 
                     if highlight_band:
                         if band_index is not None:
-                            _, highlight_spectral_weights = self._get_interpolated_data_segment(
+                            (
+                                _,
+                                highlight_spectral_weights,
+                            ) = self._get_interpolated_data_segment(
                                 wave_vectors_for_kpoints,
                                 highlight_spectral_weights,
                                 crop_zero=True,
-                                kind='linear',
+                                kind="linear",
                             )
-                
-                spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
+
+                spectral_weights_ravel = np.ravel(
+                    np.c_[
+                        spectral_weights,
+                        np.empty(spectral_weights.shape[0]) * np.nan,
+                    ]
+                )
 
                 if heatmap:
                     self._heatmap(
@@ -1433,23 +1680,38 @@ class Band:
                                     highlight_eigenvalues,
                                     c=highlight_band_color,
                                     ec=None,
-                                    s=scale_factor * highlight_spectral_weights,
+                                    s=scale_factor
+                                    * highlight_spectral_weights,
                                     zorder=100,
                                 )
                             else:
                                 ax.scatter(
-                                    np.tile(np.append(wave_vectors, np.nan), highlight_eigenvalues.shape[0]),
-                                    np.ravel(np.c_[highlight_eigenvalues, np.empty(highlight_eigenvalues.shape[0]) * np.nan]),
+                                    np.tile(
+                                        np.append(wave_vectors, np.nan),
+                                        highlight_eigenvalues.shape[0],
+                                    ),
+                                    np.ravel(
+                                        np.c_[
+                                            highlight_eigenvalues,
+                                            np.empty(
+                                                highlight_eigenvalues.shape[0]
+                                            )
+                                            * np.nan,
+                                        ]
+                                    ),
                                     c=highlight_band_color,
                                     ec=None,
-                                    s=scale_factor * np.ravel(highlight_spectral_weights),
+                                    s=scale_factor
+                                    * np.ravel(highlight_spectral_weights),
                                     zorder=100,
                                 )
                     if self.soc_axis is not None and self.lsorbit:
                         ax.scatter(
                             wave_vectors_tile,
                             eigenvalues_ravel,
-                            s=spectral_weights_ravel * sp_scale_factor * spin_projections_ravel,
+                            s=spectral_weights_ravel
+                            * sp_scale_factor
+                            * spin_projections_ravel,
                             c=sp_color,
                             zorder=100,
                         )
@@ -1489,8 +1751,19 @@ class Band:
                                 )
                             else:
                                 ax.plot(
-                                    np.tile(np.append(wave_vectors, np.nan), highlight_eigenvalues.shape[0]),
-                                    np.ravel(np.c_[highlight_eigenvalues, np.empty(highlight_eigenvalues.shape[0]) * np.nan]),
+                                    np.tile(
+                                        np.append(wave_vectors, np.nan),
+                                        highlight_eigenvalues.shape[0],
+                                    ),
+                                    np.ravel(
+                                        np.c_[
+                                            highlight_eigenvalues,
+                                            np.empty(
+                                                highlight_eigenvalues.shape[0]
+                                            )
+                                            * np.nan,
+                                        ]
+                                    ),
                                     color=highlight_band_color,
                                     linewidth=linewidth,
                                     linestyle=linestyle,
@@ -1527,22 +1800,21 @@ class Band:
 
         ax.set_xlim(0, np.max(self._get_k_distance()))
 
-
     def _plot_projected_general(
         self,
         ax,
         projected_data,
         colors,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
         plain_scale_factor=10,
@@ -1561,8 +1833,8 @@ class Band:
             band_color (string): Color of the plain band structure
         """
         if self.unfold:
-            if band_color == 'black':
-                band_color = 'darkgrey'
+            if band_color == "black":
+                band_color = "darkgrey"
             scale_factor = scale_factor * 4
 
         bands_in_plot = self._filter_bands(erange=erange)
@@ -1596,16 +1868,24 @@ class Band:
             kpath_inds = range(len(slices))
             kpath_flip = [False for _ in range(len(slices))]
 
-        for i, f, wave_vectors in zip(kpath_inds, kpath_flip, wave_vector_segments):
+        for i, f, wave_vectors in zip(
+            kpath_inds, kpath_flip, wave_vector_segments
+        ):
             projected_data_slice = projected_data[bands_in_plot, slices[i]]
             if f:
-                eigenvalues = np.flip(self.eigenvalues[bands_in_plot, slices[i]], axis=1)
+                eigenvalues = np.flip(
+                    self.eigenvalues[bands_in_plot, slices[i]], axis=1
+                )
                 projected_data_slice = np.flip(projected_data_slice, axis=1)
             else:
                 eigenvalues = self.eigenvalues[bands_in_plot, slices[i]]
 
             unique_colors = np.unique(colors)
-            shapes = (projected_data_slice.shape[0], projected_data_slice.shape[1], projected_data_slice.shape[-1])
+            shapes = (
+                projected_data_slice.shape[0],
+                projected_data_slice.shape[1],
+                projected_data_slice.shape[-1],
+            )
             projected_data_slice = projected_data_slice.reshape(shapes)
 
             if len(unique_colors) == len(colors):
@@ -1614,52 +1894,72 @@ class Band:
                 unique_inds = [np.isin(colors, c) for c in unique_colors]
                 projected_data_slice = np.squeeze(projected_data_slice)
                 projected_data_slice = np.c_[
-                    [np.sum(projected_data_slice[...,u], axis=2) for u in unique_inds]
-                ].transpose((1,2,0))
+                    [
+                        np.sum(projected_data_slice[..., u], axis=2)
+                        for u in unique_inds
+                    ]
+                ].transpose((1, 2, 0))
                 plot_colors = unique_colors
 
             wave_vectors_old = wave_vectors
 
             if self.interpolate:
-                wave_vectors, eigenvalues = self._get_interpolated_data_segment(wave_vectors_old, eigenvalues)
+                (
+                    wave_vectors,
+                    eigenvalues,
+                ) = self._get_interpolated_data_segment(
+                    wave_vectors_old, eigenvalues
+                )
                 _, projected_data_slice = self._get_interpolated_data_segment(
                     wave_vectors_old,
                     projected_data_slice,
                     crop_zero=True,
-                    kind='linear',
+                    kind="linear",
                 )
-
 
             if not heatmap:
                 if self.unfold:
-                    spectral_weights = self.spectral_weights[bands_in_plot, slices[i]]
+                    spectral_weights = self.spectral_weights[
+                        bands_in_plot, slices[i]
+                    ]
                     if f:
                         spectral_weights = np.flip(spectral_weights, axis=1)
                     #  spectral_weights = spectral_weights / np.max(spectral_weights)
 
                     if self.interpolate:
-                        _, spectral_weights = self._get_interpolated_data_segment(
+                        (
+                            _,
+                            spectral_weights,
+                        ) = self._get_interpolated_data_segment(
                             wave_vectors_old,
                             spectral_weights,
                             crop_zero=True,
-                            kind='linear',
+                            kind="linear",
                         )
 
-                    spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data_slice.shape[-1])
+                    spectral_weights_ravel = np.repeat(
+                        np.ravel(spectral_weights),
+                        projected_data_slice.shape[-1],
+                    )
 
                 projected_data_ravel = np.ravel(projected_data_slice)
                 wave_vectors_tile = np.tile(
-                    np.repeat(wave_vectors, projected_data_slice.shape[-1]), projected_data_slice.shape[0]
+                    np.repeat(wave_vectors, projected_data_slice.shape[-1]),
+                    projected_data_slice.shape[0],
                 )
-                eigenvalues_tile = np.repeat(np.ravel(eigenvalues), projected_data_slice.shape[-1])
-                colors_tile = np.tile(plot_colors, np.prod(projected_data_slice.shape[:-1]))
+                eigenvalues_tile = np.repeat(
+                    np.ravel(eigenvalues), projected_data_slice.shape[-1]
+                )
+                colors_tile = np.tile(
+                    plot_colors, np.prod(projected_data_slice.shape[:-1])
+                )
 
                 if display_order is None:
                     pass
                 else:
                     sort_index = np.argsort(projected_data_ravel)
 
-                    if display_order == 'all':
+                    if display_order == "all":
                         sort_index = sort_index[::-1]
 
                     wave_vectors_tile = wave_vectors_tile[sort_index]
@@ -1668,10 +1968,16 @@ class Band:
                     projected_data_ravel = projected_data_ravel[sort_index]
 
                     if self.unfold:
-                        spectral_weights_ravel = spectral_weights_ravel[sort_index]
+                        spectral_weights_ravel = spectral_weights_ravel[
+                            sort_index
+                        ]
 
                 if self.unfold:
-                    s = scale_factor * projected_data_ravel * spectral_weights_ravel
+                    s = (
+                        scale_factor
+                        * projected_data_ravel
+                        * spectral_weights_ravel
+                    )
                     ec = None
                 else:
                     s = scale_factor * projected_data_ravel
@@ -1686,26 +1992,24 @@ class Band:
                     zorder=100,
                 )
 
-
-
     def plot_plain_old(
         self,
         ax,
-        color='black',
-        erange=[-6,6],
+        color="black",
+        erange=[-6, 6],
         linewidth=1.25,
         scale_factor=20,
-        linestyle='-',
+        linestyle="-",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
         projection=None,
         highlight_band=False,
-        highlight_band_color='red',
+        highlight_band_color="red",
         band_index=None,
     ):
         """
@@ -1728,19 +2032,26 @@ class Band:
         wave_vectors_for_kpoints = wave_vectors
 
         if self.interpolate:
-            wave_vectors, eigenvalues = self._get_interpolated_data_segment(wave_vectors_for_kpoints, eigenvalues)
+            wave_vectors, eigenvalues = self._get_interpolated_data_segment(
+                wave_vectors_for_kpoints, eigenvalues
+            )
 
             if highlight_band:
                 if band_index is not None:
-                    _, highlight_eigenvalues = self._get_interpolated_data_segment(
+                    (
+                        _,
+                        highlight_eigenvalues,
+                    ) = self._get_interpolated_data_segment(
                         wave_vectors_for_kpoints,
                         highlight_eigenvalues,
                     )
-            
 
-
-        eigenvalues_ravel = np.ravel(np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan])
-        wave_vectors_tile = np.tile(np.append(wave_vectors, np.nan), eigenvalues.shape[0])
+        eigenvalues_ravel = np.ravel(
+            np.c_[eigenvalues, np.empty(eigenvalues.shape[0]) * np.nan]
+        )
+        wave_vectors_tile = np.tile(
+            np.append(wave_vectors, np.nan), eigenvalues.shape[0]
+        )
 
         if self.unfold:
             spectral_weights = self.spectral_weights[bands_in_plot]
@@ -1748,26 +2059,36 @@ class Band:
 
             if highlight_band:
                 if band_index is not None:
-                    highlight_spectral_weights = self.spectral_weights[int(band_index)]
+                    highlight_spectral_weights = self.spectral_weights[
+                        int(band_index)
+                    ]
 
             if self.interpolate:
                 _, spectral_weights = self._get_interpolated_data_segment(
                     wave_vectors_for_kpoints,
                     spectral_weights,
                     crop_zero=True,
-                    kind='linear',
+                    kind="linear",
                 )
 
                 if highlight_band:
                     if band_index is not None:
-                        _, highlight_spectral_weights = self._get_interpolated_data_segment(
+                        (
+                            _,
+                            highlight_spectral_weights,
+                        ) = self._get_interpolated_data_segment(
                             wave_vectors_for_kpoints,
                             highlight_spectral_weights,
                             crop_zero=True,
-                            kind='linear',
+                            kind="linear",
                         )
-            
-            spectral_weights_ravel = np.ravel(np.c_[spectral_weights, np.empty(spectral_weights.shape[0]) * np.nan])
+
+            spectral_weights_ravel = np.ravel(
+                np.c_[
+                    spectral_weights,
+                    np.empty(spectral_weights.shape[0]) * np.nan,
+                ]
+            )
 
             if heatmap:
                 self._heatmap(
@@ -1836,14 +2157,26 @@ class Band:
                         )
 
         if self.hse:
-            self._get_kticks_hse(ax=ax, wave_vectors=wave_vectors_for_kpoints, kpath=self.kpath, vlinecolor=vlinecolor)
+            self._get_kticks_hse(
+                ax=ax,
+                wave_vectors=wave_vectors_for_kpoints,
+                kpath=self.kpath,
+                vlinecolor=vlinecolor,
+            )
         elif self.unfold:
-            self._get_kticks_unfold(ax=ax, wave_vectors=wave_vectors_for_kpoints, vlinecolor=vlinecolor)
+            self._get_kticks_unfold(
+                ax=ax,
+                wave_vectors=wave_vectors_for_kpoints,
+                vlinecolor=vlinecolor,
+            )
         else:
-            self._get_kticks(ax=ax, wave_vectors=wave_vectors_for_kpoints, vlinecolor=vlinecolor)
+            self._get_kticks(
+                ax=ax,
+                wave_vectors=wave_vectors_for_kpoints,
+                vlinecolor=vlinecolor,
+            )
 
         ax.set_xlim(0, np.max(wave_vectors))
-
 
     def _plot_projected_general_old(
         self,
@@ -1851,15 +2184,15 @@ class Band:
         projected_data,
         colors,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
         plain_scale_factor=10,
@@ -1878,14 +2211,18 @@ class Band:
             band_color (string): Color of the plain band structure
         """
         if self.unfold:
-            if band_color == 'black':
-                band_color = 'darkgrey'
+            if band_color == "black":
+                band_color = "darkgrey"
             scale_factor = scale_factor * 4
 
         bands_in_plot = self._filter_bands(erange=erange)
         projected_data = projected_data[bands_in_plot]
         unique_colors = np.unique(colors)
-        shapes = (projected_data.shape[0], projected_data.shape[1], projected_data.shape[-1])
+        shapes = (
+            projected_data.shape[0],
+            projected_data.shape[1],
+            projected_data.shape[-1],
+        )
         projected_data = projected_data.reshape(shapes)
 
         if len(unique_colors) == len(colors):
@@ -1894,8 +2231,8 @@ class Band:
             unique_inds = [np.isin(colors, c) for c in unique_colors]
             projected_data = np.squeeze(projected_data)
             projected_data = np.c_[
-                [np.sum(projected_data[...,i], axis=2) for i in unique_inds]
-            ].transpose((1,2,0))
+                [np.sum(projected_data[..., i], axis=2) for i in unique_inds]
+            ].transpose((1, 2, 0))
             colors = unique_colors
 
         #  projected_data = projected_data / np.max(projected_data)
@@ -1908,12 +2245,14 @@ class Band:
             projected_data = projected_data[:, K_indices, :]
 
         if self.interpolate:
-            wave_vectors, eigenvalues = self._get_interpolated_data(wave_vectors_old, eigenvalues)
+            wave_vectors, eigenvalues = self._get_interpolated_data(
+                wave_vectors_old, eigenvalues
+            )
             _, projected_data = self._get_interpolated_data(
                 wave_vectors_old,
                 projected_data,
                 crop_zero=True,
-                kind='linear',
+                kind="linear",
             )
 
         self.plot_plain(
@@ -1940,16 +2279,21 @@ class Band:
                         wave_vectors_old,
                         spectral_weights,
                         crop_zero=True,
-                        kind='linear',
+                        kind="linear",
                     )
 
-                spectral_weights_ravel = np.repeat(np.ravel(spectral_weights), projected_data.shape[-1])
+                spectral_weights_ravel = np.repeat(
+                    np.ravel(spectral_weights), projected_data.shape[-1]
+                )
 
             projected_data_ravel = np.ravel(projected_data)
             wave_vectors_tile = np.tile(
-                np.repeat(wave_vectors, projected_data.shape[-1]), projected_data.shape[0]
+                np.repeat(wave_vectors, projected_data.shape[-1]),
+                projected_data.shape[0],
             )
-            eigenvalues_tile = np.repeat(np.ravel(eigenvalues), projected_data.shape[-1])
+            eigenvalues_tile = np.repeat(
+                np.ravel(eigenvalues), projected_data.shape[-1]
+            )
             colors_tile = np.tile(colors, np.prod(projected_data.shape[:-1]))
 
             if display_order is None:
@@ -1957,7 +2301,7 @@ class Band:
             else:
                 sort_index = np.argsort(projected_data_ravel)
 
-                if display_order == 'all':
+                if display_order == "all":
                     sort_index = sort_index[::-1]
 
                 wave_vectors_tile = wave_vectors_tile[sort_index]
@@ -1969,7 +2313,11 @@ class Band:
                     spectral_weights_ravel = spectral_weights_ravel[sort_index]
 
             if self.unfold:
-                s = scale_factor * projected_data_ravel * spectral_weights_ravel
+                s = (
+                    scale_factor
+                    * projected_data_ravel
+                    * spectral_weights_ravel
+                )
                 ec = None
             else:
                 s = scale_factor * projected_data_ravel
@@ -1983,23 +2331,23 @@ class Band:
                 s=s,
                 zorder=100,
             )
-        
+
     def plot_orbitals(
         self,
         ax,
         orbitals,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2061,25 +2409,28 @@ class Band:
         )
 
         if legend:
-            self._add_legend(ax, names=[self.orbital_labels[i] for i in orbitals], colors=colors)
-
+            self._add_legend(
+                ax,
+                names=[self.orbital_labels[i] for i in orbitals],
+                colors=colors,
+            )
 
     def plot_spd(
         self,
         ax,
         scale_factor=5,
-        orbitals='spd',
-        erange=[-6,6],
+        orbitals="spd",
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2108,11 +2459,9 @@ class Band:
                 self.color_dict[0],
                 self.color_dict[1],
                 self.color_dict[2],
-                self.color_dict[4]
+                self.color_dict[4],
             ]
-            colors = np.array(
-                [color_list[i] for i in range(len(orbitals))]
-            )
+            colors = np.array([color_list[i] for i in range(len(orbitals))])
         else:
             colors = color_list
 
@@ -2137,24 +2486,22 @@ class Band:
         if legend:
             self._add_legend(ax, names=[i for i in orbitals], colors=colors)
 
-
-
     def plot_atoms(
         self,
         ax,
         atoms,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2197,23 +2544,22 @@ class Band:
         if legend:
             self._add_legend(ax, names=atoms, colors=colors)
 
-
     def plot_atom_orbitals(
         self,
         ax,
         atom_orbital_dict,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2223,7 +2569,7 @@ class Band:
         Parameters:
             ax (matplotlib.pyplot.axis): Axis to plot the data on
             atom_orbital_pairs (list[list]): Selected orbitals on selected atoms to plot.
-                This should take the form of [[atom index, orbital_index], ...]. 
+                This should take the form of [[atom index, orbital_index], ...].
                 To plot the px orbital of the 1st atom and the pz orbital of the 2nd atom
                 in the POSCAR file, the input would be [[0, 3], [1, 2]]
             scale_factor (float): Factor to scale weights. This changes the size of the
@@ -2238,19 +2584,24 @@ class Band:
         orbital_indices = list(atom_orbital_dict.values())
         number_orbitals = [len(i) for i in orbital_indices]
         atom_indices = np.repeat(atom_indices, number_orbitals)
-        orbital_symbols_long = np.hstack([
-            [self.orbital_labels[o] for o in  orb] for orb in orbital_indices
-        ])
+        orbital_symbols_long = np.hstack(
+            [[self.orbital_labels[o] for o in orb] for orb in orbital_indices]
+        )
         orbital_indices_long = np.hstack(orbital_indices)
         indices = np.vstack([atom_indices, orbital_indices_long]).T
 
         projected_data = self.projected_eigenvalues
-        projected_data = np.transpose(np.array([
-            projected_data[:,:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,2,0))
+        projected_data = np.transpose(
+            np.array(
+                [projected_data[:, :, ind[0], ind[1]] for ind in indices]
+            ),
+            axes=(1, 2, 0),
+        )
 
         if color_list is None:
-            colors = np.array([self.color_dict[i] for i in range(len(orbital_indices_long))])
+            colors = np.array(
+                [self.color_dict[i] for i in range(len(orbital_indices_long))]
+            )
         else:
             colors = color_list
 
@@ -2273,8 +2624,11 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}({i[1]})' for i in zip(atom_indices, orbital_symbols_long)],
-                colors=colors
+                names=[
+                    f"{i[0]}({i[1]})"
+                    for i in zip(atom_indices, orbital_symbols_long)
+                ],
+                colors=colors,
             )
 
     def plot_atom_spd(
@@ -2282,17 +2636,17 @@ class Band:
         ax,
         atom_spd_dict,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2304,7 +2658,7 @@ class Band:
             atom_spd_dict (dict): Dictionary to determine the atom and spd orbitals to project onto
                 Format: {0: 'spd', 1: 'sp', 2: 's'} where 0,1,2 are atom indicies in the POSCAR
             display_order (None or str): The available options are None, 'all', 'dominant' where None
-                plots the scatter points in the order presented in the atom_spd_dict, 'all' plots the 
+                plots the scatter points in the order presented in the atom_spd_dict, 'all' plots the
                 scatter points largest --> smallest to all points are visable, and 'dominant' plots
                 the scatter points smallest --> largest so only the dominant color is visable.
             scale_factor (float): Factor to scale weights. This changes the size of the
@@ -2320,17 +2674,26 @@ class Band:
         orbital_symbols = list(atom_spd_dict.values())
         number_orbitals = [len(i) for i in orbital_symbols]
         atom_indices = np.repeat(atom_indices, number_orbitals)
-        orbital_symbols_long = np.hstack([[o for o in  orb] for orb in orbital_symbols])
-        orbital_indices = np.hstack([[self.spd_relations[o] for o in  orb] for orb in orbital_symbols])
+        orbital_symbols_long = np.hstack(
+            [[o for o in orb] for orb in orbital_symbols]
+        )
+        orbital_indices = np.hstack(
+            [[self.spd_relations[o] for o in orb] for orb in orbital_symbols]
+        )
         indices = np.vstack([atom_indices, orbital_indices]).T
 
         projected_data = self._sum_atoms(atoms=atom_indices, spd=True)
-        projected_data = np.transpose(np.array([
-            projected_data[:,:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,2,0))
+        projected_data = np.transpose(
+            np.array(
+                [projected_data[:, :, ind[0], ind[1]] for ind in indices]
+            ),
+            axes=(1, 2, 0),
+        )
 
         if color_list is None:
-            colors = np.array([self.color_dict[i] for i in range(len(orbital_symbols_long))])
+            colors = np.array(
+                [self.color_dict[i] for i in range(len(orbital_symbols_long))]
+            )
         else:
             colors = color_list
 
@@ -2353,28 +2716,29 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}({i[1]})' for i in zip(atom_indices, orbital_symbols_long)],
-                colors=colors
+                names=[
+                    f"{i[0]}({i[1]})"
+                    for i in zip(atom_indices, orbital_symbols_long)
+                ],
+                colors=colors,
             )
-
-
 
     def plot_elements(
         self,
         ax,
         elements,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2392,7 +2756,9 @@ class Band:
             band_color (string): Color of the plain band structure
         """
         if color_list is None:
-            colors = np.array([self.color_dict[i] for i in range(len(elements))])
+            colors = np.array(
+                [self.color_dict[i] for i in range(len(elements))]
+            )
         else:
             colors = color_list
 
@@ -2417,23 +2783,22 @@ class Band:
         if legend:
             self._add_legend(ax, names=elements, colors=colors)
 
-
     def plot_element_orbitals(
         self,
         ax,
         element_orbital_dict,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2442,7 +2807,7 @@ class Band:
 
         Parameters:
             ax (matplotlib.pyplot.axis): axis to plot the data on
-            element_orbital_pairs (list[list]): List of list in the form of 
+            element_orbital_pairs (list[list]): List of list in the form of
                 [[element symbol, orbital index], [element symbol, orbital_index], ...]
             scale_factor (float): factor to scale weights. this changes the size of the
                 points in the scatter plot
@@ -2455,18 +2820,29 @@ class Band:
         orbital_indices = list(element_orbital_dict.values())
         number_orbitals = [len(i) for i in orbital_indices]
         element_symbols_long = np.repeat(element_symbols, number_orbitals)
-        element_indices = np.repeat(range(len(element_symbols)), number_orbitals)
-        orbital_symbols_long = np.hstack([[self.orbital_labels[o] for o in  orb] for orb in orbital_indices])
+        element_indices = np.repeat(
+            range(len(element_symbols)), number_orbitals
+        )
+        orbital_symbols_long = np.hstack(
+            [[self.orbital_labels[o] for o in orb] for orb in orbital_indices]
+        )
         orbital_indices_long = np.hstack(orbital_indices)
         indices = np.vstack([element_indices, orbital_indices_long]).T
 
-        projected_data = self._sum_elements(elements=element_symbols, orbitals=True)
-        projected_data = np.transpose(np.array([
-            projected_data[:,:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,2,0))
+        projected_data = self._sum_elements(
+            elements=element_symbols, orbitals=True
+        )
+        projected_data = np.transpose(
+            np.array(
+                [projected_data[:, :, ind[0], ind[1]] for ind in indices]
+            ),
+            axes=(1, 2, 0),
+        )
 
         if color_list is None:
-            colors = np.array([self.color_dict[i] for i in range(len(orbital_indices_long))])
+            colors = np.array(
+                [self.color_dict[i] for i in range(len(orbital_indices_long))]
+            )
         else:
             colors = color_list
 
@@ -2489,8 +2865,11 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}({i[1]})' for i in zip(element_symbols_long, orbital_symbols_long)],
-                colors=colors
+                names=[
+                    f"{i[0]}({i[1]})"
+                    for i in zip(element_symbols_long, orbital_symbols_long)
+                ],
+                colors=colors,
             )
 
     def plot_element_spd(
@@ -2498,17 +2877,17 @@ class Band:
         ax,
         element_spd_dict,
         scale_factor=5,
-        erange=[-6,6],
+        erange=[-6, 6],
         display_order=None,
         color_list=None,
         legend=True,
         linewidth=0.75,
-        band_color='black',
+        band_color="black",
         heatmap=False,
         bins=400,
         sigma=3,
-        cmap='hot',
-        vlinecolor='black',
+        cmap="hot",
+        vlinecolor="black",
         powernorm=False,
         gamma=0.5,
     ):
@@ -2537,18 +2916,29 @@ class Band:
         orbital_symbols = list(element_spd_dict.values())
         number_orbitals = [len(i) for i in orbital_symbols]
         element_symbols_long = np.repeat(element_symbols, number_orbitals)
-        element_indices = np.repeat(range(len(element_symbols)), number_orbitals)
-        orbital_symbols_long = np.hstack([[o for o in  orb] for orb in orbital_symbols])
-        orbital_indices = np.hstack([[self.spd_relations[o] for o in  orb] for orb in orbital_symbols])
+        element_indices = np.repeat(
+            range(len(element_symbols)), number_orbitals
+        )
+        orbital_symbols_long = np.hstack(
+            [[o for o in orb] for orb in orbital_symbols]
+        )
+        orbital_indices = np.hstack(
+            [[self.spd_relations[o] for o in orb] for orb in orbital_symbols]
+        )
         indices = np.vstack([element_indices, orbital_indices]).T
 
         projected_data = self._sum_elements(elements=element_symbols, spd=True)
-        projected_data = np.transpose(np.array([
-            projected_data[:,:,ind[0],ind[1]] for ind in indices
-        ]), axes=(1,2,0))
+        projected_data = np.transpose(
+            np.array(
+                [projected_data[:, :, ind[0], ind[1]] for ind in indices]
+            ),
+            axes=(1, 2, 0),
+        )
 
         if color_list is None:
-            colors = np.array([self.color_dict[i] for i in range(len(orbital_symbols_long))])
+            colors = np.array(
+                [self.color_dict[i] for i in range(len(orbital_symbols_long))]
+            )
         else:
             colors = color_list
 
@@ -2571,40 +2961,43 @@ class Band:
         if legend:
             self._add_legend(
                 ax,
-                names=[f'{i[0]}({i[1]})' for i in zip(element_symbols_long, orbital_symbols_long)],
-                colors=colors
+                names=[
+                    f"{i[0]}({i[1]})"
+                    for i in zip(element_symbols_long, orbital_symbols_long)
+                ],
+                colors=colors,
             )
 
 
 if __name__ == "__main__":
     #  M = [
-        #  [0,1,-1],
-        #  [1,-1,0],
-        #  [-14,-14,-14]
+    #  [0,1,-1],
+    #  [1,-1,0],
+    #  [-14,-14,-14]
     #  ]
-#
+    #
     #  high_symm_points = [
-        #  [2/3, 1/3, 1/3],
-        #  [0.0, 0.0, 0],
-        #  [2/3, 1/3, 1/3],
+    #  [2/3, 1/3, 1/3],
+    #  [0.0, 0.0, 0],
+    #  [2/3, 1/3, 1/3],
     #  ]
-#
+    #
     #  high_symm_points = [
-        #  [0.1, 0.1, 0],
-        #  [0.0, 0.0, 0],
-        #  [0.1, 0.1, 0],
+    #  [0.1, 0.1, 0],
+    #  [0.0, 0.0, 0],
+    #  [0.1, 0.1, 0],
     #  ]
 
     #  band = Band(
-        #  folder="../../vaspvis_data/bandAGA",
-        #  projected=True,
-        #  interpolate=False,
-        #  unfold=True,
-        #  M=M,
-        #  high_symm_points=high_symm_points,
-        #  n=40,
-        #  kpath=[['A', 'G'], ['G', 'A']],
-        #  custom_kpath=[1,2,2,-1],
+    #  folder="../../vaspvis_data/bandAGA",
+    #  projected=True,
+    #  interpolate=False,
+    #  unfold=True,
+    #  M=M,
+    #  high_symm_points=high_symm_points,
+    #  n=40,
+    #  kpath=[['A', 'G'], ['G', 'A']],
+    #  custom_kpath=[1,2,2,-1],
     #  )
     #  fig, ax = plt.subplots(figsize=(4,3), dpi=400)
     #  band.plot_spd(ax=ax, scale_factor=100)
@@ -2612,75 +3005,70 @@ if __name__ == "__main__":
     #  fig.tight_layout()
     #  fig.savefig('test.png')
 
-    M = [[-0.,  0., -1.],[ 1., -1.,  0.],[-16., -16.,  16.]]
+    M = [[-0.0, 0.0, -1.0], [1.0, -1.0, 0.0], [-16.0, -16.0, 16.0]]
 
     high_symm_points = [
-         [0.5, 0.0, 0.5],     
-         [0.0, 0.0, 0.0],          
-         [0.5, 0.0, 0.5],
+        [0.5, 0.0, 0.5],
+        [0.0, 0.0, 0.0],
+        [0.5, 0.0, 0.5],
     ]
-        
 
     band_up = Band(
         #  folder="../../vaspvis_data/band_EuS_bulk/band",
         folder="../../vaspvis_data/band_EuS_slab/band",
         interpolate=False,
-        soc_axis='z',
-        spin='up',
+        soc_axis="z",
+        spin="up",
         unfold=True,
         M=M,
         high_symm_points=high_symm_points,
         n=30,
         new_n=50,
-        kpath=[['X', 'G'], ['G', 'X']],
+        kpath=[["X", "G"], ["G", "X"]],
     )
     band_down = Band(
         #  folder="../../vaspvis_data/band_EuS_bulk/band",
         folder="../../vaspvis_data/band_EuS_slab/band",
         interpolate=False,
-        soc_axis='z',
-        spin='down',
+        soc_axis="z",
+        spin="down",
         unfold=True,
         M=M,
         high_symm_points=high_symm_points,
         n=30,
         new_n=50,
-        kpath=[['X', 'G'], ['G', 'X']]
+        kpath=[["X", "G"], ["G", "X"]],
     )
-    fig, ax = plt.subplots(figsize=(2.5,4), dpi=400)
+    fig, ax = plt.subplots(figsize=(2.5, 4), dpi=400)
     band_up.plot_plain(
         ax=ax,
-        sp_color='red',
-        erange=[-6,3],
+        sp_color="red",
+        erange=[-6, 3],
         sp_scale_factor=1,
         scale_factor=4,
     )
     band_down.plot_plain(
         ax=ax,
-        sp_color='blue',
-        erange=[-6,3],
+        sp_color="blue",
+        erange=[-6, 3],
         sp_scale_factor=1,
         scale_factor=4,
     )
-    ax.set_ylim(-6,3)
+    ax.set_ylim(-6, 3)
     fig.tight_layout()
-    fig.savefig('unfold_test.png')
+    fig.savefig("unfold_test.png")
 
-    fig1, ax1 = plt.subplots(figsize=(2.5,4), dpi=400)
+    fig1, ax1 = plt.subplots(figsize=(2.5, 4), dpi=400)
     band_hse = Band(
-        folder='../../vaspvis_data/band_InAs_hse',
+        folder="../../vaspvis_data/band_InAs_hse",
         interpolate=False,
         projected=True,
-        custom_kpath=[-1,1]
+        custom_kpath=[-1, 1],
     )
     band_hse.plot_spd(
-       ax=ax1, 
+        ax=ax1,
     )
-    ax1.set_ylim([-3,3])
+    ax1.set_ylim([-3, 3])
     fig1.tight_layout(pad=0.4)
-    fig1.savefig('hse.png')
+    fig1.savefig("hse.png")
     #  fig.savefig('bulk_test.png')
-        
-
-
-
