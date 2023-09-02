@@ -5,8 +5,8 @@ from pymatgen.symmetry.bandstructure import HighSymmKpath
 from pymatgen.core.periodic_table import Element
 from vaspvis.unfold import unfold, make_kpath, removeDuplicateKpoints
 from pymatgen.core.periodic_table import Element
-from pyprocar.utilsprocar import UtilsProcar
-from pyprocar.procarparser import ProcarParser
+from pyprocar.utils.utilsprocar import UtilsProcar
+from pyprocar.io.procarparser import ProcarParser
 from functools import reduce
 import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
