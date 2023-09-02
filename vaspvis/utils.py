@@ -19,8 +19,8 @@ from ase.build import niggli_reduce, sort
 from ase.io import read, write
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
-from pyprocar.utilsprocar import UtilsProcar
-from pyprocar.procarparser import ProcarParser
+from pyprocar.utils.utilsprocar import UtilsProcar
+from pyprocar.io.procarparser import ProcarParser
 import matplotlib.pyplot as plt
 from fastdtw import fastdtw
 import numpy as np
