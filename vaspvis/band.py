@@ -884,8 +884,16 @@ class Band:
             index = range(len(slices))
 
         for j, i in enumerate(index):
-            cell = self.poscar.structure.lattice.matrix
-            kpt_c = np.dot(self.kpoints[slices[i]], np.linalg.inv(cell).T)
+            inv_cell = deepcopy(self.poscar.structure.lattice.inv_matrix)
+            inv_cell_norms = np.linalg.norm(inv_cell, axis=1)
+            inv_cell /= inv_cell_norms.min()
+
+            # If you want to be able to compare only identical relative cell lengths
+            kpt_c = np.dot(self.kpoints[slices[i]], inv_cell.T)
+
+            # If you want to be able to compare any cell length. Maybe straining an orthorhombic cell or something like that
+            # This will mess up relative distances though
+            # kpt_c = self.kpoints[slices[i]]
             kdist = np.r_[
                 0, np.cumsum(np.linalg.norm(np.diff(kpt_c, axis=0), axis=1))
             ]
