@@ -10,7 +10,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=find_packages(),
-    install_requires = ['pymatgen', 'matplotlib', 'numpy', 'pandas', 'scipy', 'ase', 'pychemia', 'pyprocar', 'fastdtw', 'sklearn'],
+    install_requires = ['pymatgen', 'matplotlib', 'numpy', 'pandas', 'scipy', 'ase', 'pychemia', 'pyprocar', 'fastdtw', 'scikit-learn'],
     url='https://github.com/DerekDardzinski/vaspvis',
     authour='Derek Dardzinski',
     authour_email='dardzinski.derek@gmail.com',
