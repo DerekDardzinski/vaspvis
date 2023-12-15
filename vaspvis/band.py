@@ -386,7 +386,6 @@ class Band:
         return eigenvalues, kpoints
 
     def _load_bands_unfold(self):
-
         if self.spin == "up":
             spin = 0
         if self.spin == "down":
@@ -902,7 +901,7 @@ class Band:
             else:
                 kdists.append(kdist + kdists[-1][-1])
 
-        kdists = np.array(kdists)
+        # kdists = np.array(kdists)
 
         return kdists
 
@@ -1268,11 +1267,21 @@ class Band:
                 == True
             )[0]
 
+            segements = []
+            for i in range(0, len(index) - 1):
+                if not i % 2:
+                    segements.append([index[i], index[i + 1]])
+
+            print(segements)
+
             num_kpts = int(len(self.kpoints) / (len(index) / 2))
             slices = [
                 slice(i * num_kpts, (i + 1) * num_kpts, None)
                 for i in range(int(len(index) / 2))
             ]
+            print(slices)
+            slices = [slice(i[0], i[1] + 1, None) for i in segements]
+            print(slices)
 
         if unfold and not hse:
             n = int(len(self.kpoints) / len(self.kpath))
@@ -1806,7 +1815,7 @@ class Band:
                 vlinecolor=vlinecolor,
             )
 
-        ax.set_xlim(0, np.max(self._get_k_distance()))
+        ax.set_xlim(0, np.concatenate(self._get_k_distance()).max())
 
     def _plot_projected_general(
         self,
