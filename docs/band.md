@@ -1,0 +1,3 @@
+## band.py
+
+::: vaspvis.band

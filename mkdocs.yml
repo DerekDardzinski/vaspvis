@@ -1,0 +1,28 @@
+site_name: VaspVis Documentation
+
+nav:
+  - Home: index.md
+  - API: 
+      - Standardized Plots: standard.md
+      - Band Structure: band.md
+      - Density of States: dos.md
+      - Charge Transfer Plots: charge.md
+      - STM Images: stm.md
+
+plugins:
+  - search
+  - mkdocstrings
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+

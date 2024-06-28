@@ -1272,16 +1272,16 @@ class Band:
                 if not i % 2:
                     segements.append([index[i], index[i + 1]])
 
-            print(segements)
+            # print(segements)
 
             num_kpts = int(len(self.kpoints) / (len(index) / 2))
             slices = [
                 slice(i * num_kpts, (i + 1) * num_kpts, None)
                 for i in range(int(len(index) / 2))
             ]
-            print(slices)
+            # print(slices)
             slices = [slice(i[0], i[1] + 1, None) for i in segements]
-            print(slices)
+            # print(slices)
 
         if unfold and not hse:
             n = int(len(self.kpoints) / len(self.kpath))
@@ -1533,9 +1533,9 @@ class Band:
         slices = self._get_slices(unfold=self.unfold, hse=self.hse)
         wave_vector_segments = self._get_k_distance()
 
-        if self.soc_axis is not None and self.lsorbit:
-            color = "black"
-            linestyle = "-"
+        # if self.soc_axis is not None and self.lsorbit:
+        #     color = "black"
+        #     linestyle = "-"
 
         if self.soc_axis is not None and self.lsorbit:
             if self.unfold:
@@ -1685,7 +1685,7 @@ class Band:
                         wave_vectors_tile,
                         eigenvalues_ravel,
                         c=color,
-                        ec=None,
+                        ec=[(1, 1, 1, 0)],
                         s=scale_factor * spectral_weights_ravel,
                         zorder=0,
                     )
@@ -1696,7 +1696,7 @@ class Band:
                                     wave_vectors,
                                     highlight_eigenvalues,
                                     c=highlight_band_color,
-                                    ec=None,
+                                    ec=[(1, 1, 1, 0)],
                                     s=scale_factor
                                     * highlight_spectral_weights,
                                     zorder=100,
@@ -1717,7 +1717,7 @@ class Band:
                                         ]
                                     ),
                                     c=highlight_band_color,
-                                    ec=None,
+                                    ec=[(1, 1, 1, 0)],
                                     s=scale_factor
                                     * np.ravel(highlight_spectral_weights),
                                     zorder=100,
@@ -1995,16 +1995,16 @@ class Band:
                         * projected_data_ravel
                         * spectral_weights_ravel
                     )
-                    ec = None
+                    # ec = None
                 else:
                     s = scale_factor * projected_data_ravel
-                    ec = colors_tile
+                    # ec = colors_tile
 
                 ax.scatter(
                     wave_vectors_tile,
                     eigenvalues_tile,
                     c=colors_tile,
-                    ec=ec,
+                    ec=[(1, 1, 1, 0)],
                     s=s,
                     zorder=100,
                 )
@@ -2125,7 +2125,7 @@ class Band:
                     wave_vectors_tile,
                     eigenvalues_ravel,
                     c=color,
-                    ec=None,
+                    ec=[(1, 1, 1, 0)],
                     s=scale_factor * spectral_weights_ravel,
                     zorder=0,
                 )
@@ -2135,7 +2135,7 @@ class Band:
                             wave_vectors,
                             highlight_eigenvalues,
                             c=highlight_band_color,
-                            ec=None,
+                            ec=[(1, 1, 1, 0)],
                             s=scale_factor * highlight_spectral_weights,
                             zorder=100,
                         )

@@ -1,0 +1,3 @@
+## standard.py
+
+::: vaspvis.standard
