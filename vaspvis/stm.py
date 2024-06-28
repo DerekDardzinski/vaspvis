@@ -21,7 +21,7 @@ class STM:
     """
     This class contains all the methods for generating STM images with VASP
     """
-    
+
     def __init__(
         self,
         folder,
@@ -54,9 +54,9 @@ class STM:
             data = parchg.data['total']
             np.save(os.path.join(self.folder, 'parchg.npy'), data)
 
-        a_vals = np.linspace(0,1,data.shape[0])
-        b_vals = np.linspace(0,1,data.shape[1])
-        c_vals = np.linspace(0,1,data.shape[2])
+        a_vals = np.linspace(0, 1, data.shape[0], endpoint=False)
+        b_vals = np.linspace(0, 1, data.shape[1], endpoint=False)
+        c_vals = np.linspace(0, 1, data.shape[2], endpoint=False)
 
         return data, a_vals, b_vals, c_vals
 
@@ -69,7 +69,7 @@ class STM:
         return bottom_surface, bottom_ind, top_surface, top_ind
 
     def _interp(self, x, x1, x2, y1, y2):
-        return y1 + (((y2 - y1) / (x2 - x1)) * (x - x1)) 
+        return y1 + (((y2 - y1) / (x2 - x1)) * (x - x1))
 
     def _rotate_structure(self, structure, angle):
         copy_structure = copy.copy(structure)
@@ -179,7 +179,7 @@ class STM:
         min_ind = np.argmin([a_norm, b_norm])
         ratio = np.max([a_norm, b_norm]) / np.min([a_norm, b_norm])
         ratio_array[min_ind] = ratio
-        
+
         return ratio_array
 
     def _get_square(self, a, b):
