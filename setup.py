@@ -23,7 +23,7 @@ setup(
         "scikit-learn",
     ],
     url="https://github.com/DerekDardzinski/vaspvis",
-    authour="Derek Dardzinski",
-    authour_email="dardzinski.derek@gmail.com",
+    author="Derek Dardzinski",
+    author_email="dardzinski.derek@gmail.com",
     license="MIT",
 )
