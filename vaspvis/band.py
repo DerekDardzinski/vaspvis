@@ -24,6 +24,7 @@ import pandas as pd
 import time
 from copy import deepcopy
 import os
+from typing import Optional
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import interp1d
 
@@ -72,6 +73,7 @@ class Band:
         custom_kpath=None,
         soc_axis=None,
         stretch_factor=1.0,
+        efermi_folder=None
     ):
         """
         Initialize parameters upon the generation of this class
@@ -95,25 +97,29 @@ class Band:
             M (list[list]): Transformation matrix for unfolding calculations. Can be found using
                 the conver_slab function in the utils module.
             high_symm_points (list[list]): Coordinates of the high symmetry points of the bulk
-                Brilloin zone for an unfolded calculation.
+                Brillouin zone for an unfolded calculation.
             shift_efermi (float): Gives the option to shift the fermi energy by the specified value
             interpolate (bool): Determines is the data between each high symmetry point should be
                 interpolated or not.
             new_n (int): New number of k-points in between each high symmetry point.
             custom_kpath (list): Custom kpath that can be selected is the user desires.
-                Given a path G-X-W-L-G-K then there are 5 segements to choose from
+                Given a path G-X-W-L-G-K then there are 5 segments to choose from
                 [1 -> G-X, 2 -> X-W, 3 -> W-L, 4 -> L-G, 5 -> G-K]. If a user wanted to
                 plot only the path G-X-W they can set custom_kpath=[1,2]. If a user wanted
                 to flip the k-path of a segment, then the index should be made negative, so
                 if the desired path was G-X|L-W then custom_kpath=[1,-3]
-            soc_axis (None or str): This parameter can either take the value of None or the
-                it can take the value of 'x', 'y', or 'z'. If either 'x', 'y', or 'z' are given
+            soc_axis (str | None): This parameter can either take the value of None or
+                the value of 'x', 'y', or 'z'. If either 'x', 'y', or 'z' are given
                 then spin='up' states will be defined by positive values of this spin-component
                 and spin='down' states will be defined by negative values of this spin-component.
                 This will only be used for showing a pseudo-spin-polarized plot for calculations
                 that have SOC enabled.
             stretch_factor (float): Used to scale the eigenvalues by a certain constant. Useful for comparing to ARPES data.
                 Default is scale_factor = 1.0 (i.e. no scaling)
+            efermi_folder (str | None): The folder containing the OUTCAR file that displays the E-fermi.
+                Default is None, meaning it is the same directory as the band calculation directory `folder`.
+                Ideally, it should be set to the working directory of an SCF calculation folder.
+
         """
         self.interpolate = interpolate
         self.soc_axis = soc_axis
@@ -122,14 +128,18 @@ class Band:
         # self.bandgap = bandgap
         # self.printbg = printbg
         self.eigenval = Eigenval(os.path.join(folder, "EIGENVAL"))
-        self.efermi = (
-            float(
-                os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}')
-                .read()
-                .split()[2]
-            )
-            + shift_efermi
-        )
+
+        outcar_path = os.path.join(efermi_folder or folder, "OUTCAR")
+        try:
+            efermi_output = os.popen(f'grep E-fermi {outcar_path}').read().strip()
+            if not efermi_output:
+                raise ValueError(f"No E-fermi value found in {outcar_path}")
+
+            efermi_value = efermi_output.split()[2]
+            self.efermi = float(efermi_value) + shift_efermi
+        except (IndexError, ValueError) as e:
+            raise ValueError(f"Error reading E-fermi value from {outcar_path}: {e}")
+
         self.poscar = Poscar.from_file(
             os.path.join(folder, "POSCAR"),
             check_for_POTCAR=False,
