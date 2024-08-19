@@ -41,6 +41,7 @@ class Dos:
         combination_method="add",
         sp_method="percentage",
         shift_efermi=0,
+        efermi_folder=None
     ):
         self.folder = folder
         self.spin = spin
@@ -97,14 +98,17 @@ class Dos:
                 )
                 np.save(os.path.join(folder, "dos.npy"), self.doscar["total"])
 
-        self.efermi = (
-            float(
-                os.popen(f'grep E-fermi {os.path.join(folder, "OUTCAR")}')
-                .read()
-                .split()[2]
-            )
-            + shift_efermi
-        )
+        outcar_path = os.path.join(efermi_folder or folder, "OUTCAR")
+        try:
+            efermi_output = os.popen(f'grep E-fermi {outcar_path}').read().strip()
+            if not efermi_output:
+                raise ValueError(f"No E-fermi value found in {outcar_path}")
+
+            efermi_value = efermi_output.split()[2]
+            self.efermi = float(efermi_value) + shift_efermi
+        except (IndexError, ValueError) as e:
+            raise ValueError(f"Error reading E-fermi value from {outcar_path}: {e}")
+
         self.poscar = Poscar.from_file(
             os.path.join(folder, "POSCAR"),
             check_for_POTCAR=False,
